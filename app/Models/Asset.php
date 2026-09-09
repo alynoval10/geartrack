@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\AssetCodeGenerator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
-use App\Services\AssetCodeGenerator;
 
 class Asset extends Model
 {
@@ -38,16 +38,16 @@ class Asset extends Model
     protected static function booted(): void
     {
         static::creating(function (Asset $asset) {
-        if (empty($asset->qr_token)) {
-            $asset->qr_token = (string) Str::uuid();
-        }
+            if (empty($asset->qr_token)) {
+                $asset->qr_token = (string) Str::uuid();
+            }
 
-        if (empty($asset->asset_code)) {
-            $asset->asset_code = AssetCodeGenerator::generate(
-                $asset->category_id
-            );
-        }
-    });
+            if (empty($asset->asset_code)) {
+                $asset->asset_code = AssetCodeGenerator::generate(
+                    $asset->category_id
+                );
+            }
+        });
     }
 
     public function category(): BelongsTo
