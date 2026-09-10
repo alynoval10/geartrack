@@ -2,12 +2,16 @@
 
 namespace App\Filament\Resources\Assets\Tables;
 
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class AssetsTable
 {
@@ -15,53 +19,166 @@ class AssetsTable
     {
         return $table
             ->columns([
+
                 TextColumn::make('asset_code')
-                    ->searchable(),
+                    ->label('Kode Aset')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+
                 TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('category.id')
-                    ->searchable(),
+                    ->label('Nama Aset')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('category.name')
+                    ->label('Kategori')
+                    ->searchable()
+                    ->sortable()
+                    ->badge(),
+
                 TextColumn::make('brand.name')
-                    ->searchable(),
+                    ->label('Merek')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-'),
+
                 TextColumn::make('model')
-                    ->searchable(),
+                    ->label('Model / Tipe')
+                    ->searchable()
+                    ->placeholder('-'),
+
                 TextColumn::make('serial_number')
-                    ->searchable(),
+                    ->label('Nomor Seri')
+                    ->searchable()
+                    ->placeholder('-')
+                    ->toggleable(),
+
                 TextColumn::make('location.name')
-                    ->searchable(),
+                    ->label('Lokasi')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-'),
+
                 TextColumn::make('condition')
-                    ->searchable(),
+                    ->label('Kondisi')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'good' => 'Baik',
+                        'minor_damage' => 'Rusak Ringan',
+                        'major_damage' => 'Rusak Berat',
+                        default => $state ?? '-',
+                    })
+                    ->color(fn (?string $state): string => match ($state) {
+                        'good' => 'success',
+                        'minor_damage' => 'warning',
+                        'major_damage' => 'danger',
+                        default => 'gray',
+                    }),
+
                 TextColumn::make('status')
-                    ->searchable(),
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'available' => 'Tersedia',
+                        'borrowed' => 'Dipinjam',
+                        'maintenance' => 'Perawatan',
+                        'retired' => 'Tidak Digunakan',
+                        default => $state ?? '-',
+                    })
+                    ->color(fn (?string $state): string => match ($state) {
+                        'available' => 'success',
+                        'borrowed' => 'info',
+                        'maintenance' => 'warning',
+                        'retired' => 'gray',
+                        default => 'gray',
+                    }),
+
                 TextColumn::make('acquisition_date')
-                    ->date()
-                    ->sortable(),
-                TextColumn::make('funding_source')
-                    ->searchable(),
-                TextColumn::make('purchase_price')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('photo')
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Tanggal Perolehan')
+                    ->date('d M Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('funding_source')
+                    ->label('Sumber Dana')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('purchase_price')
+                    ->label('Harga Perolehan')
+                    ->money('IDR')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('created_at')
+                    ->label('Ditambahkan')
+                    ->since()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Diperbarui')
+                    ->since()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+
             ->filters([
                 //
             ])
+
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+
+                    ViewAction::make()
+                        ->label('Lihat Detail')
+                        ->icon('heroicon-o-eye'),
+
+                    EditAction::make()
+                        ->label('Edit Aset')
+                        ->icon('heroicon-o-pencil-square'),
+
+                    Action::make('qrLabel')
+                        ->label('Label QR')
+                        ->icon('heroicon-o-qr-code')
+                        ->color('info')
+                        ->url(
+                            fn ($record): string => route(
+                                'asset.qr.label',
+                                [
+                                    'token' => $record->qr_token,
+                                ]
+                            )
+                        )
+                        ->openUrlInNewTab(),
+
+                ]),
             ])
+
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+
+                    BulkAction::make('printQrLabels')
+                        ->label('Cetak Label QR')
+                        ->icon('heroicon-o-qr-code')
+                        ->color('info')
+                        ->action(function (Collection $records) {
+
+                            $ids = $records
+                                ->pluck('id')
+                                ->implode(',');
+
+                            return redirect()->to(
+                                route('asset.qr.bulk-label', [
+                                    'assets' => $ids,
+                                ])
+                            );
+                        }),
+
+                    DeleteBulkAction::make()
+                        ->label('Hapus Aset'),
+
                 ]),
             ]);
     }
