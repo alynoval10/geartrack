@@ -16,6 +16,21 @@ use Filament\Tables\Table;
 
 class BrandResource extends Resource
 {
+   
+    
+    protected static ?string $navigationLabel = 'Merek';
+
+    protected static ?string $modelLabel = 'Merek';
+
+    protected static ?string $pluralModelLabel = 'Merek';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
+    protected static ?int $navigationSort = 2;
+
+
+   
+
+
     protected static ?string $model = Brand::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
