@@ -16,4 +16,9 @@ class ViewAsset extends ViewRecord
             EditAction::make(),
         ];
     }
+
+        protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

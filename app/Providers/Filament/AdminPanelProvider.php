@@ -28,6 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('')
             ->login()
+            ->brandName('GearTrack')
             ->colors([
                 'primary' => Color::Amber,
             ])

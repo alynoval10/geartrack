@@ -11,7 +11,7 @@ class AssetCodeGenerator
     {
         $category = Category::findOrFail($categoryId);
 
-        $prefix = 'GT-' . strtoupper($category->code) . '-';
+        $prefix = 'GT-' . strtoupper($category->asset_prefix) . '-';
 
         $lastAsset = Asset::where('asset_code', 'like', $prefix . '%')
             ->orderByDesc('asset_code')

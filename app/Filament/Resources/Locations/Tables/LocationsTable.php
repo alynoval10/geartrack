@@ -15,24 +15,32 @@ class LocationsTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
                 TextColumn::make('code')
-                    ->searchable(),
+                    ->label('Kode')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('name')
+                    ->label('Lokasi')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+
+                TextColumn::make('description')
+                    ->label('Deskripsi')
+                    ->limit(50)
+                    ->placeholder('-'),
+
+                TextColumn::make('assets_count')
+                    ->label('Jumlah Aset')
+                    ->counts('assets')
+                    ->badge(),
+
                 IconColumn::make('is_active')
+                    ->label('Aktif')
                     ->boolean(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                //
-            ])
+            ->defaultSort('name')
             ->recordActions([
                 EditAction::make(),
             ])
