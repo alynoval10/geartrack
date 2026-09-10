@@ -11,41 +11,54 @@ class AssetStats extends StatsOverviewWidget
     protected static ?int $sort = 1;
 
     protected function getStats(): array
-    {
-        $total = Asset::count();
-        $good = Asset::where('condition', 'good')->count();
+{
+    $total = \App\Models\Asset::count();
 
-        $problem = Asset::whereIn('condition', [
-            'minor_damage',
-            'major_damage',
-        ])->count();
+    $good = \App\Models\Asset::where('condition', 'good')->count();
 
-        $borrowed = Asset::where('status', 'borrowed')->count();
+    $attention = \App\Models\Asset::whereIn(
+        'condition',
+        ['minor_damage', 'major_damage']
+    )->count();
 
-        $percentage = $total > 0
-            ? round(($good / $total) * 100)
-            : 0;
+    $borrowed = \App\Models\Asset::where(
+        'status',
+        'borrowed'
+    )->count();
 
-        return [
-            Stat::make('Total Aset', $total)
-                ->description('Aset terdaftar di GearTrack')
-                ->descriptionIcon('heroicon-m-cube')
-                ->color('primary'),
+    $goodPercentage = $total > 0
+        ? round(($good / $total) * 100)
+        : 0;
 
-            Stat::make('Kondisi Baik', $good)
-                ->description($percentage . '% dari seluruh aset')
-                ->descriptionIcon('heroicon-m-check-circle')
-                ->color('success'),
+    return [
+        Stat::make('Total Aset', $total)
+            ->description('Aset terdaftar di GearTrack')
+            ->descriptionIcon('heroicon-m-cube')
+            ->color('primary'),
 
-            Stat::make('Perlu Perhatian', $problem)
-                ->description('Rusak ringan / berat')
-                ->descriptionIcon('heroicon-m-exclamation-triangle')
-                ->color($problem > 0 ? 'warning' : 'gray'),
+        Stat::make('Kondisi Baik', $good)
+            ->description($goodPercentage . '% dari seluruh aset')
+            ->descriptionIcon('heroicon-m-check-circle')
+            ->color('success'),
 
-            Stat::make('Dipinjam', $borrowed)
-                ->description('Sedang berada di luar')
-                ->descriptionIcon('heroicon-m-arrow-up-right')
-                ->color('info'),
-        ];
-    }
+        Stat::make('Perlu Perhatian', $attention)
+            ->description('Rusak ringan / berat')
+            ->descriptionIcon('heroicon-m-exclamation-triangle')
+            ->color(
+                $attention > 0
+                    ? 'warning'
+                    : 'gray'
+            ),
+
+        Stat::make('Dipinjam', $borrowed)
+            ->description('Sedang berada di luar')
+            ->descriptionIcon('heroicon-m-arrow-up-right')
+            ->color('primary'),
+    ];
+}
+
+public function getColumnSpan(): int|string|array
+{
+    return 'full';
+}
 }

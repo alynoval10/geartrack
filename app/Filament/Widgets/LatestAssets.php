@@ -67,4 +67,9 @@ class LatestAssets extends TableWidget
             ])
             ->paginated(false);
     }
+
+    public function getColumnSpan(): int|string|array
+{
+    return 'full';
+}
 }

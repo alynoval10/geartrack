@@ -163,23 +163,27 @@ class AssetsTable
                         ->label('Cetak Label QR')
                         ->icon('heroicon-o-qr-code')
                         ->color('info')
-                        ->action(function (Collection $records) {
-
+                        ->action(function (Collection $records, $livewire) {
                             $ids = $records
                                 ->pluck('id')
                                 ->implode(',');
 
-                            return redirect()->to(
-                                route('asset.qr.bulk-label', [
-                                    'assets' => $ids,
-                                ])
+                            $url = route('asset.qr.bulk-label', [
+                                'assets' => $ids,
+                            ]);
+
+                            $livewire->js(
+                                "window.open(" . json_encode($url) . ", '_blank')"
                             );
                         }),
 
                     DeleteBulkAction::make()
-                        ->label('Hapus Aset'),
+                        ->label('Hapus Aset')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger'),
 
-                ]),
+                ])
+                    ->label('Tindakan'),
             ]);
     }
 }

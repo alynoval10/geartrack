@@ -2,7 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\AssetStats;
+use App\Filament\Widgets\LatestAssets;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Illuminate\Contracts\View\View;
 
 class Dashboard extends BaseDashboard
 {
@@ -10,19 +13,25 @@ class Dashboard extends BaseDashboard
 
     protected static ?string $navigationLabel = 'Dashboard';
 
-    public function getHeading(): string
+    protected static ?int $navigationSort = -2;
+
+    public function getHeader(): ?View
     {
-        return 'Dashboard';
+        return view('filament.pages.dashboard-header');
     }
 
-    public function getSubheading(): ?string
-    {
-        return 'Pantau dan kelola inventaris TKJ dalam satu tempat.';
-    }
-
-    public function getColumns(): int | array
+    public function getWidgets(): array
     {
         return [
+            AssetStats::class,
+            LatestAssets::class,
+        ];
+    }
+
+    public function getColumns(): int|array
+    {
+        return [
+            'default' => 1,
             'md' => 2,
             'xl' => 4,
         ];

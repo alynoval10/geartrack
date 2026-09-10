@@ -2,3 +2,563 @@
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
+
+
+/*
+|--------------------------------------------------------------------------
+| GearTrack Theme
+|--------------------------------------------------------------------------
+*/
+
+:root {
+    --gt-primary: #0369a1;
+
+    --gt-bg: #f8fafc;
+    --gt-surface: #ffffff;
+    --gt-surface-hover: #f1f5f9;
+
+    --gt-border: #e2e8f0;
+
+    --gt-text: #0f172a;
+    --gt-text-muted: #64748b;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| GearTrack Dark Mode
+|--------------------------------------------------------------------------
+*/
+
+.dark {
+    --gt-bg: #090e17;
+    --gt-surface: #111827;
+    --gt-surface-hover: #1e293b;
+
+    --gt-border: #263244;
+
+    --gt-text: #f8fafc;
+    --gt-text-muted: #94a3b8;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Application
+|--------------------------------------------------------------------------
+*/
+
+.fi-body,
+.fi-main {
+    background: var(--gt-bg);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Topbar
+|--------------------------------------------------------------------------
+*/
+
+.fi-topbar nav {
+    background: var(--gt-surface);
+    border-bottom: 1px solid var(--gt-border);
+    box-shadow: none;
+}
+
+.fi-logo {
+    color: var(--gt-text);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Sidebar
+|--------------------------------------------------------------------------
+*/
+
+.fi-sidebar {
+    background: var(--gt-surface);
+    border-right: 1px solid var(--gt-border);
+    box-shadow: none;
+}
+
+.fi-sidebar-group-label {
+    color: var(--gt-text-muted);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.fi-sidebar-item-button {
+    border-radius: 10px;
+    transition:
+        background-color .15s ease,
+        color .15s ease;
+}
+
+.fi-sidebar-item-button:hover {
+    background: var(--gt-surface-hover);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Header
+|--------------------------------------------------------------------------
+*/
+
+.fi-header-heading {
+    color: var(--gt-text);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Table
+|--------------------------------------------------------------------------
+*/
+
+.fi-ta {
+    overflow: hidden;
+
+    background: var(--gt-surface);
+    border: 1px solid var(--gt-border);
+    border-radius: 16px;
+
+    box-shadow:
+        0 1px 2px rgb(15 23 42 / 0.03),
+        0 8px 24px rgb(15 23 42 / 0.04);
+}
+
+.dark .fi-ta {
+    box-shadow:
+        0 1px 2px rgb(0 0 0 / 0.20),
+        0 8px 24px rgb(0 0 0 / 0.15);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Widgets
+|--------------------------------------------------------------------------
+*/
+
+.fi-wi {
+    border-radius: 16px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Inputs
+|--------------------------------------------------------------------------
+*/
+
+.fi-input-wrp {
+    border-radius: 10px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Buttons
+|--------------------------------------------------------------------------
+*/
+
+.fi-btn {
+    border-radius: 10px;
+}
+
+
+
+/* =========================================================
+   GearTrack Dashboard Hero
+   ========================================================= */
+
+.gt-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
+    min-height: 330px;
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at 85% 20%,
+            rgb(3 105 161 / .14),
+            transparent 35%
+        ),
+        var(--gt-surface);
+
+    border: 1px solid var(--gt-border);
+    border-radius: 22px;
+
+    padding: 42px 46px;
+}
+
+.gt-hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 5px;
+    height: 100%;
+
+    background: #0369a1;
+}
+
+
+/* Content */
+
+.gt-hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gt-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-bottom: 18px;
+
+    color: #0284c7;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+}
+
+.gt-eyebrow-dot {
+    width: 7px;
+    height: 7px;
+
+    background: #0284c7;
+    border-radius: 999px;
+
+    box-shadow: 0 0 0 5px rgb(2 132 199 / .10);
+}
+
+
+.gt-hero-title {
+    margin: 0;
+
+    color: var(--gt-text);
+
+    font-size: clamp(32px, 3.2vw, 48px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -.045em;
+}
+
+.gt-hero-title span {
+    color: #0284c7;
+}
+
+
+.gt-hero-description {
+    max-width: 580px;
+
+    margin: 20px 0 0;
+
+    color: var(--gt-text-muted);
+
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+
+/* Actions */
+
+.gt-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    margin-top: 28px;
+}
+
+.gt-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 42px;
+    padding: 0 16px;
+
+    border-radius: 10px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    text-decoration: none;
+
+    transition:
+        transform .15s ease,
+        background-color .15s ease,
+        border-color .15s ease;
+}
+
+.gt-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.gt-button-primary {
+    background: #0369a1;
+    color: white;
+}
+
+.gt-button-primary:hover {
+    background: #075985;
+    transform: translateY(-1px);
+}
+
+.gt-button-secondary {
+    background: var(--gt-surface-hover);
+    color: var(--gt-text);
+
+    border: 1px solid var(--gt-border);
+
+    cursor: not-allowed;
+}
+
+.gt-coming-soon {
+    margin-left: 3px;
+
+    padding: 2px 6px;
+
+    color: var(--gt-text-muted);
+    background: var(--gt-bg);
+
+    border-radius: 999px;
+
+    font-size: 9px;
+}
+
+
+/* Visual */
+
+.gt-hero-visual {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 230px;
+}
+
+.gt-visual-glow {
+    position: absolute;
+
+    width: 220px;
+    height: 220px;
+
+    background: rgb(2 132 199 / .10);
+
+    border-radius: 999px;
+
+    filter: blur(10px);
+}
+
+
+.gt-qr-card {
+    position: relative;
+    z-index: 2;
+
+    width: 260px;
+
+    padding: 18px;
+
+    background: var(--gt-surface);
+
+    border: 1px solid var(--gt-border);
+    border-radius: 18px;
+
+    box-shadow: 0 18px 45px rgb(15 23 42 / .10);
+
+    transform: rotate(-3deg);
+}
+
+
+.dark .gt-qr-card {
+    box-shadow: 0 20px 50px rgb(0 0 0 / .28);
+}
+
+
+.gt-qr-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 74px;
+    height: 74px;
+
+    margin-bottom: 18px;
+
+    color: #0284c7;
+    background: rgb(2 132 199 / .10);
+
+    border-radius: 14px;
+}
+
+.gt-qr-icon svg {
+    width: 48px;
+    height: 48px;
+}
+
+
+.gt-device-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.gt-device-info > span {
+    color: #0284c7;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.gt-device-info strong {
+    color: var(--gt-text);
+
+    font-size: 14px;
+}
+
+.gt-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    margin-top: 8px;
+
+    color: var(--gt-text-muted);
+
+    font-size: 10px;
+}
+
+.gt-status > span {
+    width: 7px;
+    height: 7px;
+
+    background: #10b981;
+    border-radius: 999px;
+}
+
+
+/* Floating status */
+
+.gt-floating-card {
+    position: absolute;
+    z-index: 3;
+
+    right: 5%;
+    bottom: 8%;
+
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 10px 13px;
+
+    background: var(--gt-surface);
+
+    border: 1px solid var(--gt-border);
+    border-radius: 12px;
+
+    box-shadow: 0 12px 30px rgb(15 23 42 / .10);
+}
+
+.dark .gt-floating-card {
+    box-shadow: 0 12px 30px rgb(0 0 0 / .25);
+}
+
+.gt-floating-card > svg {
+    width: 20px;
+    height: 20px;
+
+    color: #10b981;
+}
+
+.gt-floating-card div {
+    display: flex;
+    flex-direction: column;
+}
+
+.gt-floating-card strong {
+    color: var(--gt-text);
+
+    font-size: 10px;
+}
+
+.gt-floating-card span {
+    color: var(--gt-text-muted);
+
+    font-size: 9px;
+}
+
+
+/* Mobile */
+
+@media (max-width: 900px) {
+
+    .gt-hero {
+        grid-template-columns: 1fr;
+        padding: 30px;
+    }
+
+    .gt-hero-visual {
+        display: none;
+    }
+
+}
+
+
+
+/*
+|--------------------------------------------------------------------------
+| GearTrack Hero Icon Safety
+|--------------------------------------------------------------------------
+*/
+
+.gt-hero .gt-button > svg {
+    width: 1rem !important;
+    height: 1rem !important;
+    min-width: 1rem !important;
+    min-height: 1rem !important;
+    flex: 0 0 1rem !important;
+}
+
+.gt-hero .gt-qr-icon > svg {
+    width: 3rem !important;
+    height: 3rem !important;
+    max-width: 3rem !important;
+    max-height: 3rem !important;
+}
+
+.gt-hero .gt-floating-card > svg {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    min-width: 1.25rem !important;
+    min-height: 1.25rem !important;
+    flex: 0 0 1.25rem !important;
+}
+
+
+/* GearTrack Hero harus memenuhi dashboard */
+.fi-wi-widget:has(.gt-hero) {
+    grid-column: 1 / -1 !important;
+}

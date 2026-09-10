@@ -30,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->brandName('Gear Track')
-            ->colors([
+                        ->colors([
                     'primary' => Color::generateV3Palette('#0369A1'),
                 ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
@@ -44,6 +44,10 @@ class AdminPanelProvider extends PanelProvider
                 AccountWidget::class,
                 
             ])
+            ->colors([
+    'primary' => Color::generateV3Palette('#0369A1'),
+])
+->viteTheme('resources/css/filament/admin/theme.css')
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
