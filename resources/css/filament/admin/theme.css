@@ -562,3 +562,217 @@
 .fi-wi-widget:has(.gt-hero) {
     grid-column: 1 / -1 !important;
 }
+
+
+/* =========================================================
+   GearTrack Login
+   ========================================================= */
+
+.fi-simple-layout {
+    position: relative;
+    min-height: 100vh;
+    background:
+        radial-gradient(
+            circle at 15% 20%,
+            rgb(3 105 161 / 0.16),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 85% 80%,
+            rgb(14 165 233 / 0.10),
+            transparent 30%
+        ),
+        var(--gt-bg);
+}
+
+/* Pattern dekoratif */
+.fi-simple-layout::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: .35;
+
+    background-image:
+        linear-gradient(
+            rgb(148 163 184 / .08) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgb(148 163 184 / .08) 1px,
+            transparent 1px
+        );
+
+    background-size: 32px 32px;
+}
+
+
+/* Card utama */
+.fi-simple-main {
+    position: relative;
+    z-index: 1;
+
+    border: 1px solid var(--gt-border);
+    border-radius: 22px;
+
+    background: var(--gt-surface);
+
+    box-shadow:
+        0 24px 60px rgb(15 23 42 / .10);
+
+    padding: 34px;
+}
+
+
+/* Dark mode */
+.dark .fi-simple-main {
+    box-shadow:
+        0 25px 65px rgb(0 0 0 / .35);
+}
+
+
+/* Logo / brand */
+.fi-simple-header .fi-logo {
+    color: #0369a1;
+    font-size: 1.7rem;
+    font-weight: 900;
+    letter-spacing: -.045em;
+}
+
+
+/* Judul */
+.fi-simple-header-heading {
+    color: var(--gt-text);
+    font-weight: 800;
+    letter-spacing: -.025em;
+}
+
+
+/* Subjudul */
+.fi-simple-header-subheading {
+    color: var(--gt-text-muted);
+    line-height: 1.6;
+}
+
+
+/* Input lebih modern */
+.fi-simple-main .fi-input-wrp {
+    border-radius: 12px;
+}
+
+
+/* Tombol login */
+.fi-simple-main .fi-btn {
+    min-height: 44px;
+    border-radius: 11px;
+    font-weight: 700;
+}
+
+
+/* Mobile */
+@media (max-width: 640px) {
+    .fi-simple-main {
+        margin-inline: 16px;
+        padding: 26px 22px;
+        border-radius: 18px;
+    }
+}
+
+
+/* =========================================================
+   GearTrack Brand
+   ========================================================= */
+
+.gt-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.gt-brand-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    flex: 0 0 38px;
+
+    border-radius: 11px;
+
+    color: #ffffff;
+    background:
+        linear-gradient(
+            145deg,
+            #0284c7,
+            #0369a1
+        );
+
+    box-shadow:
+        0 8px 18px rgb(3 105 161 / .20);
+}
+
+.gt-brand-mark svg {
+    width: 22px !important;
+    height: 22px !important;
+}
+
+.gt-brand-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1;
+}
+
+.gt-brand-text strong {
+    color: var(--gt-text);
+    font-size: 1.05rem;
+    font-weight: 850;
+    letter-spacing: -.035em;
+}
+
+.gt-brand-text span {
+    margin-top: 5px;
+
+    color: var(--gt-text-muted);
+
+    font-size: .60rem;
+    font-weight: 700;
+
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+
+/* Saat sidebar mengecil, sembunyikan tagline */
+.fi-sidebar.fi-sidebar-open .gt-brand-text {
+    display: flex;
+}
+
+
+/* Login logo sedikit lebih besar */
+.fi-simple-layout .gt-brand {
+    justify-content: center;
+}
+
+.fi-simple-layout .gt-brand-mark {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+}
+
+.fi-simple-layout .gt-brand-mark svg {
+    width: 25px !important;
+    height: 25px !important;
+}
+
+.fi-simple-layout .gt-brand-text strong {
+    font-size: 1.25rem;
+}
+
+.fi-simple-layout .gt-brand-text span {
+    font-size: .62rem;
+}
