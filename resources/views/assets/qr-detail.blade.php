@@ -28,7 +28,7 @@
 
         .header {
             padding: 28px 24px 60px;
-            background: linear-gradient(135deg, #4338ca, #6366f1);
+           background: #0369a1;
             color: white;
         }
 
@@ -59,7 +59,7 @@
         }
 
         .asset-code {
-            color: #4f46e5;
+            color: #0284c7;
             font-size: 13px;
             font-weight: 700;
         }

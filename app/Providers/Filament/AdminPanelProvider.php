@@ -31,8 +31,8 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->brandName('Gear Track')
             ->colors([
-                'primary' => Color::Indigo,
-            ])
+                    'primary' => Color::generateV3Palette('#0369A1'),
+                ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(
                 in: app_path('Filament/Pages'),
