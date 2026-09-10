@@ -8,36 +8,44 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class AssetStats extends StatsOverviewWidget
 {
+    protected static ?int $sort = 1;
+
     protected function getStats(): array
     {
+        $total = Asset::count();
+        $good = Asset::where('condition', 'good')->count();
+
+        $problem = Asset::whereIn('condition', [
+            'minor_damage',
+            'major_damage',
+        ])->count();
+
+        $borrowed = Asset::where('status', 'borrowed')->count();
+
+        $percentage = $total > 0
+            ? round(($good / $total) * 100)
+            : 0;
+
         return [
-            Stat::make('Total Aset', Asset::count())
-                ->description('Seluruh aset terdaftar')
-                ->icon('heroicon-o-cube'),
+            Stat::make('Total Aset', $total)
+                ->description('Aset terdaftar di GearTrack')
+                ->descriptionIcon('heroicon-m-cube')
+                ->color('primary'),
 
-            Stat::make(
-                'Kondisi Baik',
-                Asset::where('condition', 'good')->count()
-            )
-                ->description('Aset dalam kondisi baik')
-                ->icon('heroicon-o-check-circle'),
+            Stat::make('Kondisi Baik', $good)
+                ->description($percentage . '% dari seluruh aset')
+                ->descriptionIcon('heroicon-m-check-circle')
+                ->color('success'),
 
-            Stat::make(
-                'Perlu Perhatian',
-                Asset::whereIn('condition', [
-                    'minor_damage',
-                    'major_damage',
-                ])->count()
-            )
-                ->description('Aset mengalami kerusakan')
-                ->icon('heroicon-o-exclamation-triangle'),
+            Stat::make('Perlu Perhatian', $problem)
+                ->description('Rusak ringan / berat')
+                ->descriptionIcon('heroicon-m-exclamation-triangle')
+                ->color($problem > 0 ? 'warning' : 'gray'),
 
-            Stat::make(
-                'Dipinjam',
-                Asset::where('status', 'borrowed')->count()
-            )
+            Stat::make('Dipinjam', $borrowed)
                 ->description('Sedang berada di luar')
-                ->icon('heroicon-o-arrow-up-tray'),
+                ->descriptionIcon('heroicon-m-arrow-up-right')
+                ->color('info'),
         ];
     }
 }
