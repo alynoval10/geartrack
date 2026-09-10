@@ -30,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('GearTrack')
             ->brandLogo(fn () => view('filament.components.brand-logo'))
             ->brandLogoHeight('2.5rem')
+            ->favicon(asset('favicon.svg'))
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
                 'primary' => Color::generateV3Palette('#0369A1'),
