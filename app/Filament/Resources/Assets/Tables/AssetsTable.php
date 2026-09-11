@@ -12,6 +12,9 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
+use Filament\Tables\Filters\SelectFilter;
+use App\Filament\Exports\AssetExporter;
+use Filament\Actions\ExportAction;
 
 class AssetsTable
 {
@@ -124,9 +127,48 @@ class AssetsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
 
-            ->filters([
-                //
+                        ->filters([
+
+                SelectFilter::make('category')
+                    ->label('Kategori')
+                    ->relationship('category', 'name')
+                    ->searchable()
+                    ->preload(),
+
+                SelectFilter::make('location')
+                    ->label('Lokasi')
+                    ->relationship('location', 'name')
+                    ->searchable()
+                    ->preload(),
+
+                SelectFilter::make('condition')
+                    ->label('Kondisi')
+                    ->options([
+                        'good' => 'Baik',
+                        'minor_damage' => 'Rusak Ringan',
+                        'major_damage' => 'Rusak Berat',
+                    ]),
+
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'available' => 'Tersedia',
+                        'borrowed' => 'Dipinjam',
+                        'maintenance' => 'Perawatan',
+                        'retired' => 'Tidak Digunakan',
+                    ]),
+
             ])
+
+
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Export Aset')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->exporter(AssetExporter::class),
+            ])
+
+
 
             ->recordActions([
                 ActionGroup::make([
