@@ -6,6 +6,7 @@ use App\Services\AssetCodeGenerator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Asset extends Model
 {
@@ -64,4 +65,10 @@ class Asset extends Model
     {
         return $this->belongsTo(Location::class);
     }
+
+    public function histories(): HasMany
+{
+    return $this->hasMany(AssetHistory::class)
+        ->latest();
+}
 }
