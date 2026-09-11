@@ -66,9 +66,16 @@ class Asset extends Model
         return $this->belongsTo(Location::class);
     }
 
-    public function histories(): HasMany
-{
-    return $this->hasMany(AssetHistory::class)
-        ->latest();
-}
+        public function histories(): HasMany
+    {
+        return $this->hasMany(AssetHistory::class)
+            ->latest();
+    }
+
+    public function specifications(): HasMany
+    {
+        return $this->hasMany(AssetSpecification::class)
+            ->orderBy('sort');
+    }
+
 }

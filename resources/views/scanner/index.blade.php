@@ -6,7 +6,7 @@
 
     <title>Scan QR - GearTrack</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+  @vite(['resources/css/app.css', 'resources/js/scanner.js'])
 
     <style>
         * {
@@ -301,52 +301,57 @@ document.addEventListener('DOMContentLoaded', async () => {
     |--------------------------------------------------------------------------
     | Kamera Live
     |--------------------------------------------------------------------------
-    */
-    try {
+  /*
+|--------------------------------------------------------------------------
+| Kamera Live
+|--------------------------------------------------------------------------
+*/
+try {
 
-        const cameras = await Html5Qrcode.getCameras();
+    if (typeof Html5Qrcode === 'undefined') {
+        throw new Error('Library html5-qrcode belum termuat.');
+    }
 
-        if (! cameras.length) {
-            throw new Error('Kamera tidak ditemukan.');
-        }
+    status.textContent = 'Meminta izin kamera...';
+    status.className = '';
 
-        const backCamera =
-            cameras.find(camera =>
-                /back|rear|environment/i.test(camera.label)
-            ) ?? cameras[cameras.length - 1];
+    await scanner.start(
+        {
+            facingMode: 'environment'
+        },
+        {
+            fps: 10,
 
-        await scanner.start(
-            backCamera.id,
-            {
-                fps: 10,
-
-                qrbox: {
-                    width: 240,
-                    height: 240,
-                },
+            qrbox: {
+                width: 240,
+                height: 240,
             },
 
-            processQr,
+            aspectRatio: 1.0,
+        },
 
-            () => {}
-        );
+        processQr,
 
-        cameraRunning = true;
+        () => {}
+    );
 
-        status.textContent =
-            'Kamera aktif — arahkan ke QR aset.';
+    cameraRunning = true;
 
-        status.className = '';
+    status.textContent =
+        'Kamera aktif — arahkan ke QR aset.';
 
-    } catch (error) {
+    status.className = '';
 
-        console.warn('Live camera unavailable:', error);
+} catch (error) {
 
-        status.textContent =
-            'Kamera live tidak tersedia. Gunakan tombol Foto / Pilih QR di bawah.';
+    console.error('Camera error:', error);
 
-        status.className = 'error';
-    }
+    status.textContent =
+        'Kamera gagal dibuka: ' +
+        (error?.message ?? error);
+
+    status.className = 'error';
+}
 
 
     /*

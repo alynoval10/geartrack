@@ -161,6 +161,119 @@
                 box-shadow: 0 20px 50px rgba(15, 23, 42, .08);
             }
         }
+
+
+
+
+
+        .spec-section {
+    margin-top: 20px;
+}
+
+.spec-heading {
+    margin-bottom: 10px;
+
+    color: #64748b;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.spec-card {
+    overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+}
+
+.spec-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 13px 14px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.spec-item:last-child {
+    border-bottom: 0;
+}
+
+.spec-name {
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+.spec-value {
+    max-width: 60%;
+
+    color: #0f172a;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    text-align: right;
+
+    word-break: break-word;
+}
+
+
+.section {
+    margin-top: 18px;
+}
+
+.section-title {
+    margin-bottom: 10px;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.spec-list {
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.spec-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 11px 13px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.spec-row:last-child {
+    border-bottom: 0;
+}
+
+.spec-label {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.spec-value {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: right;
+    word-break: break-word;
+}
+
+
+
     </style>
 </head>
 
@@ -172,6 +285,9 @@
         <div class="brand">GearTrack</div>
         <div class="brand-subtitle">Inventaris TKJ</div>
     </header>
+
+
+
 
     <main class="content">
 
@@ -271,3 +387,65 @@
 
 </body>
 </html>
+
+
+
+
+@if ($asset->specifications->isNotEmpty())
+    <div class="section">
+        <div class="section-title">
+            Spesifikasi Teknis
+        </div>
+
+        <div class="spec-list">
+            @foreach ($asset->specifications as $spec)
+                <div class="spec-row">
+                    <span class="spec-label">
+                        {{ $spec->label }}
+                    </span>
+
+                    <span class="spec-value">
+                        {{ $spec->value ?: 'Belum diisi' }}
+                    </span>
+                </div>
+            @endforeach
+        </div>
+    </div>
+@endif
+
+
+
+
+
+@php
+    $filledSpecifications = $asset->specifications
+        ->filter(fn ($spec) => filled($spec->value));
+@endphp
+
+@if ($filledSpecifications->isNotEmpty())
+    <div class="spec-section">
+
+        <div class="spec-heading">
+            Spesifikasi Teknis
+        </div>
+
+        <div class="spec-card">
+
+            @foreach ($filledSpecifications as $spec)
+                <div class="spec-item">
+
+                    <span class="spec-name">
+                        {{ $spec->label }}
+                    </span>
+
+                    <strong class="spec-value">
+                        {{ $spec->value }}
+                    </strong>
+
+                </div>
+            @endforeach
+
+        </div>
+
+    </div>
+@endif

@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Resources\Assets\RelationManagers\SpecificationsRelationManager;
 
 class AssetResource extends Resource
 {
@@ -57,7 +58,7 @@ class AssetResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            SpecificationsRelationManager::class,
         ];
     }
 

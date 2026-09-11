@@ -8,30 +8,30 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AssetQrController extends Controller
 {
-    public function show(string $token): View
-    {
-        $asset = Asset::with([
-            'category',
-            'brand',
-            'location',
-        ])
-            ->where('qr_token', $token)
-            ->firstOrFail();
+            public function show(string $token)
+        {
+            $asset = \App\Models\Asset::with([
+                'category',
+                'brand',
+                'location',
+                'specifications',
+            ])
+                ->where('qr_token', $token)
+                ->firstOrFail();
 
-        return view('assets.qr-detail', [
-            'asset' => $asset,
-        ]);
-    }
+            return view('assets.qr-detail', compact('asset'));
+        }
 
     public function label(string $token): View
 {
     $asset = Asset::with([
-        'category',
-        'brand',
-        'location',
+    'category',
+    'brand',
+    'location',
+    'specifications',
     ])
-        ->where('qr_token', $token)
-        ->firstOrFail();
+    ->where('qr_token', $token)
+    ->firstOrFail();
 
     $url = rtrim(config('app.url'), '/') . route(
     'asset.qr.show',
