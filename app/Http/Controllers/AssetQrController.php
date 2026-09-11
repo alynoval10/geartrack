@@ -33,9 +33,11 @@ class AssetQrController extends Controller
         ->where('qr_token', $token)
         ->firstOrFail();
 
-    $url = route('asset.qr.show', [
-        'token' => $asset->qr_token,
-    ]);
+    $url = rtrim(config('app.url'), '/') . route(
+    'asset.qr.show',
+    ['token' => $asset->qr_token],
+    false
+);
 
     $qrCode = QrCode::format('svg')
         ->size(300)
