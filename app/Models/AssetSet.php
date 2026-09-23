@@ -26,12 +26,19 @@ class AssetSet extends Model
 
     protected static function booted(): void
     {
+        static::deleting(function (AssetSet $assetSet): void {
+            $assetSet->assets()->eachById(function (Asset $asset): void {
+                $asset->assetSet()->dissociate();
+                $asset->save();
+            });
+        });
+
         static::creating(function (AssetSet $assetSet) {
             if (empty($assetSet->code)) {
                 $nextNumber = (static::max('id') ?? 0) + 1;
 
                 $assetSet->code =
-                    'SET-' . str_pad(
+                    'SET-'.str_pad(
                         $nextNumber,
                         3,
                         '0',

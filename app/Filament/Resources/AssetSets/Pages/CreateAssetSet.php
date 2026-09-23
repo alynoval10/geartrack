@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateAssetSet extends CreateRecord
 {
     protected static string $resource = AssetSetResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl('view', ['record' => $this->getRecord()]);
+    }
 }

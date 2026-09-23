@@ -5,11 +5,18 @@ namespace App\Models;
 use App\Services\AssetCodeGenerator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class Asset extends Model
 {
+    public const SET_ROLES = [
+        'main_pc' => 'PC Utama',
+        'monitor' => 'Monitor',
+        'device' => 'Perangkat Tambahan',
+    ];
+
     protected $fillable = [
         'asset_code',
         'qr_token',
@@ -19,6 +26,8 @@ class Asset extends Model
         'model',
         'serial_number',
         'location_id',
+        'asset_set_id',
+        'set_role',
         'condition',
         'status',
         'acquisition_date',
@@ -38,6 +47,18 @@ class Asset extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (Asset $asset) {
+            if (! $asset->asset_set_id) {
+                $asset->set_role = null;
+            } elseif ($asset->isDirty(['asset_set_id', 'set_role'])) {
+                if (! array_key_exists($asset->set_role ?? '', self::SET_ROLES)) {
+                    throw ValidationException::withMessages([
+                        'set_role' => 'Pilih peran perangkat yang valid.',
+                    ]);
+                }
+            }
+        });
+
         static::creating(function (Asset $asset) {
             if (empty($asset->qr_token)) {
                 $asset->qr_token = (string) Str::uuid();
@@ -66,7 +87,12 @@ class Asset extends Model
         return $this->belongsTo(Location::class);
     }
 
-        public function histories(): HasMany
+    public function assetSet(): BelongsTo
+    {
+        return $this->belongsTo(AssetSet::class);
+    }
+
+    public function histories(): HasMany
     {
         return $this->hasMany(AssetHistory::class)
             ->latest();
@@ -77,5 +103,4 @@ class Asset extends Model
         return $this->hasMany(AssetSpecification::class)
             ->orderBy('sort');
     }
-
 }

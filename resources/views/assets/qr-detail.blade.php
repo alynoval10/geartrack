@@ -374,6 +374,57 @@
 
         </section>
 
+        <div class="section-title">Paket Perangkat</div>
+        <section class="details" aria-label="Paket Perangkat">
+            @if ($asset->assetSet)
+                <div class="detail-row">
+                    <span class="label">Paket</span>
+                    <span class="value">{{ $asset->assetSet->name }}<br>{{ $asset->assetSet->code }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Status Paket</span>
+                    <span class="value">{{ $asset->assetSet->is_active ? 'Aktif' : 'Tidak Aktif' }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Lokasi Paket</span>
+                    <span class="value">{{ $asset->assetSet->location?->name ?? 'Belum ditentukan' }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Peran Perangkat Ini</span>
+                    <span class="value">{{ \App\Models\Asset::SET_ROLES[$asset->set_role] ?? 'Belum ditentukan' }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Kelengkapan Tanpa QR</span>
+                    <span class="value">{{ $asset->assetSet->accessories ?: 'Belum diisi' }}</span>
+                </div>
+                @foreach ($asset->assetSet->assets->sortBy('asset_code') as $member)
+                    <div class="detail-row">
+                        <span class="label">{{ \App\Models\Asset::SET_ROLES[$member->set_role] ?? 'Belum ditentukan' }}</span>
+                        <span class="value">
+                            @if ($member->is($asset))
+                                {{ $member->name }}<br>{{ $member->asset_code }} · Perangkat ini
+                            @else
+                                <a href="{{ route('asset.qr.show', ['token' => $member->qr_token]) }}">{{ $member->name }}<br>{{ $member->asset_code }}</a>
+                            @endif
+                        </span>
+                    </div>
+                @endforeach
+            @else
+                <div class="detail-row"><span class="label">Perangkat ini belum tergabung dalam paket.</span></div>
+            @endif
+        </section>
+
+        @if ($asset->specifications->isNotEmpty())
+            <div class="section-title">Spesifikasi Teknis</div>
+            <section class="details" aria-label="Spesifikasi Teknis">
+                @foreach ($asset->specifications as $spec)
+                    <div class="detail-row">
+                        <span class="label">{{ $spec->label }}</span>
+                        <span class="value">{{ filled($spec->value) ? $spec->value : 'Belum diisi' }}</span>
+                    </div>
+                @endforeach
+            </section>
+        @endif
         <footer class="footer">
             <strong>GearTrack</strong>
             <div class="verified">
@@ -387,65 +438,3 @@
 
 </body>
 </html>
-
-
-
-
-@if ($asset->specifications->isNotEmpty())
-    <div class="section">
-        <div class="section-title">
-            Spesifikasi Teknis
-        </div>
-
-        <div class="spec-list">
-            @foreach ($asset->specifications as $spec)
-                <div class="spec-row">
-                    <span class="spec-label">
-                        {{ $spec->label }}
-                    </span>
-
-                    <span class="spec-value">
-                        {{ $spec->value ?: 'Belum diisi' }}
-                    </span>
-                </div>
-            @endforeach
-        </div>
-    </div>
-@endif
-
-
-
-
-
-@php
-    $filledSpecifications = $asset->specifications
-        ->filter(fn ($spec) => filled($spec->value));
-@endphp
-
-@if ($filledSpecifications->isNotEmpty())
-    <div class="spec-section">
-
-        <div class="spec-heading">
-            Spesifikasi Teknis
-        </div>
-
-        <div class="spec-card">
-
-            @foreach ($filledSpecifications as $spec)
-                <div class="spec-item">
-
-                    <span class="spec-name">
-                        {{ $spec->label }}
-                    </span>
-
-                    <strong class="spec-value">
-                        {{ $spec->value }}
-                    </strong>
-
-                </div>
-            @endforeach
-
-        </div>
-
-    </div>
-@endif

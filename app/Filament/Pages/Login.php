@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Filament\Pages\Auth;
+namespace App\Filament\Pages;
 
 use Filament\Auth\Pages\Login as BaseLogin;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
 
 class Login extends BaseLogin
 {
