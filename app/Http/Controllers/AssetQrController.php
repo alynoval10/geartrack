@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AssetQrController extends Controller
 {
-    public function show(string $token): View
+    public function show(string $token, Request $request): View
     {
         $asset = Asset::with([
             'category',
@@ -21,7 +22,9 @@ class AssetQrController extends Controller
             ->where('qr_token', $token)
             ->firstOrFail();
 
-        return view('assets.qr-detail', compact('asset'));
+        $stockTakeId = filter_var($request->query('stock_take'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: null;
+
+        return view('assets.qr-detail', compact('asset', 'stockTakeId'));
     }
 
     public function label(string $token): View

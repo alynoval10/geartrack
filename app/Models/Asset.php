@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\AssetCodeGenerator;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 class Asset extends Model
 {
+    use HasFactory;
+
     public const SET_ROLES = [
         'main_pc' => 'PC Utama',
         'monitor' => 'Monitor',
@@ -102,5 +105,15 @@ class Asset extends Model
     {
         return $this->hasMany(AssetSpecification::class)
             ->orderBy('sort');
+    }
+
+    public function stockTakeItems(): HasMany
+    {
+        return $this->hasMany(StockTakeItem::class);
+    }
+
+    public function maintenanceReports(): HasMany
+    {
+        return $this->hasMany(MaintenanceReport::class);
     }
 }

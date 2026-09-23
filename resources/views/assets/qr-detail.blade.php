@@ -143,6 +143,31 @@
             text-align: center;
         }
 
+        .operations {
+            display: grid;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .operations a {
+            display: block;
+            padding: 14px 16px;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            color: #075985;
+            background: #f0f9ff;
+            font-weight: 700;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .operations p {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+            text-align: center;
+        }
+
         .verified {
             margin-top: 5px;
             color: #64748b;
@@ -338,6 +363,19 @@
         <section class="details">
 
             <div class="detail-row">
+                <span class="label">Status Aset</span>
+                <span class="value">{{ match ($asset->status) {
+                    'available' => 'Tersedia',
+                    'in_use' => 'Digunakan',
+                    'borrowed' => 'Dipinjam',
+                    'maintenance' => 'Dalam Perawatan',
+                    'lost' => 'Hilang',
+                    'retired' => 'Nonaktif',
+                    default => $asset->status,
+                } }}</span>
+            </div>
+
+            <div class="detail-row">
                 <span class="label">Kategori</span>
                 <span class="value">
                     {{ $asset->category?->name ?? '-' }}
@@ -404,7 +442,7 @@
                             @if ($member->is($asset))
                                 {{ $member->name }}<br>{{ $member->asset_code }} · Perangkat ini
                             @else
-                                <a href="{{ route('asset.qr.show', ['token' => $member->qr_token]) }}">{{ $member->name }}<br>{{ $member->asset_code }}</a>
+                                <a href="{{ route('asset.qr.show', ['token' => $member->qr_token, 'stock_take' => $stockTakeId]) }}">{{ $member->name }}<br>{{ $member->asset_code }}</a>
                             @endif
                         </span>
                     </div>
@@ -425,6 +463,13 @@
                 @endforeach
             </section>
         @endif
+        <nav class="operations" aria-label="Tindakan Petugas">
+            <a href="{{ \App\Filament\Resources\Assets\AssetResource::getUrl('view', ['record' => $asset, 'action' => 'stockTake', 'actionArguments' => ['stock_take_id' => $stockTakeId], 'stock_take' => $stockTakeId], panel: 'admin') }}">Catat Stock Opname</a>
+            <a href="{{ \App\Filament\Resources\Assets\AssetResource::getUrl('view', ['record' => $asset, 'action' => 'reportMaintenance'], panel: 'admin') }}">Laporkan Kerusakan / Perawatan</a>
+            <a href="{{ route('qr.scan', ['stock_take' => $stockTakeId]) }}">Scan Berikutnya</a>
+            <p>Pencatatan dan riwayat penanganan tersedia untuk petugas setelah login.</p>
+        </nav>
+
         <footer class="footer">
             <strong>GearTrack</strong>
             <div class="verified">

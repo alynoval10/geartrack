@@ -110,6 +110,8 @@ class AssetObserver
             },
 
             'status' => match ($value) {
+                'in_use' => 'Digunakan',
+                'lost' => 'Hilang',
                 'available' => 'Tersedia',
                 'borrowed' => 'Dipinjam',
                 'maintenance' => 'Perawatan',

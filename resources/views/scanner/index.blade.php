@@ -123,6 +123,46 @@
             background: #1b2b42;
         }
 
+        .camera-controls {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .camera-button {
+            background: #0369a1;
+            border-color: #0284c7;
+        }
+
+        button:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        button:focus-visible, select:focus-visible, .file-button:focus-within {
+            outline: 3px solid #38bdf8;
+            outline-offset: 3px;
+        }
+
+        .camera-choice label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .camera-choice select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            background: #172235;
+            color: #fff;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
         .file-button svg {
             width: 20px;
             height: 20px;
@@ -165,13 +205,31 @@
         Detail aset akan terbuka secara otomatis.
     </p>
 
+    @if ($stockTakeId)
+        <p class="subtitle">Mode stock opname · Sesi #{{ $stockTakeId }}. Scan aset, lalu pilih Catat Stock Opname.</p>
+    @endif
+
     <div class="scanner-card">
 
-        <div id="reader"></div>
+        <div id="reader" data-stock-take="{{ $stockTakeId }}"></div>
 
-        <div id="status">
-            Menyiapkan kamera...
+        <div id="status" role="status" aria-live="polite">
+            Menyiapkan scanner...
         </div>
+
+        <div class="camera-controls">
+            <div id="camera-choices" class="camera-choice" hidden>
+                <label for="camera-select">Pilih Kamera</label>
+                <select id="camera-select">
+                    <option value="">Otomatis — utamakan kamera belakang</option>
+                </select>
+                <p class="hint">Hentikan kamera terlebih dahulu untuk mengganti kamera.</p>
+            </div>
+            <button id="start-camera" type="button" class="file-button camera-button">Aktifkan Kamera</button>
+            <button id="stop-camera" type="button" class="file-button" hidden>Hentikan Kamera</button>
+        </div>
+
+        <noscript><p class="error">Aktifkan JavaScript di Chrome untuk memindai QR.</p></noscript>
 
         <div class="divider">
             ATAU
@@ -218,7 +276,8 @@
         >
 
         <p class="hint">
-            Jika kamera live tidak tersedia, ambil foto QR menggunakan kamera HP.
+            Kamera live membaca QR secara otomatis tanpa mengambil foto.
+            Foto / Pilih QR tetap tersedia sebagai alternatif.
         </p>
 
     </div>
@@ -230,183 +289,7 @@
 </div>
 
 
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
 
-    const status = document.getElementById('status');
-    const fileInput = document.getElementById('qr-file');
-
-    const scanner = new Html5Qrcode('reader');
-
-    let scanned = false;
-    let cameraRunning = false;
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Proses hasil QR
-    |--------------------------------------------------------------------------
-    */
-    const processQr = async (decodedText) => {
-
-        if (scanned) {
-            return;
-        }
-
-        let url;
-
-        try {
-            url = new URL(decodedText);
-        } catch {
-            status.textContent = 'QR tidak dikenali sebagai label GearTrack.';
-            status.className = 'error';
-            return;
-        }
-
-        /*
-         * QR GearTrack:
-         * /q/{token}
-         */
-        if (! /^\/q\/[^\/]+\/?$/.test(url.pathname)) {
-            status.textContent = 'QR ini bukan label aset GearTrack.';
-            status.className = 'error';
-            return;
-        }
-
-        scanned = true;
-
-        status.textContent = 'Aset ditemukan. Membuka detail...';
-        status.className = 'success';
-
-        if (cameraRunning) {
-            try {
-                await scanner.stop();
-                cameraRunning = false;
-            } catch (error) {
-                console.warn(error);
-            }
-        }
-
-        /*
-         * Gunakan host GearTrack yang sedang dibuka.
-         * Jadi kalau QR masih menyimpan IP lama,
-         * path token tetap dapat digunakan.
-         */
-        window.location.href =
-            window.location.origin + url.pathname;
-    };
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Kamera Live
-    |--------------------------------------------------------------------------
-  /*
-|--------------------------------------------------------------------------
-| Kamera Live
-|--------------------------------------------------------------------------
-*/
-try {
-
-    if (typeof Html5Qrcode === 'undefined') {
-        throw new Error('Library html5-qrcode belum termuat.');
-    }
-
-    status.textContent = 'Meminta izin kamera...';
-    status.className = '';
-
-    await scanner.start(
-        {
-            facingMode: 'environment'
-        },
-        {
-            fps: 10,
-
-            qrbox: {
-                width: 240,
-                height: 240,
-            },
-
-            aspectRatio: 1.0,
-        },
-
-        processQr,
-
-        () => {}
-    );
-
-    cameraRunning = true;
-
-    status.textContent =
-        'Kamera aktif — arahkan ke QR aset.';
-
-    status.className = '';
-
-} catch (error) {
-
-    console.error('Camera error:', error);
-
-    status.textContent =
-        'Kamera gagal dibuka: ' +
-        (error?.message ?? error);
-
-    status.className = 'error';
-}
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Foto / File QR
-    |--------------------------------------------------------------------------
-    */
-    fileInput.addEventListener('change', async (event) => {
-
-        const file = event.target.files[0];
-
-        if (! file) {
-            return;
-        }
-
-        scanned = false;
-
-        status.textContent = 'Membaca QR dari gambar...';
-        status.className = '';
-
-        try {
-
-            /*
-             * scanFile perlu scanner dalam keadaan berhenti.
-             */
-            if (cameraRunning) {
-                try {
-                    await scanner.stop();
-                    cameraRunning = false;
-                } catch (error) {
-                    console.warn(error);
-                }
-            }
-
-            const decodedText =
-                await scanner.scanFile(file, true);
-
-            await processQr(decodedText);
-
-        } catch (error) {
-
-            console.error(error);
-
-            status.textContent =
-                'QR tidak ditemukan pada gambar. Coba foto lebih dekat dan pastikan QR terlihat jelas.';
-
-            status.className = 'error';
-
-            fileInput.value = '';
-        }
-
-    });
-
-});
-</script>
 
 </body>
 </html>

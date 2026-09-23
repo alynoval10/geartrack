@@ -1,22 +1,43 @@
 import { Html5Qrcode } from 'html5-qrcode';
+import { resolveQrDestination } from './qr-destination';
+import { cameraBlockReason, cameraErrorMessage, startLiveCamera } from './scanner-camera';
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     const status = document.getElementById('status');
+    const reader = document.getElementById('reader');
     const fileInput = document.getElementById('qr-file');
+    const startButton = document.getElementById('start-camera');
+    const stopButton = document.getElementById('stop-camera');
+    const cameraSelect = document.getElementById('camera-select');
+    const cameraChoices = document.getElementById('camera-choices');
 
-    if (!status) {
+    if (!status || !reader || !fileInput || !startButton || !stopButton || !cameraSelect || !cameraChoices) {
         return;
     }
 
-    status.textContent = 'Memulai scanner...';
-
-    let scanner;
-    let cameraRunning = false;
+    const scanner = new Html5Qrcode('reader');
+    const blocked = cameraBlockReason(window.isSecureContext, navigator.mediaDevices);
+    let busy = false;
     let scanned = false;
 
-    const showError = (message) => {
+    const showStatus = (message, kind = '') => {
         status.textContent = message;
-        status.className = 'error';
+        status.className = kind;
+    };
+
+    const refreshControls = () => {
+        startButton.disabled = busy || Boolean(blocked);
+        startButton.hidden = scanner.isScanning;
+        stopButton.disabled = busy;
+        stopButton.hidden = !scanner.isScanning;
+        cameraSelect.disabled = busy || scanner.isScanning;
+        fileInput.disabled = busy;
+    };
+
+    const stopCamera = async () => {
+        if (scanner.isScanning) {
+            await scanner.stop();
+        }
     };
 
     const processQr = async (decodedText) => {
@@ -24,139 +45,123 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        let url;
-
+        let destination;
         try {
-            url = new URL(decodedText);
+            destination = resolveQrDestination(decodedText, window.location.origin, reader.dataset.stockTake);
         } catch {
-            showError('QR tidak dikenali sebagai label GearTrack.');
-            return;
-        }
-
-        if (!/^\/q\/[^/]+\/?$/.test(url.pathname)) {
-            showError('QR ini bukan label aset GearTrack.');
+            showStatus('QR tidak dikenali sebagai label GearTrack. Arahkan ke label aset yang benar.', 'error');
             return;
         }
 
         scanned = true;
+        showStatus('Aset ditemukan. Membuka detail...', 'success');
 
-        status.textContent = 'Aset ditemukan. Membuka detail...';
-        status.className = 'success';
-
-        if (cameraRunning) {
-            try {
-                await scanner.stop();
-            } catch (error) {
-                console.warn(error);
-            }
+        try {
+            await stopCamera();
+        } catch (error) {
+            console.warn('GearTrack camera cleanup:', error);
         }
 
-        window.location.href = window.location.origin + url.pathname;
+        window.location.assign(destination);
     };
 
-    try {
-        scanner = new Html5Qrcode('reader');
-
-        status.textContent = 'Meminta izin kamera...';
-        status.className = '';
-
-        await scanner.start(
-            {
-                facingMode: {
-                    exact: 'environment',
-                },
-            },
-            {
-                fps: 10,
-                qrbox: {
-                    width: 240,
-                    height: 240,
-                },
-            },
-            processQr,
-            () => {}
-        );
-
-        cameraRunning = true;
-
-        status.textContent = 'Kamera aktif — arahkan ke QR aset.';
-        status.className = '';
-    } catch (error) {
-        console.error('GearTrack camera error:', error);
-
-        /*
-         * Beberapa HP tidak menerima exact environment.
-         * Coba lagi tanpa "exact".
-         */
-        try {
-            status.textContent = 'Mencoba kamera belakang...';
-
-            if (!scanner) {
-                scanner = new Html5Qrcode('reader');
-            }
-
-            await scanner.start(
-                {
-                    facingMode: 'environment',
-                },
-                {
-                    fps: 10,
-                    qrbox: {
-                        width: 240,
-                        height: 240,
-                    },
-                },
-                processQr,
-                () => {}
-            );
-
-            cameraRunning = true;
-
-            status.textContent = 'Kamera aktif — arahkan ke QR aset.';
-            status.className = '';
-        } catch (fallbackError) {
-            console.error(
-                'GearTrack fallback camera error:',
-                fallbackError
-            );
-
-            showError(
-                'Kamera live tidak dapat dibuka. Gunakan Foto / Pilih QR.'
-            );
+    const loadCameraChoices = async () => {
+        if (typeof navigator.mediaDevices?.enumerateDevices !== 'function') {
+            return;
         }
-    }
 
-    if (fileInput) {
-        fileInput.addEventListener('change', async (event) => {
-            const file = event.target.files?.[0];
+        try {
+            const devices = (await navigator.mediaDevices.enumerateDevices())
+                .filter((device) => device.kind === 'videoinput' && device.deviceId);
+            const previous = cameraSelect.value;
+            cameraSelect.replaceChildren(new Option('Otomatis — utamakan kamera belakang', ''));
 
-            if (!file) {
-                return;
+            devices.forEach((device, index) => {
+                cameraSelect.add(new Option(device.label || `Kamera ${index + 1}`, device.deviceId));
+            });
+
+            if (devices.some((device) => device.deviceId === previous)) {
+                cameraSelect.value = previous;
             }
+            cameraChoices.hidden = devices.length < 2;
+        } catch (error) {
+            console.warn('GearTrack camera list:', error);
+        }
+    };
 
-            scanned = false;
+    startButton.addEventListener('click', async () => {
+        if (busy || blocked || scanner.isScanning) {
+            return;
+        }
 
-            status.textContent = 'Membaca QR dari gambar...';
-            status.className = '';
+        busy = true;
+        scanned = false;
+        refreshControls();
+        showStatus('Meminta izin kamera... Pilih Izinkan jika Chrome menampilkan permintaan.');
 
-            try {
-                if (cameraRunning) {
-                    await scanner.stop();
-                    cameraRunning = false;
-                }
+        try {
+            await startLiveCamera(scanner, () => Html5Qrcode.getCameras(), processQr, cameraSelect.value);
 
-                const decodedText = await scanner.scanFile(file, true);
-
-                await processQr(decodedText);
-            } catch (error) {
-                console.error('GearTrack image scan error:', error);
-
-                showError(
-                    'QR tidak ditemukan pada gambar. Coba ambil foto lebih dekat.'
-                );
-
-                fileInput.value = '';
+            if (!scanned) {
+                showStatus('Kamera live aktif. Arahkan ke QR; hasil terbuka otomatis tanpa memotret.', 'success');
+                await loadCameraChoices();
             }
-        });
-    }
+        } catch (error) {
+            console.warn('GearTrack camera start:', error);
+            showStatus(cameraErrorMessage(error), 'error');
+        } finally {
+            busy = false;
+            refreshControls();
+        }
+    });
+
+    stopButton.addEventListener('click', async () => {
+        if (busy) {
+            return;
+        }
+
+        busy = true;
+        refreshControls();
+        try {
+            await stopCamera();
+            showStatus('Kamera dihentikan. Anda dapat memilih kamera lain lalu mengaktifkannya kembali.');
+        } catch (error) {
+            showStatus(cameraErrorMessage(error), 'error');
+        } finally {
+            busy = false;
+            refreshControls();
+        }
+    });
+
+    fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files?.[0];
+        if (!file || busy) {
+            return;
+        }
+
+        busy = true;
+        scanned = false;
+        refreshControls();
+        showStatus('Membaca QR dari gambar...');
+
+        try {
+            await stopCamera();
+            const decodedText = await scanner.scanFile(file, true);
+            await processQr(decodedText);
+        } catch (error) {
+            console.warn('GearTrack image scan:', error);
+            showStatus('QR tidak ditemukan pada gambar. Coba ambil foto lebih dekat dan pastikan label terlihat jelas.', 'error');
+        } finally {
+            fileInput.value = '';
+            busy = false;
+            refreshControls();
+        }
+    });
+
+    window.addEventListener('pagehide', () => {
+        void stopCamera().catch(() => {});
+    });
+
+    showStatus(blocked || 'Ketuk Aktifkan Kamera, lalu izinkan Chrome memakai kamera.', blocked ? 'error' : '');
+    refreshControls();
 });

@@ -6,6 +6,9 @@ use App\Filament\Resources\Assets\Pages\CreateAsset;
 use App\Filament\Resources\Assets\Pages\EditAsset;
 use App\Filament\Resources\Assets\Pages\ListAssets;
 use App\Filament\Resources\Assets\Pages\ViewAsset;
+use App\Filament\Resources\Assets\RelationManagers\MaintenanceReportsRelationManager;
+use App\Filament\Resources\Assets\RelationManagers\SpecificationsRelationManager;
+use App\Filament\Resources\Assets\RelationManagers\StockTakeItemsRelationManager;
 use App\Filament\Resources\Assets\Schemas\AssetForm;
 use App\Filament\Resources\Assets\Schemas\AssetInfolist;
 use App\Filament\Resources\Assets\Tables\AssetsTable;
@@ -15,11 +18,9 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Resources\Assets\RelationManagers\SpecificationsRelationManager;
 
 class AssetResource extends Resource
 {
-    
     protected static ?string $navigationLabel = 'Aset';
 
     protected static ?string $modelLabel = 'Aset';
@@ -29,10 +30,6 @@ class AssetResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Inventaris';
 
     protected static ?int $navigationSort = 1;
-
-   
-
-
 
     protected static ?string $model = Asset::class;
 
@@ -59,6 +56,8 @@ class AssetResource extends Resource
     {
         return [
             SpecificationsRelationManager::class,
+            StockTakeItemsRelationManager::class,
+            MaintenanceReportsRelationManager::class,
         ];
     }
 
