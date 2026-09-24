@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Asset;
 use App\Models\MaintenanceEntry;
 use App\Models\MaintenanceReport;
+use App\Models\MaintenanceSchedule;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -99,6 +100,16 @@ class MaintenanceService
             }
 
             $report->save();
+            if ($action === 'resolved' && $report->maintenance_schedule_id) {
+                $schedule = MaintenanceSchedule::query()->lockForUpdate()->find($report->maintenance_schedule_id);
+                if ($schedule && $schedule->due_date->equalTo($report->schedule_due_date)) {
+                    $schedule->update([
+                        'last_completed_at' => now(),
+                        'due_date' => $schedule->interval_days ? today()->addDays($schedule->interval_days) : $schedule->due_date,
+                        'is_active' => $schedule->interval_days !== null && $asset->status !== 'retired',
+                    ]);
+                }
+            }
             $this->entry($report, $user, $action, $data['notes'], $data['cost'] ?? 0);
 
             return $report;

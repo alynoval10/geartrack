@@ -8,6 +8,7 @@ use App\Filament\Resources\Assets\Pages\ListAssets;
 use App\Filament\Resources\Assets\Pages\ViewAsset;
 use App\Filament\Resources\Assets\RelationManagers\LoanItemsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\MaintenanceReportsRelationManager;
+use App\Filament\Resources\Assets\RelationManagers\MaintenanceSchedulesRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\SpecificationsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\StockTakeItemsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\TransferItemsRelationManager;
@@ -62,6 +63,7 @@ class AssetResource extends Resource
             TransferItemsRelationManager::class,
             StockTakeItemsRelationManager::class,
             MaintenanceReportsRelationManager::class,
+            MaintenanceSchedulesRelationManager::class,
         ];
     }
 

@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Widgets\AssetStats;
 use App\Filament\Widgets\LatestAssets;
+use App\Filament\Widgets\MaintenanceReminders;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Contracts\View\View;
 
@@ -24,6 +25,7 @@ class Dashboard extends BaseDashboard
     {
         return [
             AssetStats::class,
+            MaintenanceReminders::class,
             LatestAssets::class,
         ];
     }

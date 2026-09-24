@@ -23,6 +23,7 @@ class MaintenanceReportInfolist
                 TextEntry::make('reporter.name')->label('Pelapor')->placeholder('Pengguna dihapus'),
                 TextEntry::make('created_at')->label('Dilaporkan')->dateTime('d M Y H:i'),
                 TextEntry::make('closed_at')->label('Ditutup')->dateTime('d M Y H:i')->placeholder('-'),
+                TextEntry::make('schedule_due_date')->label('Jadwal Asal')->date('d M Y')->placeholder('Tidak terkait jadwal'),
                 TextEntry::make('total_cost')->label('Total Biaya')
                     ->state(fn (MaintenanceReport $record): string => (string) $record->entries()->sum('cost'))->money('IDR'),
                 TextEntry::make('description')->label('Keluhan / Kebutuhan Perawatan')->columnSpanFull(),

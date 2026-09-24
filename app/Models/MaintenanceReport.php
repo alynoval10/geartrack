@@ -30,16 +30,22 @@ class MaintenanceReport extends Model
         'asset_id', 'asset_code', 'asset_name', 'title', 'type', 'description',
         'reported_condition', 'status', 'technician', 'previous_asset_status',
         'reported_by', 'closed_at',
+        'maintenance_schedule_id', 'schedule_due_date',
     ];
 
     protected function casts(): array
     {
-        return ['closed_at' => 'datetime'];
+        return ['closed_at' => 'datetime', 'schedule_due_date' => 'date'];
     }
 
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
+    }
+
+    public function maintenanceSchedule(): BelongsTo
+    {
+        return $this->belongsTo(MaintenanceSchedule::class);
     }
 
     public function reporter(): BelongsTo
