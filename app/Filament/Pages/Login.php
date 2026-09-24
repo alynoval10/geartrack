@@ -13,6 +13,10 @@ class Login extends BaseLogin
 
     public function getSubheading(): ?string
     {
+        if (session()->has('backup_status')) {
+            return session('backup_status');
+        }
+
         return 'Kelola inventaris perangkat TKJ dengan lebih cepat dan terorganisir.';
     }
 }

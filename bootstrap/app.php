@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CoordinateBackups;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(prepend: [CoordinateBackups::class]);
+        $middleware->redirectGuestsTo(fn (): string => route('filament.admin.auth.login'));
         $middleware->trustProxies(
             headers: Request::HEADER_X_FORWARDED_PROTO,
         );
