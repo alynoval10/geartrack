@@ -51,6 +51,8 @@ class AssetForm
 
                 Section::make('Penempatan & Kondisi')
                     ->schema([
+                        TextInput::make('custodian_name')->label('Penanggung Jawab')->maxLength(150)
+                            ->helperText('Gunakan Mutasi Aset untuk perpindahan dengan berita acara.'),
                         Select::make('location_id')
                             ->label('Lokasi')
                             ->relationship('location', 'name')

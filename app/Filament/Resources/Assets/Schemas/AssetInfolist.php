@@ -27,6 +27,7 @@ class AssetInfolist
                     ->placeholder('-'),
                 TextEntry::make('condition'),
                 TextEntry::make('status'),
+                TextEntry::make('custodian_name')->label('Penanggung Jawab')->placeholder('-'),
                 TextEntry::make('acquisition_date')
                     ->date()
                     ->placeholder('-'),

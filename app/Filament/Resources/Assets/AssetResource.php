@@ -10,6 +10,7 @@ use App\Filament\Resources\Assets\RelationManagers\LoanItemsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\MaintenanceReportsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\SpecificationsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\StockTakeItemsRelationManager;
+use App\Filament\Resources\Assets\RelationManagers\TransferItemsRelationManager;
 use App\Filament\Resources\Assets\Schemas\AssetForm;
 use App\Filament\Resources\Assets\Schemas\AssetInfolist;
 use App\Filament\Resources\Assets\Tables\AssetsTable;
@@ -58,6 +59,7 @@ class AssetResource extends Resource
         return [
             SpecificationsRelationManager::class,
             LoanItemsRelationManager::class,
+            TransferItemsRelationManager::class,
             StockTakeItemsRelationManager::class,
             MaintenanceReportsRelationManager::class,
         ];

@@ -36,6 +36,7 @@ class AssetObserver
             'model' => 'Model / Tipe',
             'serial_number' => 'Nomor Seri',
             'location_id' => 'Lokasi',
+            'custodian_name' => 'Penanggung Jawab',
             'asset_set_id' => 'Paket Perangkat',
             'set_role' => 'Peran Dalam Paket',
             'condition' => 'Kondisi',

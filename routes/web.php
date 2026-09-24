@@ -1,9 +1,13 @@
 <?php
 
 use App\Http\Controllers\AssetQrController;
+use App\Http\Controllers\AssetTransferDocumentController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\QrScannerController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/transfers/{transfer}/document', AssetTransferDocumentController::class)
+    ->middleware('auth')->name('transfers.document');
 
 Route::middleware(['auth', 'can:manage-backups', 'throttle:10,1'])->prefix('backups')->name('backups.')->group(function (): void {
     Route::post('/', [BackupController::class, 'store'])->name('store');

@@ -29,6 +29,7 @@ class Asset extends Model
         'model',
         'serial_number',
         'location_id',
+        'custodian_name',
         'asset_set_id',
         'set_role',
         'condition',
@@ -131,5 +132,10 @@ class Asset extends Model
     public function loanItems(): HasMany
     {
         return $this->hasMany(LoanItem::class);
+    }
+
+    public function transferItems(): HasMany
+    {
+        return $this->hasMany(AssetTransferItem::class);
     }
 }
