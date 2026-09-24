@@ -3,8 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Services\BackupService;
+use BackedEnum;
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
+use UnitEnum;
 
 class Backups extends Page
 {
@@ -14,18 +17,38 @@ class Backups extends Page
 
     protected static ?string $navigationLabel = 'Backup & Restore';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Pengaturan';
+    protected static string|BackedEnum|null $navigationIcon =
+        Heroicon::OutlinedCircleStack;
+
+    protected static string|UnitEnum|null $navigationGroup =
+        'Pengaturan';
+
+    protected static ?int $navigationSort = 100;
 
     public static function canAccess(): bool
     {
-        return Gate::allows('manage-backups');
+        return auth()->check();
     }
 
     protected function getViewData(): array
     {
+        $canManageBackups = Gate::allows('manage-backups');
+
         return [
-            'archives' => app(BackupService::class)->archives(),
-            'maxUploadMb' => intdiv(config('backup.max_upload_bytes'), 1024 * 1024),
+            'canManageBackups' => $canManageBackups,
+
+            'backupAccessConfigured' => filled(
+                config('backup.admin_emails', [])
+            ),
+
+            'archives' => $canManageBackups
+                ? app(BackupService::class)->archives()
+                : [],
+
+            'maxUploadMb' => intdiv(
+                config('backup.max_upload_bytes'),
+                1024 * 1024
+            ),
         ];
     }
 }

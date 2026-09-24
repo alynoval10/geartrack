@@ -16,6 +16,17 @@
     </style>
 
     <div class="backup-stack">
+        @if (! $canManageBackups)
+            <x-filament::section heading="Akses backup belum aktif">
+                @if (! $backupAccessConfigured)
+                    <p>Administrator backup belum ditentukan. Minta pengelola server mengaktifkan akses backup untuk akun Anda.</p>
+                @else
+                    <p>Akun Anda belum memiliki izin untuk mengelola backup. Hubungi pengelola server untuk meminta akses.</p>
+                @endif
+                <p>Email akun Anda: <strong>{{ auth()->user()->email }}</strong></p>
+                <p>Setelah akses diaktifkan, muat ulang halaman ini untuk membuat atau memulihkan backup.</p>
+            </x-filament::section>
+        @else
         @if (session('backup_status'))
             <p class="backup-message" role="status">{{ session('backup_status') }}</p>
         @endif
@@ -91,6 +102,7 @@
                 </form>
             </div>
         </x-filament::section>
+        @endif
     </div>
 </x-filament-panels::page>
 

@@ -205,7 +205,40 @@ class BackupTest extends TestCase
         $this->get(route('backups.download', ['name' => 'geartrack-test.zip']))->assertForbidden();
         $this->post(route('backups.restore'))->assertForbidden();
         $this->delete(route('backups.destroy', ['name' => 'geartrack-test.zip']))->assertForbidden();
-        $this->get(Backups::getUrl())->assertForbidden();
+        $this->get(Backups::getUrl())->assertSee('Akses backup belum aktif')
+            ->assertDontSee('Buat Backup Sekarang');
+    }
+
+    public function test_backup_menu_is_visible_when_admin_access_is_not_configured(): void
+    {
+        config(['backup.admin_emails' => []]);
+        $this->actingAs($this->admin());
+
+        $this->get(route('filament.admin.pages.dashboard'))
+            ->assertSee('href="'.Backups::getUrl().'"', false);
+        $this->get(Backups::getUrl())
+            ->assertSee('Administrator backup belum ditentukan.')
+            ->assertSee('admin@example.test')
+            ->assertDontSee('Buat Backup Sekarang')
+            ->assertDontSee('Pulihkan Data');
+    }
+
+    public function test_unlisted_user_cannot_see_archive_details_on_backup_page(): void
+    {
+        $admin = $this->admin();
+        $name = $this->service()->create($admin->email);
+        $this->actingAs(User::factory()->create(['email' => 'operator@example.test']));
+
+        $this->get(Backups::getUrl())
+            ->assertSee('Akun Anda belum memiliki izin')
+            ->assertDontSee($name)
+            ->assertDontSee('Buat Backup Sekarang')
+            ->assertDontSee('Pulihkan Data');
+    }
+
+    public function test_guest_cannot_open_backup_page(): void
+    {
+        $this->get(Backups::getUrl())->assertRedirect(route('filament.admin.auth.login'));
     }
 
     public function test_admin_can_create_list_and_download_private_backup(): void

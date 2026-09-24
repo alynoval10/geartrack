@@ -9,11 +9,18 @@ use Illuminate\Support\Facades\Route;
 Route::get('/transfers/{transfer}/document', AssetTransferDocumentController::class)
     ->middleware('auth')->name('transfers.document');
 
-Route::middleware(['auth', 'can:manage-backups', 'throttle:10,1'])->prefix('backups')->name('backups.')->group(function (): void {
-    Route::post('/', [BackupController::class, 'store'])->name('store');
-    Route::post('/restore', [BackupController::class, 'restore'])->name('restore');
-    Route::get('/{name}', [BackupController::class, 'download'])->name('download');
-    Route::delete('/{name}', [BackupController::class, 'destroy'])->name('destroy');
+Route::middleware('auth')->prefix('backup-actions')->group(function () {
+    Route::post('/create', [BackupController::class, 'store'])
+        ->name('backups.store');
+
+    Route::get('/download/{name}', [BackupController::class, 'download'])
+        ->name('backups.download');
+
+    Route::delete('/delete/{name}', [BackupController::class, 'destroy'])
+        ->name('backups.destroy');
+
+    Route::post('/restore', [BackupController::class, 'restore'])
+        ->name('backups.restore');
 });
 
 Route::get('/scan', [QrScannerController::class, 'index'])
