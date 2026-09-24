@@ -50,7 +50,18 @@ class Asset extends Model
 
     protected static function booted(): void
     {
+        static::deleting(function (Asset $asset): void {
+            if ($asset->loanItems()->whereNotNull('active_asset_id')->exists()) {
+                throw ValidationException::withMessages(['asset' => 'Kembalikan perangkat sebelum menghapus aset.']);
+            }
+        });
+
         static::saving(function (Asset $asset) {
+            if ($asset->exists && $asset->isDirty(['status', 'asset_set_id', 'set_role'])
+                && $asset->loanItems()->whereNotNull('active_asset_id')->exists()
+                && ($asset->isDirty(['asset_set_id', 'set_role']) || ! in_array($asset->status, ['borrowed', 'lost'], true))) {
+                throw ValidationException::withMessages(['status' => 'Aset masih dipinjam. Gunakan pengembalian sebelum mengubah status atau paket.']);
+            }
             if (! $asset->asset_set_id) {
                 $asset->set_role = null;
             } elseif ($asset->isDirty(['asset_set_id', 'set_role'])) {
@@ -115,5 +126,10 @@ class Asset extends Model
     public function maintenanceReports(): HasMany
     {
         return $this->hasMany(MaintenanceReport::class);
+    }
+
+    public function loanItems(): HasMany
+    {
+        return $this->hasMany(LoanItem::class);
     }
 }

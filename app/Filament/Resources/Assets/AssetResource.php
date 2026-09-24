@@ -6,6 +6,7 @@ use App\Filament\Resources\Assets\Pages\CreateAsset;
 use App\Filament\Resources\Assets\Pages\EditAsset;
 use App\Filament\Resources\Assets\Pages\ListAssets;
 use App\Filament\Resources\Assets\Pages\ViewAsset;
+use App\Filament\Resources\Assets\RelationManagers\LoanItemsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\MaintenanceReportsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\SpecificationsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\StockTakeItemsRelationManager;
@@ -56,6 +57,7 @@ class AssetResource extends Resource
     {
         return [
             SpecificationsRelationManager::class,
+            LoanItemsRelationManager::class,
             StockTakeItemsRelationManager::class,
             MaintenanceReportsRelationManager::class,
         ];

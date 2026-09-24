@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
 class AssetSet extends Model
 {
@@ -27,6 +28,9 @@ class AssetSet extends Model
     protected static function booted(): void
     {
         static::deleting(function (AssetSet $assetSet): void {
+            if ($assetSet->assets()->whereHas('loanItems', fn ($query) => $query->whereNotNull('active_asset_id'))->exists()) {
+                throw ValidationException::withMessages(['asset_set' => 'Paket masih memiliki perangkat yang dipinjam.']);
+            }
             $assetSet->assets()->eachById(function (Asset $asset): void {
                 $asset->assetSet()->dissociate();
                 $asset->save();

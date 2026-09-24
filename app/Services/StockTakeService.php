@@ -94,10 +94,12 @@ class StockTakeService
                 if ($data['result'] === 'missing') {
                     $asset->status = 'lost';
                 } elseif ($asset->status === 'lost') {
-                    $asset->status = $asset->maintenanceReports()->where('status', 'in_progress')->exists()
+                    $asset->status = $asset->loanItems()->whereNotNull('active_asset_id')->exists()
+                        ? 'borrowed'
+                        : ($asset->maintenanceReports()->where('status', 'in_progress')->exists()
                         ? 'maintenance'
                         : (in_array($item->original_status, ['available', 'in_use', 'borrowed', 'retired'], true)
-                            ? $item->original_status : 'available');
+                            ? $item->original_status : 'available'));
                 }
 
                 if ($location) {
