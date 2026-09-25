@@ -246,6 +246,7 @@ class BackupTest extends TestCase
         $this->actingAs($this->admin());
 
         $this->post(route('backups.store'))->assertRedirect(Backups::getUrl());
+        $this->assertSame(5000, session('filament.notifications')[0]['duration']);
 
         $name = $this->service()->archives()[0]['name'];
         $this->get(Backups::getUrl())->assertOk()->assertSee($name);
@@ -288,11 +289,15 @@ class BackupTest extends TestCase
         $name = $this->service()->create($admin->email);
         $path = $this->service()->archivePath($name);
         $this->actingAs($admin)->delete(route('backups.destroy', ['name' => $name]), ['password' => 'wrong'])
+            ->assertRedirect(Backups::getUrl())
             ->assertSessionHasErrors('password');
         $this->assertFileExists($path);
 
         $this->delete(route('backups.destroy', ['name' => $name]), ['password' => 'password'])
+            ->assertStatus(303)
             ->assertRedirect(Backups::getUrl());
+
+        $this->get(Backups::getUrl())->assertOk()->assertDontSee($name);
 
         $this->assertFileDoesNotExist($path);
         $this->assertDatabaseHas('users', ['id' => $admin->id]);
@@ -334,7 +339,7 @@ class BackupTest extends TestCase
         $this->actingAs($this->admin());
 
         $this->post(route('backups.store'))->assertForbidden();
-        $this->get(Backups::getUrl())->assertForbidden();
+        $this->get(Backups::getUrl())->assertSee('Administrator backup belum ditentukan.');
     }
 
     public function test_failed_safety_backup_does_not_replace_current_data(): void

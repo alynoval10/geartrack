@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\BackupLock;
 use App\Services\BackupService;
+use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -25,15 +26,13 @@ class BackupController extends Controller
         Gate::authorize('manage-backups');
 
         try {
-            $name = $service->create(
+            $service->create(
                 $request->user()->email
             );
 
-            return $this->redirectToBackups()
-                ->with(
-                    'backup_status',
-                    'Backup berhasil dibuat: '.$name
-                );
+            Notification::make()->title('Backup berhasil dibuat')->success()->duration(5000)->send();
+
+            return $this->redirectToBackups();
         } catch (Throwable $exception) {
             return $this->failure($exception);
         }
@@ -77,12 +76,16 @@ class BackupController extends Controller
     ): RedirectResponse {
         Gate::authorize('manage-backups');
 
-        $request->validate([
+        $validator = validator($request->all(), [
             'password' => [
                 'required',
                 'current_password',
             ],
         ]);
+
+        if ($validator->fails()) {
+            return $this->redirectToBackups()->withErrors($validator);
+        }
 
         try {
             $path = $service->archivePath($name);
@@ -106,11 +109,9 @@ class BackupController extends Controller
                     ]);
             }
 
-            return $this->redirectToBackups()
-                ->with(
-                    'backup_status',
-                    'File backup berhasil dihapus.'
-                );
+            Notification::make()->title('File backup berhasil dihapus')->success()->duration(5000)->send();
+
+            return $this->redirectToBackups();
         } catch (Throwable $exception) {
             return $this->failure($exception);
         }
@@ -178,7 +179,7 @@ class BackupController extends Controller
     private function redirectToBackups(): RedirectResponse
     {
         return redirect()->route(
-            'filament.admin.pages.backups'
+            'filament.admin.pages.backups', [], 303
         );
     }
 
@@ -203,8 +204,7 @@ class BackupController extends Controller
 
         return $this->redirectToBackups()
             ->withErrors([
-                'backup' =>
-                    'Proses backup / restore gagal. '
+                'backup' => 'Proses backup / restore gagal. '
                     .'Data lama tetap tersedia jika pemulihan database '
                     .'belum berhasil. Periksa log server.',
             ]);
