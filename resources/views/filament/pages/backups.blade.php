@@ -42,19 +42,9 @@
                                 </div>
                                 <x-filament::button tag="a" size="sm" color="gray" icon="heroicon-o-arrow-down-tray" href="{{ route('backups.download', ['name' => $archive['name']]) }}">Unduh</x-filament::button>
                             </div>
-                            <details class="mt-4 border-t border-gray-200 pt-3 dark:border-gray-700">
-                                <summary class="cursor-pointer text-sm font-medium text-red-600 dark:text-red-400">Hapus backup</summary>
-                                <form method="POST" action="{{ route('backups.destroy', ['name' => $archive['name']]) }}" class="mt-4 grid max-w-md gap-3">
-                                    @csrf
-                                    @method('DELETE')
-                                    <p class="text-sm text-gray-500">File ini akan dihapus dari server. Data inventaris tetap tersedia.</p>
-                                    <label for="delete-password-{{ $loop->index }}" class="text-sm font-medium">Kata sandi akun Anda</label>
-                                    <x-filament::input.wrapper>
-                                        <x-filament::input id="delete-password-{{ $loop->index }}" type="password" name="password" required autocomplete="current-password" />
-                                    </x-filament::input.wrapper>
-                                    <div><x-filament::button type="submit" color="danger" size="sm">Hapus File Ini</x-filament::button></div>
-                                </form>
-                            </details>
+                            <div class="mt-4 border-t border-gray-200 pt-3 dark:border-gray-700">
+                                {{ ($this->deleteBackupAction)(['name' => $archive['name']]) }}
+                            </div>
                         </article>
                     @empty
                         <div class="rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-gray-700">

@@ -4,6 +4,7 @@ use App\Http\Controllers\AssetQrController;
 use App\Http\Controllers\AssetTransferDocumentController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\QrScannerController;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/transfers/{transfer}/document', AssetTransferDocumentController::class)
@@ -18,6 +19,8 @@ Route::middleware('auth')->prefix('backup-actions')->group(function () {
 
     Route::delete('/delete/{name}', [BackupController::class, 'destroy'])
         ->name('backups.destroy');
+
+    Route::get('/delete/{name}', fn (): RedirectResponse => redirect()->route('filament.admin.pages.backups'));
 
     Route::post('/restore', [BackupController::class, 'restore'])
         ->name('backups.restore');

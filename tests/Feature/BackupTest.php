@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Livewire;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -301,6 +302,59 @@ class BackupTest extends TestCase
 
         $this->assertFileDoesNotExist($path);
         $this->assertDatabaseHas('users', ['id' => $admin->id]);
+    }
+
+    public function test_opening_delete_address_returns_to_backup_page_without_deleting_a_file(): void
+    {
+        $admin = $this->admin();
+        $name = $this->service()->create($admin->email);
+        $path = $this->service()->archivePath($name);
+        $url = route('backups.destroy', ['name' => $name]);
+        $this->actingAs($admin);
+
+        $this->get($url)->assertRedirect(Backups::getUrl());
+        $this->assertFileExists($path);
+
+        $this->post($url, ['_method' => 'DELETE', 'password' => 'password'])
+            ->assertRedirect(Backups::getUrl());
+        $this->assertFileDoesNotExist($path);
+
+        $this->get($url)->assertRedirect(Backups::getUrl());
+        $this->followingRedirects()->get($url)->assertOk()->assertSee('Belum ada backup');
+    }
+
+    public function test_delete_action_updates_list_without_navigation_and_requires_password(): void
+    {
+        $admin = $this->admin();
+        $name = $this->service()->create($admin->email);
+        $path = $this->service()->archivePath($name);
+        $this->actingAs($admin);
+
+        Livewire::test(Backups::class)
+            ->callAction('deleteBackup', ['password' => 'wrong'], ['name' => $name])
+            ->assertHasActionErrors(['password' => 'current_password']);
+        $this->assertFileExists($path);
+
+        Livewire::test(Backups::class)
+            ->callAction('deleteBackup', ['password' => 'password'], ['name' => $name])
+            ->assertHasNoActionErrors()->assertNoRedirect()->assertSee('Belum ada backup')
+            ->assertNotified('File backup berhasil dihapus');
+        $this->assertFileDoesNotExist($path);
+
+        Livewire::test(Backups::class)
+            ->callAction('deleteBackup', ['password' => 'password'], ['name' => $name])
+            ->assertHasNoActionErrors()->assertNoRedirect()
+            ->assertNotified('File backup sudah tidak tersedia');
+    }
+
+    public function test_unlisted_user_cannot_use_delete_action(): void
+    {
+        $admin = $this->admin();
+        $name = $this->service()->create($admin->email);
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(Backups::class)->assertActionHidden('deleteBackup');
+        $this->assertFileExists($this->service()->archivePath($name));
     }
 
     public function test_restore_recovers_photo_even_when_current_photo_has_been_lost(): void
