@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssetImportController;
 use App\Http\Controllers\AssetQrController;
 use App\Http\Controllers\AssetTransferDocumentController;
 use App\Http\Controllers\BackupController;
@@ -9,6 +10,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/reports/export', InventoryReportController::class)->middleware('auth')->name('reports.export');
+
+Route::middleware('auth')->prefix('asset-import')->name('asset-import.')->group(function (): void {
+    Route::get('/template', [AssetImportController::class, 'template'])->name('template');
+    Route::post('/preview', [AssetImportController::class, 'preview'])->name('preview');
+    Route::post('/store', [AssetImportController::class, 'store'])->name('store');
+    Route::post('/cancel', [AssetImportController::class, 'cancel'])->name('cancel');
+});
 
 Route::get('/transfers/{transfer}/document', AssetTransferDocumentController::class)
     ->middleware('auth')->name('transfers.document');
