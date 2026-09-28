@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
+use App\Models\User;
 use App\Services\UserManagementService;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,7 +25,12 @@ class EditUser extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            DeleteAction::make()
+                ->label('Hapus User')
+                // Penghapusan tetap melewati perlindungan admin terakhir dan pencabutan sesi.
+                ->using(fn (User $record): bool => app(UserManagementService::class)->delete($record)),
+        ];
     }
 
     protected function getRedirectUrl(): string

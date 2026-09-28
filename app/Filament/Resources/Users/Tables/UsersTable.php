@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use App\Models\User;
+use App\Services\UserManagementService;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -65,6 +67,9 @@ class UsersTable
             ->recordActions([
                 EditAction::make()
                     ->label('Ubah'),
+                DeleteAction::make()
+                    ->label('Hapus')
+                    ->using(fn (User $record): bool => app(UserManagementService::class)->delete($record)),
             ]);
     }
 }

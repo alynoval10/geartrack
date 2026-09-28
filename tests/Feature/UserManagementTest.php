@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Services\UserManagementService;
 use Filament\Facades\Filament;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -71,5 +72,27 @@ class UserManagementTest extends TestCase
         ], $guru);
 
         $this->assertSame(2, $guru->fresh()->session_version);
+    }
+
+    public function test_admin_can_soft_delete_a_guru_and_revoke_login(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => 'admin']));
+        $guru = User::factory()->create(['role' => 'guru', 'session_version' => 1]);
+
+        app(UserManagementService::class)->delete($guru);
+
+        $this->assertSoftDeleted($guru);
+        $this->assertFalse($guru->fresh()->is_active);
+        $this->assertSame(2, $guru->fresh()->session_version);
+    }
+
+    public function test_admin_cannot_delete_own_account(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin);
+
+        $this->expectException(AuthorizationException::class);
+
+        app(UserManagementService::class)->delete($admin);
     }
 }

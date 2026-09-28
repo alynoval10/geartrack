@@ -57,6 +57,9 @@ class UserManagementService
         });
     }
 
+    /**
+     * Menonaktifkan user, mencabut seluruh sesi, lalu melakukan soft delete.
+     */
     public function delete(User $record): bool
     {
         Gate::authorize('delete', $record);
