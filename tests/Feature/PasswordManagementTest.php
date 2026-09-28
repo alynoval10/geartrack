@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\Login;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Models\User;
 use App\Services\UserManagementService;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PasswordManagementTest extends TestCase
@@ -38,6 +41,28 @@ class PasswordManagementTest extends TestCase
 
         $this->actingAs($user)->get('/test/protected-menu')
             ->assertRedirect(route('filament.admin.pages.change-password'));
+    }
+
+    public function test_login_ignores_a_stale_password_change_destination_for_a_regular_user(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        User::factory()->create([
+            'email' => 'guru@example.com',
+            'password' => 'password-guru',
+            'must_change_password' => false,
+        ]);
+
+        $this->withSession([
+            'url.intended' => route('filament.admin.pages.change-password'),
+        ]);
+
+        Livewire::test(Login::class)
+            ->fillForm([
+                'email' => 'guru@example.com',
+                'password' => 'password-guru',
+            ])
+            ->call('authenticate')
+            ->assertRedirect(Filament::getUrl());
     }
 
     public function test_admin_reset_can_require_a_password_change(): void
