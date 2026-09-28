@@ -33,7 +33,9 @@ class LoanTest extends TestCase
     private function data(array $extra = []): array
     {
         return [...[
-            'borrower_name' => 'Budi', 'responsible_name' => 'Guru TKJ',
+            'borrower_name' => 'Budi',
+            'responsible_user_id' => User::factory()->create(['role' => 'guru'])->id,
+            'selection_type' => array_key_exists('asset_set_id', $extra) ? 'package' : 'asset',
             'purpose' => 'Praktik kelas', 'due_date' => today()->addDays(3)->toDateString(),
         ], ...$extra];
     }
@@ -42,12 +44,20 @@ class LoanTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
+        $responsible = User::factory()->create(['name' => 'Guru Penanggung Jawab', 'role' => 'guru']);
         $asset = Asset::factory()->create(['condition' => 'good', 'status' => 'available']);
 
-        Livewire::test(CreateLoan::class)->fillForm($this->data(['asset_ids' => [$asset->id]]))
+        Livewire::test(CreateLoan::class)->fillForm($this->data([
+            'responsible_user_id' => $responsible->id,
+            'asset_ids' => [$asset->id],
+        ]))
             ->call('create')->assertHasNoFormErrors();
 
         $loan = Loan::sole();
+        $this->assertSame($responsible->id, $loan->responsible_user_id);
+        $this->assertSame('Guru Penanggung Jawab', $loan->responsible_name);
+        $this->assertNull($loan->asset_set_id);
+        $this->assertSame($asset->id, $loan->items()->sole()->asset_id);
         $this->assertSame('borrowed', $asset->fresh()->status);
         $this->get(LoanResource::getUrl('view', ['record' => $loan]))->assertOk();
         Livewire::test(ItemsRelationManager::class, ['ownerRecord' => $loan, 'pageClass' => ViewLoan::class])
@@ -75,6 +85,54 @@ class LoanTest extends TestCase
         $this->assertSame('borrowed', $monitor->fresh()->status);
         $service->receive($loan, $loan->items()->where('asset_id', $monitor->id)->firstOrFail(), ['condition' => 'good'], $user);
         $this->assertSame('returned', $loan->fresh()->status);
+    }
+
+    public function test_single_device_mode_ignores_package_and_borrows_only_selected_asset(): void
+    {
+        $user = User::factory()->create();
+        $package = AssetSet::create(['name' => 'Paket Lab', 'is_active' => true]);
+        $packageMember = Asset::factory()->create([
+            'asset_set_id' => $package->id,
+            'set_role' => 'main_pc',
+            'status' => 'available',
+            'condition' => 'good',
+        ]);
+        $router = Asset::factory()->create([
+            'name' => 'Router Praktik',
+            'status' => 'available',
+            'condition' => 'good',
+        ]);
+
+        $loan = app(LoanService::class)->borrow($this->data([
+            'selection_type' => 'asset',
+            'asset_set_id' => $package->id,
+            'asset_ids' => [$router->id],
+        ]), $user);
+
+        $this->assertNull($loan->asset_set_id);
+        $this->assertSame([$router->id], $loan->items()->pluck('asset_id')->all());
+        $this->assertSame('available', $packageMember->fresh()->status);
+        $this->assertSame('borrowed', $router->fresh()->status);
+    }
+
+    public function test_inactive_user_cannot_be_selected_as_responsible_person(): void
+    {
+        $user = User::factory()->create();
+        $inactiveResponsible = User::factory()->create(['is_active' => false]);
+        $asset = Asset::factory()->create(['status' => 'available', 'condition' => 'good']);
+
+        try {
+            app(LoanService::class)->borrow($this->data([
+                'responsible_user_id' => $inactiveResponsible->id,
+                'asset_ids' => [$asset->id],
+            ]), $user);
+            $this->fail('Inactive user was accepted as responsible person.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('responsible_user_id', $exception->errors());
+        }
+
+        $this->assertDatabaseCount('loans', 0);
+        $this->assertSame('available', $asset->fresh()->status);
     }
 
     public function test_unavailable_member_rolls_back_entire_package_loan(): void

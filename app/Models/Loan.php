@@ -12,7 +12,7 @@ class Loan extends Model
     use HasFactory;
 
     protected $fillable = ['code', 'borrower_name', 'borrower_contact', 'responsible_name', 'purpose',
-        'asset_set_id', 'package_name', 'borrowed_at', 'due_date', 'status', 'returned_at', 'created_by'];
+        'responsible_user_id', 'asset_set_id', 'package_name', 'borrowed_at', 'due_date', 'status', 'returned_at', 'created_by'];
 
     protected function casts(): array
     {
@@ -27,6 +27,11 @@ class Loan extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function responsibleUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'responsible_user_id');
     }
 
     public function items(): HasMany

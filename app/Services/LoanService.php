@@ -8,6 +8,7 @@ use App\Models\Loan;
 use App\Models\LoanItem;
 use App\Models\MaintenanceReport;
 use App\Models\User;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -18,20 +19,44 @@ class LoanService
 {
     public function __construct(private AssetSelection $selection, private MaintenanceService $maintenance) {}
 
+    /**
+     * Buat peminjaman dari satu mode pilihan dan simpan nama penanggung jawab sebagai snapshot.
+     *
+     * @param  array<string, mixed>  $data
+     */
     public function borrow(array $data, User $user): Loan
     {
         $data = Validator::make($data, [
             'borrower_name' => ['required', 'string', 'max:150'],
             'borrower_contact' => ['nullable', 'string', 'max:150'],
-            'responsible_name' => ['required', 'string', 'max:150'],
+            'responsible_user_id' => [
+                'required',
+                'integer',
+                Rule::exists('users', 'id')->where(fn (QueryBuilder $query): QueryBuilder => $query
+                    ->where('is_active', true)
+                    ->whereNull('deleted_at')),
+            ],
+            'selection_type' => ['required', Rule::in(['asset', 'package'])],
             'purpose' => ['required', 'string', 'max:5000'],
             'due_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
-            'asset_set_id' => ['nullable', 'integer', 'exists:asset_sets,id'],
-            'asset_ids' => ['nullable', 'array', 'max:100'],
+            'asset_set_id' => ['required_if:selection_type,package', 'nullable', 'integer', 'exists:asset_sets,id'],
+            'asset_ids' => ['required_if:selection_type,asset', 'nullable', 'array', 'min:1', 'max:100'],
             'asset_ids.*' => ['integer', 'distinct', 'exists:assets,id'],
         ])->validate();
 
         return DB::transaction(function () use ($data, $user): Loan {
+            $responsibleUser = User::query()
+                ->whereKey($data['responsible_user_id'])
+                ->where('is_active', true)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($data['selection_type'] === 'asset') {
+                $data['asset_set_id'] = null;
+            } else {
+                $data['asset_ids'] = [];
+            }
+
             $assets = $this->selection->lock($data);
             foreach ($assets as $asset) {
                 if (! in_array($asset->status, ['available', 'in_use'], true) || $asset->condition !== 'good'
@@ -41,7 +66,8 @@ class LoanService
                 }
             }
             $loan = Loan::create([
-                ...collect($data)->except('asset_ids')->all(),
+                ...collect($data)->except(['asset_ids', 'selection_type'])->all(),
+                'responsible_name' => $responsibleUser->name,
                 'code' => 'PJM-'.now()->format('Ymd').'-'.Str::upper(Str::random(8)),
                 'package_name' => empty($data['asset_set_id']) ? null : AssetSet::findOrFail($data['asset_set_id'])->name,
                 'borrowed_at' => now(), 'status' => 'open', 'created_by' => $user->id,

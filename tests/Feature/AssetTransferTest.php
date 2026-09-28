@@ -89,7 +89,7 @@ class AssetTransferTest extends TestCase
         $first = Asset::factory()->create(['status' => 'available']);
         $borrowed = Asset::factory()->create(['status' => 'available', 'condition' => 'good']);
         app(LoanService::class)->borrow([
-            'borrower_name' => 'Siswa', 'responsible_name' => 'Guru', 'purpose' => 'Praktik',
+            'borrower_name' => 'Siswa', 'responsible_user_id' => $user->id, 'selection_type' => 'asset', 'purpose' => 'Praktik',
             'due_date' => today()->toDateString(), 'asset_ids' => [$borrowed->id],
         ], $user);
 
