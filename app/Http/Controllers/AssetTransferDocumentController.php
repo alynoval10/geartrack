@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AssetTransfer;
+use App\Models\SchoolSetting;
 use Illuminate\Http\Response;
 
 class AssetTransferDocumentController extends Controller
@@ -11,7 +12,9 @@ class AssetTransferDocumentController extends Controller
     {
         $transfer->load('items');
 
-        return response()->view('transfers.document', compact('transfer'))
+        $school = SchoolSetting::current();
+
+        return response()->view('transfers.document', compact('transfer', 'school'))
             ->header('Cache-Control', 'private, no-store');
     }
 }

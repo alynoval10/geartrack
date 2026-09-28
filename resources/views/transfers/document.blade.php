@@ -32,6 +32,10 @@
 <body>
     <div class="actions"><button type="button" onclick="window.print()">Cetak / Simpan PDF</button></div>
     <main>
+        <div style="display:flex;align-items:center;gap:16px;border-bottom:2px solid #111827;padding-bottom:12px">
+            @if ($school->logo)<img src="{{ Storage::disk('public')->url($school->logo) }}" alt="Logo" style="width:70px;height:70px;object-fit:contain">@endif
+            <div><strong style="font-size:18px">{{ $school->school_name }}</strong><br>{{ $school->address }}</div>
+        </div>
         <h1>BERITA ACARA SERAH TERIMA ASET</h1>
         <p class="number">Nomor: {{ $transfer->code }}</p>
         <p>Pada tanggal {{ $transfer->transferred_at->format('d/m/Y') }}, telah dilakukan serah terima perangkat dari
@@ -63,6 +67,9 @@
         <div class="signatures">
             <div class="signature">Yang Menyerahkan<strong>{{ $transfer->sender_name }}</strong></div>
             <div class="signature">Yang Menerima<strong>{{ $transfer->receiver_name }}</strong></div>
+            @if ($school->asset_manager_name)
+                <div class="signature">Mengetahui, Pengurus Barang<strong>{{ $school->asset_manager_name }}</strong>NIP. {{ $school->asset_manager_nip ?: '—' }}</div>
+            @endif
         </div>
         <p>Dicatat oleh: {{ $transfer->created_by_name }} · {{ $transfer->transferred_at->format('d/m/Y H:i') }}</p>
     </main>

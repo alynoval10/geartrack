@@ -6,6 +6,7 @@ use App\Http\Controllers\AssetTransferDocumentController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\InventoryReportController;
 use App\Http\Controllers\QrScannerController;
+use App\Http\Controllers\SchoolSettingController;
 use App\Http\Controllers\SessionActivityController;
 use App\Http\Middleware\EnforceIdleSession;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,10 @@ Route::get('/reports/export', InventoryReportController::class)->middleware('aut
 Route::post('/session/activity', SessionActivityController::class)
     ->middleware(['auth', EnforceIdleSession::class])
     ->name('session.activity');
+
+Route::post('/school-settings', SchoolSettingController::class)
+    ->middleware('auth')
+    ->name('school-settings.update');
 
 Route::middleware('auth')->prefix('asset-import')->name('asset-import.')->group(function (): void {
     Route::get('/template', [AssetImportController::class, 'template'])->name('template');
