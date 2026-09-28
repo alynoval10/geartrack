@@ -57,6 +57,9 @@ class CreateLoan extends CreateRecord
             true,
             $asset->asset_code.' — '.$asset->name.' ditambahkan. Total '.count($this->data['asset_ids']).' perangkat.'
         );
+
+        // Tutup pemindai hanya setelah perangkat valid masuk ke pilihan; kegagalan tetap ditampilkan di dalam modal.
+        $this->unmountAction();
     }
 
     private function sendScanResult(bool $success, string $message): void

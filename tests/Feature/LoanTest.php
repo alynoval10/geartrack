@@ -155,11 +155,15 @@ class LoanTest extends TestCase
     public function test_qr_scan_rejects_a_device_that_is_not_available_for_loan(): void
     {
         $this->actingAs(User::factory()->create());
-        $unavailableAsset = Asset::factory()->create(['status' => 'maintenance', 'condition' => 'good']);
+        $borrowedAsset = Asset::factory()->create(['status' => 'borrowed', 'condition' => 'good']);
+        $scannerAction = TestAction::make('scanLoanAssets')
+            ->schemaComponent('loanAssetScannerActions');
 
         Livewire::test(CreateLoan::class)
-            ->call('addScannedAsset', $unavailableAsset->qr_token)
-            ->assertSet('data.asset_ids', []);
+            ->mountAction($scannerAction)
+            ->call('addScannedAsset', $borrowedAsset->qr_token)
+            ->assertSet('data.asset_ids', [])
+            ->assertActionMounted($scannerAction);
     }
 
     public function test_purpose_template_can_fill_purpose_and_remain_manually_editable(): void
@@ -194,6 +198,23 @@ class LoanTest extends TestCase
         $this->get(LoanResource::getUrl('create'))
             ->assertOk()
             ->assertSee('loan-scanner-', false);
+    }
+
+    public function test_successful_qr_scan_closes_scanner_but_duplicate_scan_keeps_it_open(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $asset = Asset::factory()->create(['status' => 'available', 'condition' => 'good']);
+        $scannerAction = TestAction::make('scanLoanAssets')
+            ->schemaComponent('loanAssetScannerActions');
+
+        Livewire::test(CreateLoan::class)
+            ->mountAction($scannerAction)
+            ->call('addScannedAsset', $asset->qr_token)
+            ->assertActionNotMounted($scannerAction)
+            ->assertSet('data.asset_ids', [$asset->id])
+            ->mountAction($scannerAction)
+            ->call('addScannedAsset', $asset->qr_token)
+            ->assertActionMounted($scannerAction);
     }
 
     public function test_unavailable_member_rolls_back_entire_package_loan(): void

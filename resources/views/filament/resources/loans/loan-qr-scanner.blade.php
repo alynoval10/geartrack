@@ -42,6 +42,6 @@
     </label>
 
     <p class="text-xs leading-5 text-gray-500 dark:text-gray-400">
-        Setelah satu perangkat ditambahkan, arahkan kamera ke QR berikutnya. Anda juga tetap dapat memilih perangkat secara manual setelah menutup pemindai.
+        Jika berhasil, pemindai ditutup otomatis dan perangkat muncul pada formulir peminjaman. Jika perangkat sudah dipilih atau sedang tidak tersedia, pesan akan ditampilkan di sini.
     </p>
 </div>
