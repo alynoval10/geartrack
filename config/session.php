@@ -34,6 +34,9 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 120),
 
+    // Batas khusus panel GearTrack; dijaga server dan penghitung aktivitas browser.
+    'idle_timeout' => (int) env('SESSION_IDLE_TIMEOUT', 5),
+
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
     /*

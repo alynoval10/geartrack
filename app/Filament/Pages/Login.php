@@ -13,6 +13,10 @@ class Login extends BaseLogin
 
     public function getSubheading(): ?string
     {
+        if (session()->has('session_status')) {
+            return session('session_status');
+        }
+
         if (session()->has('backup_status')) {
             return session('backup_status');
         }
