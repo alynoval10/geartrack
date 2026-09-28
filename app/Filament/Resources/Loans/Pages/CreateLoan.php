@@ -80,6 +80,6 @@ class CreateLoan extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return static::getResource()::getUrl('view', ['record' => $this->getRecord()]);
+        return static::getResource()::getUrl('index');
     }
 }

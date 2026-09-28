@@ -69,6 +69,18 @@ class LoanTest extends TestCase
         $this->assertSame('available', $asset->fresh()->status);
     }
 
+    public function test_successful_loan_creation_redirects_to_the_loan_list(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $asset = Asset::factory()->create(['condition' => 'good', 'status' => 'available']);
+
+        Livewire::test(CreateLoan::class)
+            ->fillForm($this->data(['asset_ids' => [$asset->id]]))
+            ->call('create')
+            ->assertHasNoFormErrors()
+            ->assertRedirect(LoanResource::getUrl('index'));
+    }
+
     public function test_package_borrow_is_a_snapshot_and_supports_partial_returns(): void
     {
         $user = User::factory()->create();
