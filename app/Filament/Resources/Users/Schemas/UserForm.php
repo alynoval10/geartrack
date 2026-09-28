@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -34,11 +35,8 @@ class UserForm
 
                         Select::make('role')
                             ->label('Role')
-                            ->options([
-                                'admin' => 'Administrator',
-                                'staff' => 'Petugas',
-                            ])
-                            ->default('staff')
+                            ->options(User::ROLES)
+                            ->default('guru')
                             ->required()
                             ->native(false),
 

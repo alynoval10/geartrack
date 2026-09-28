@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Models\User;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -32,14 +33,14 @@ class UsersTable
                     ->formatStateUsing(
                         fn (?string $state): string => match ($state) {
                             'admin' => 'Administrator',
-                            'staff' => 'Petugas',
+                            'guru' => 'Guru',
                             default => $state ?: '-',
                         }
                     )
                     ->color(
                         fn (?string $state): string => match ($state) {
                             'admin' => 'primary',
-                            'staff' => 'gray',
+                            'guru' => 'gray',
                             default => 'gray',
                         }
                     ),
@@ -58,10 +59,7 @@ class UsersTable
             ->filters([
                 SelectFilter::make('role')
                     ->label('Role')
-                    ->options([
-                        'admin' => 'Administrator',
-                        'staff' => 'Petugas',
-                    ]),
+                    ->options(User::ROLES),
             ])
             ->defaultSort('name')
             ->recordActions([

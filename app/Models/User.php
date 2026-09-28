@@ -33,14 +33,14 @@ class User extends Authenticatable implements FilamentUser
     | Role yang digunakan di GearTrack.
     |
     | admin = Administrator
-    | staff = Petugas
+    | guru  = Guru
     |
     | Keduanya diperbolehkan login ke panel GearTrack selama akun aktif.
     |
     */
     public const ROLES = [
         'admin' => 'Administrator',
-        'staff' => 'Petugas',
+        'guru' => 'Guru',
     ];
 
     /*
@@ -48,13 +48,13 @@ class User extends Authenticatable implements FilamentUser
     | NILAI DEFAULT
     |--------------------------------------------------------------------------
     |
-    | User baru secara default menjadi Petugas dan berstatus aktif.
+    | User baru secara default menjadi Guru dan berstatus aktif.
     |
     | session_version digunakan oleh sistem pengelolaan sesi login.
     |
     */
     protected $attributes = [
-        'role' => 'staff',
+        'role' => 'guru',
         'is_active' => true,
         'session_version' => 1,
     ];
@@ -95,7 +95,7 @@ class User extends Authenticatable implements FilamentUser
     | AKSES PANEL FILAMENT
     |--------------------------------------------------------------------------
     |
-    | Administrator DAN Petugas diperbolehkan login.
+    | Administrator dan Guru diperbolehkan login.
     |
     | Syarat:
     | - akun aktif;
@@ -104,7 +104,7 @@ class User extends Authenticatable implements FilamentUser
     |
     | Pembatasan fitur antara Administrator dan Petugas sebaiknya
     | dilakukan melalui Policy / authorization, bukan dengan melarang
-    | Petugas login ke panel.
+    | Guru login ke panel.
     |
     */
     public function canAccessPanel(Panel $panel): bool

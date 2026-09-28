@@ -2,19 +2,23 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class UserManagementTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     */
-    public function test_example(): void
-    {
-        $response = $this->get('/');
+    use RefreshDatabase;
 
-        $response->assertStatus(200);
+    public function test_admin_and_guru_can_access_the_panel(): void
+    {
+        $panel = Filament::getPanel('admin');
+        $admin = User::factory()->create(['role' => 'admin']);
+        $guru = User::factory()->create(['role' => 'guru']);
+
+        $this->assertTrue($admin->canAccessPanel($panel));
+        $this->assertTrue($guru->canAccessPanel($panel));
+        $this->assertSame('guru', (new User)->role);
     }
 }
