@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveQrDestination } from '../../resources/js/qr-destination.js';
+import { extractAssetQrToken, resolveQrDestination } from '../../resources/js/qr-destination.js';
 
 test('old QR host opens on current GearTrack host with the selected session', () => {
     assert.equal(resolveQrDestination('http://old-host/q/token?stock_take=999', 'https://geartrack.test', 12),
@@ -21,4 +21,10 @@ test('scanner rejects malformed text, non-asset paths, and unsafe protocols', ()
     for (const value of ['random text', 'https://geartrack.test/login', 'https://geartrack.test/q/a/label', 'javascript:/q/token']) {
         assert.throws(() => resolveQrDestination(value, 'https://geartrack.test'));
     }
+});
+
+test('loan scanner extracts the asset token from a GearTrack QR URL', () => {
+    assert.equal(extractAssetQrToken('https://geartrack.test/q/123e4567-e89b-12d3-a456-426614174000'),
+        '123e4567-e89b-12d3-a456-426614174000');
+    assert.throws(() => extractAssetQrToken('https://geartrack.test/login'));
 });

@@ -13,6 +13,7 @@ use App\Models\MaintenanceReport;
 use App\Models\User;
 use App\Services\LoanService;
 use App\Services\StockTakeService;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -133,6 +134,55 @@ class LoanTest extends TestCase
 
         $this->assertDatabaseCount('loans', 0);
         $this->assertSame('available', $asset->fresh()->status);
+    }
+
+    public function test_qr_scan_adds_multiple_eligible_devices_without_replacing_manual_selection(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $manuallySelectedAsset = Asset::factory()->create(['status' => 'available', 'condition' => 'good']);
+        $scannedAsset = Asset::factory()->create(['status' => 'available', 'condition' => 'good']);
+
+        Livewire::test(CreateLoan::class)
+            ->set('data.selection_type', 'asset')
+            ->set('data.asset_ids', [$manuallySelectedAsset->id])
+            ->call('addScannedAsset', $scannedAsset->qr_token)
+            ->assertSet('data.asset_ids', [$manuallySelectedAsset->id, $scannedAsset->id])
+            ->call('addScannedAsset', $scannedAsset->qr_token)
+            ->assertSet('data.asset_ids', [$manuallySelectedAsset->id, $scannedAsset->id]);
+    }
+
+    public function test_qr_scan_rejects_a_device_that_is_not_available_for_loan(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $unavailableAsset = Asset::factory()->create(['status' => 'maintenance', 'condition' => 'good']);
+
+        Livewire::test(CreateLoan::class)
+            ->call('addScannedAsset', $unavailableAsset->qr_token)
+            ->assertSet('data.asset_ids', []);
+    }
+
+    public function test_purpose_template_can_fill_purpose_and_remain_manually_editable(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateLoan::class)
+            ->set('data.purpose_template', 'Praktikum pembelajaran')
+            ->assertSet('data.purpose', 'Praktikum pembelajaran')
+            ->set('data.purpose', 'Praktikum konfigurasi router kelas XI')
+            ->assertSet('data.purpose', 'Praktikum konfigurasi router kelas XI');
+    }
+
+    public function test_device_qr_scanner_can_be_opened_from_the_loan_form(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $scannerAction = TestAction::make('scanLoanAssets')
+            ->schemaComponent('loanAssetScannerActions');
+
+        Livewire::test(CreateLoan::class)
+            ->assertActionExists($scannerAction)
+            ->mountAction($scannerAction)
+            ->assertMountedActionModalSee('Aktifkan Kamera');
     }
 
     public function test_unavailable_member_rolls_back_entire_package_loan(): void

@@ -2,19 +2,20 @@
 
 namespace App\Filament\Resources\Loans\Schemas;
 
-use App\Models\Asset;
 use App\Models\AssetSet;
 use App\Models\User;
+use App\Services\LoanAssetEligibility;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
 
 class LoanForm
 {
@@ -39,7 +40,29 @@ class LoanForm
                         ->required()
                         ->helperText('Pilih guru atau administrator aktif yang bertanggung jawab.'),
                     DatePicker::make('due_date')->label('Batas Pengembalian')->default(today()->addDays(7))->minDate(today())->required(),
-                    Textarea::make('purpose')->label('Keperluan')->required()->maxLength(5000)->columnSpanFull(),
+                    Select::make('purpose_template')
+                        ->label('Template Keperluan')
+                        ->options([
+                            'Praktikum pembelajaran' => 'Praktikum pembelajaran',
+                            'Kegiatan ujian kompetensi' => 'Kegiatan ujian kompetensi',
+                            'Perawatan dan perbaikan' => 'Perawatan dan perbaikan',
+                            'Kegiatan sekolah' => 'Kegiatan sekolah',
+                            'Peminjaman sementara' => 'Peminjaman sementara',
+                        ])
+                        ->placeholder('Pilih template (opsional)')
+                        ->live()
+                        ->dehydrated(false)
+                        ->afterStateUpdated(function (?string $state, Set $set): void {
+                            if (filled($state)) {
+                                $set('purpose', $state);
+                            }
+                        }),
+                    Textarea::make('purpose')
+                        ->label('Keperluan')
+                        ->required()
+                        ->maxLength(5000)
+                        ->helperText('Pilih template di atas atau tulis keperluan secara manual.')
+                        ->columnSpanFull(),
                 ])->columns(2)->columnSpanFull(),
 
             Section::make('Perangkat yang Dipinjam')
@@ -64,14 +87,9 @@ class LoanForm
                     Select::make('asset_ids')
                         ->label('Pilih Perangkat yang Dipinjam')
                         ->multiple()
-                        ->options(fn (): array => self::assetOptions())
-                        ->getSearchResultsUsing(fn (string $search): array => self::assetOptions($search))
-                        ->getOptionLabelsUsing(fn (array $values): array => Asset::query()
-                            ->with(['category', 'location'])
-                            ->whereIn('id', $values)
-                            ->get()
-                            ->mapWithKeys(fn (Asset $asset): array => [$asset->id => self::assetLabel($asset)])
-                            ->all())
+                        ->options(fn (LoanAssetEligibility $assets): array => $assets->options())
+                        ->getSearchResultsUsing(fn (string $search, LoanAssetEligibility $assets): array => $assets->options($search))
+                        ->getOptionLabelsUsing(fn (array $values, LoanAssetEligibility $assets): array => $assets->labels($values))
                         ->searchable()
                         ->preload()
                         ->minItems(1)
@@ -79,6 +97,21 @@ class LoanForm
                         ->required(fn (Get $get): bool => $get('selection_type') === 'asset')
                         ->visible(fn (Get $get): bool => $get('selection_type') === 'asset')
                         ->helperText('Untuk meminjam satu router, pilih router tersebut saja. Daftar hanya menampilkan perangkat yang siap dipinjam.'),
+
+                    Actions::make([
+                        Action::make('scanLoanAssets')
+                            ->label('Scan QR Perangkat')
+                            ->icon('heroicon-o-qr-code')
+                            ->color('info')
+                            ->modalHeading('Scan QR Perangkat yang Dipinjam')
+                            ->modalDescription('Scan satu atau beberapa label QR. Setiap perangkat akan ditambahkan ke pilihan peminjaman.')
+                            ->modalContent(fn () => view('filament.resources.loans.loan-qr-scanner'))
+                            ->modalSubmitAction(false)
+                            ->modalCancelActionLabel('Selesai'),
+                    ])
+                        ->key('loanAssetScannerActions')
+                        ->columnSpanFull()
+                        ->visible(fn (Get $get): bool => $get('selection_type') === 'asset'),
 
                     Select::make('asset_set_id')
                         ->label('Pilih Paket Perangkat')
@@ -99,43 +132,5 @@ class LoanForm
                 ->columns(1)
                 ->columnSpanFull(),
         ]);
-    }
-
-    /**
-     * Hanya tampilkan perangkat yang memenuhi syarat peminjaman saat ini.
-     *
-     * @return array<int, string>
-     */
-    private static function assetOptions(?string $search = null): array
-    {
-        return Asset::query()
-            ->with(['category', 'location'])
-            ->whereIn('status', ['available', 'in_use'])
-            ->where('condition', 'good')
-            ->whereDoesntHave('loanItems', fn (Builder $query): Builder => $query->whereNotNull('active_asset_id'))
-            ->whereDoesntHave('maintenanceReports', fn (Builder $query): Builder => $query->whereIn('status', ['open', 'in_progress']))
-            ->when(filled($search), function (Builder $query) use ($search): void {
-                $query->where(function (Builder $query) use ($search): void {
-                    $query->where('asset_code', 'like', "%{$search}%")
-                        ->orWhere('name', 'like', "%{$search}%")
-                        ->orWhere('serial_number', 'like', "%{$search}%")
-                        ->orWhereHas('category', fn (Builder $query): Builder => $query->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('location', fn (Builder $query): Builder => $query->where('name', 'like', "%{$search}%"));
-                });
-            })
-            ->orderBy('asset_code')
-            ->limit(50)
-            ->get()
-            ->mapWithKeys(fn (Asset $asset): array => [$asset->id => self::assetLabel($asset)])
-            ->all();
-    }
-
-    private static function assetLabel(Asset $asset): string
-    {
-        return collect([
-            $asset->asset_code.' — '.$asset->name,
-            $asset->category?->name,
-            $asset->location?->name,
-        ])->filter()->implode(' | ');
     }
 }
