@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Pages\Backups;
 use App\Models\Asset;
+use App\Models\BackupRun;
 use App\Models\User;
 use App\Services\BackupLock;
 use App\Services\BackupService;
@@ -36,6 +37,8 @@ class BackupTest extends TestCase
             'database.connections.sqlite.url' => null,
             'backup.directory' => $this->directory.'/archives',
             'backup.admin_emails' => ['admin@example.test'],
+            'backup.mirror_directory' => $this->directory.'/mirror',
+            'backup.retention' => 2,
             'session.driver' => 'database',
             'filesystems.disks.public.root' => $this->directory.'/photos',
         ]);
@@ -79,6 +82,18 @@ class BackupTest extends TestCase
         $this->assertNotFalse($zip->locateName('signature'));
         $zip->close();
         $this->assertCount(1, $this->service()->archives());
+    }
+
+    public function test_automatic_backup_is_mirrored_and_records_success(): void
+    {
+        $this->admin();
+
+        $this->artisan('geartrack:backup')->assertSuccessful();
+
+        $run = BackupRun::sole();
+        $this->assertSame('success', $run->status);
+        $this->assertFileExists($this->service()->archivePath($run->archive_name));
+        $this->assertFileExists($run->mirror_path);
     }
 
     public function test_restore_recovers_asset_and_photo_preserves_current_copy_and_creates_safety_backup(): void

@@ -13,6 +13,22 @@
                 </div>
             </x-filament::section>
         @else
+            <x-filament::section heading="Backup otomatis" description="Dijalankan setiap hari dan menampilkan hasil terakhir.">
+                <div class="grid gap-4 text-sm md:grid-cols-3">
+                    <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-800"><span class="text-gray-500">Jadwal harian</span><strong class="mt-1 block">{{ $automaticTime }}</strong></div>
+                    <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-800"><span class="text-gray-500">Retensi</span><strong class="mt-1 block">{{ $retention }} backup otomatis</strong></div>
+                    <div class="rounded-xl p-4 {{ $mirrorConfigured ? 'bg-green-50 dark:bg-green-950' : 'bg-amber-50 dark:bg-amber-950' }}"><span class="text-gray-500">Salinan luar server</span><strong class="mt-1 block">{{ $mirrorConfigured ? 'Aktif' : 'Belum dikonfigurasi' }}</strong></div>
+                </div>
+                @if ($latestAutomaticRun)
+                    <div class="mt-4 rounded-xl border border-gray-200 p-4 text-sm dark:border-gray-700">
+                        <strong>{{ $latestAutomaticRun->status === 'success' ? 'Backup terakhir berhasil' : 'Backup terakhir gagal' }}</strong>
+                        <p class="mt-1 text-gray-500">{{ $latestAutomaticRun->started_at->format('d M Y H:i') }} · {{ $latestAutomaticRun->message }}</p>
+                    </div>
+                @else
+                    <p class="mt-4 text-sm text-gray-500">Backup otomatis belum pernah dijalankan.</p>
+                @endif
+            </x-filament::section>
+
             @if ($errors->any())
                 <div role="alert" class="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
                     @foreach ($errors->all() as $error)

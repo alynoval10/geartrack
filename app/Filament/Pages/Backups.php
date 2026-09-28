@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\BackupRun;
 use App\Services\BackupLock;
 use App\Services\BackupService;
 use BackedEnum;
@@ -95,6 +96,10 @@ class Backups extends Page
                 config('backup.max_upload_bytes'),
                 1024 * 1024
             ),
+            'latestAutomaticRun' => BackupRun::query()->latest('started_at')->first(),
+            'mirrorConfigured' => filled(config('backup.mirror_directory')),
+            'automaticTime' => config('backup.automatic_time'),
+            'retention' => config('backup.retention'),
         ];
     }
 }

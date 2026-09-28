@@ -46,6 +46,43 @@ class BackupService
         return $path;
     }
 
+    /**
+     * Menyalin arsip ke media kedua lalu membatasi backup otomatis yang disimpan.
+     */
+    public function mirrorAndPrune(string $name): ?string
+    {
+        $mirror = config('backup.mirror_directory');
+        $retention = max(1, (int) config('backup.retention', 14));
+        $automatic = collect($this->archives())
+            ->filter(fn (array $archive): bool => str_starts_with($archive['name'], 'geartrack-automatic-'));
+
+        foreach ($automatic->slice($retention) as $archive) {
+            File::delete(config('backup.directory').'/'.$archive['name']);
+        }
+
+        if (! filled($mirror)) {
+            return null;
+        }
+
+        File::ensureDirectoryExists($mirror, 0700);
+        $target = rtrim($mirror, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$name;
+        $partial = $target.'.partial';
+        try {
+            if (! File::copy($this->archivePath($name), $partial) || ! File::move($partial, $target)) {
+                throw new RuntimeException('Backup tidak dapat disalin ke penyimpanan luar server.');
+            }
+        } finally {
+            File::delete($partial);
+        }
+
+        collect(File::glob(rtrim($mirror, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'geartrack-automatic-*.zip'))
+            ->sortByDesc(fn (string $path): int => File::lastModified($path))
+            ->slice($retention)
+            ->each(fn (string $path): bool => File::delete($path));
+
+        return $target;
+    }
+
     public function restore(string $archive, string $creator): string
     {
         return $this->lock->run(function () use ($archive, $creator): string {
