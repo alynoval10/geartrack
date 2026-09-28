@@ -21,6 +21,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class AssetResource extends Resource
 {
@@ -39,6 +41,48 @@ class AssetResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    /**
+     * Kolom aset dan relasi yang dapat ditemukan dari pencarian global.
+     *
+     * @return array<string>
+     */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'asset_code',
+            'name',
+            'serial_number',
+            'model',
+            'custodian_name',
+            'custodian.name',
+            'location.name',
+            'assetSet.code',
+            'assetSet.name',
+        ];
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()
+            ->with(['custodian', 'location', 'assetSet']);
+    }
+
+    /**
+     * Tampilkan pembeda utama agar aset bernama serupa mudah dikenali.
+     *
+     * @return array<string, string>
+     */
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        /** @var Asset $record */
+        return [
+            'Kode' => $record->asset_code,
+            'Lokasi' => $record->location?->name ?? '-',
+            'Penanggung Jawab' => $record->custodian?->name ?? $record->custodian_name ?? '-',
+            'Paket' => $record->assetSet?->name ?? '-',
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
