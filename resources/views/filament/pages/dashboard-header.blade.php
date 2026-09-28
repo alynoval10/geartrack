@@ -27,18 +27,13 @@
                 Tambah Aset
             </a>
 
-            <button
-                type="button"
+            <a
+                href="{{ route('qr.scan') }}"
                 class="gt-button gt-button-secondary"
-                disabled
             >
                 <x-heroicon-o-qr-code style="width:18px;height:18px;" />
                 Scan QR
-
-                <span class="gt-coming-soon">
-                    Segera
-                </span>
-            </button>
+            </a>
 
         </div>
 

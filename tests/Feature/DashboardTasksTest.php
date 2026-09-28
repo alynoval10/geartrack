@@ -37,4 +37,14 @@ class DashboardTasksTest extends TestCase
             ->assertSee('Timeline Pengisian GearTrack')
             ->assertSee('Masukkan inventaris');
     }
+
+    public function test_dashboard_scan_button_opens_qr_scanner(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => 'guru']));
+
+        $this->get(route('filament.admin.pages.dashboard'))
+            ->assertOk()
+            ->assertSee('href="'.route('qr.scan').'"', false)
+            ->assertDontSee('Segera');
+    }
 }
