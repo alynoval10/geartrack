@@ -61,6 +61,7 @@ class AssetTransferService
                 'transferred_at' => now(), 'created_by' => $user->id, 'created_by_name' => $user->name,
             ]);
             foreach ($assets as $asset) {
+                $sourceLocationName = $asset->location?->name;
                 $transfer->items()->create([
                     'asset_id' => $asset->id, 'asset_code' => $asset->asset_code,
                     'asset_name' => $asset->name, 'serial_number' => $asset->serial_number,
@@ -74,6 +75,9 @@ class AssetTransferService
                 ]);
                 $asset->histories()->create([
                     'user_id' => $user->id, 'action' => 'transfer',
+                    'field' => 'location_id',
+                    'old_value' => $sourceLocationName,
+                    'new_value' => $location->name,
                     'description' => "Mutasi {$transfer->code} ke {$location->name}, penanggung jawab {$transfer->receiver_name}.",
                 ]);
             }

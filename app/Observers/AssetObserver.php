@@ -25,6 +25,21 @@ class AssetObserver
     }
 
     /**
+     * Catat penghapusan sebelum relasi aset dilepas dari riwayat permanen.
+     */
+    public function deleting(Asset $asset): void
+    {
+        AssetHistory::create([
+            'asset_id' => $asset->id,
+            'asset_code' => $asset->asset_code,
+            'asset_name' => $asset->name,
+            'user_id' => auth()->id(),
+            'action' => 'deleted',
+            'description' => 'Aset dihapus dari inventaris.',
+        ]);
+    }
+
+    /**
      * Catat perubahan data aset.
      */
     public function updated(Asset $asset): void
