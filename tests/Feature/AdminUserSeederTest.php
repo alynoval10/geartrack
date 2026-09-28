@@ -20,7 +20,7 @@ class AdminUserSeederTest extends TestCase
 
         $this->assertSame('admin', $administrator->role);
         $this->assertTrue($administrator->is_active);
-        $this->assertTrue($administrator->must_change_password);
+        $this->assertFalse($administrator->must_change_password);
         $this->assertTrue(Hash::check('admin123', $administrator->password));
     }
 

@@ -41,6 +41,7 @@ class UserManagementTest extends TestCase
         $this->assertSame('guru@example.com', $guru->email);
         $this->assertSame('guru', $guru->role);
         $this->assertTrue($guru->is_active);
+        $this->assertFalse($guru->must_change_password);
     }
 
     public function test_admin_cannot_demote_or_disable_own_account(): void

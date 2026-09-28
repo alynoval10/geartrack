@@ -58,7 +58,7 @@ class User extends Authenticatable implements FilamentUser
         'role' => 'guru',
         'is_active' => true,
         'session_version' => 1,
-        'must_change_password' => true,
+        'must_change_password' => false,
     ];
 
     /*

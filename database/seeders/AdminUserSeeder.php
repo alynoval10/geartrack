@@ -21,7 +21,7 @@ class AdminUserSeeder extends Seeder
             $administrator->fill([
                 'name' => 'Administrator',
                 'password' => Hash::make('admin123'),
-                'must_change_password' => true,
+                'must_change_password' => false,
             ]);
         }
 

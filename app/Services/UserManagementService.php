@@ -15,6 +15,7 @@ class UserManagementService
 {
     /**
      * Menyimpan user dalam transaksi agar aturan admin dan pencabutan sesi tetap utuh.
+     * Akun baru dapat langsung login; kewajiban mengganti password hanya diaktifkan saat diperlukan.
      *
      * @param  array<string, mixed>  $data
      */
@@ -24,7 +25,7 @@ class UserManagementService
 
         return DB::transaction(function () use ($data, $record): User {
             $record = $record ? User::lockForUpdate()->findOrFail($record->id) : new User;
-            $data['must_change_password'] ??= ! $record->exists;
+            $data['must_change_password'] ??= false;
             $data['email'] = mb_strtolower(trim((string) ($data['email'] ?? '')));
             $data = Validator::make($data, [
                 'name' => ['required', 'string', 'max:150'],
