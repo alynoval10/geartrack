@@ -46,6 +46,11 @@ class UserForm
                             )
                             ->default(true),
 
+                        Toggle::make('must_change_password')
+                            ->label('Wajib Ganti Password')
+                            ->helperText('Aktifkan setelah admin mereset password user.')
+                            ->default(true),
+
                         TextInput::make('password')
                             ->label('Password')
                             ->password()

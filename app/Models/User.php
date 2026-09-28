@@ -18,6 +18,7 @@ use Illuminate\Notifications\Notifiable;
     'password',
     'role',
     'is_active',
+    'must_change_password',
 ])]
 #[Hidden([
     'password',
@@ -57,6 +58,7 @@ class User extends Authenticatable implements FilamentUser
         'role' => 'guru',
         'is_active' => true,
         'session_version' => 1,
+        'must_change_password' => true,
     ];
 
     /*
@@ -139,6 +141,7 @@ class User extends Authenticatable implements FilamentUser
 
             // Versi sesi menjadi integer.
             'session_version' => 'integer',
+            'must_change_password' => 'boolean',
         ];
     }
 }

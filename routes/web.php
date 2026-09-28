@@ -5,10 +5,12 @@ use App\Http\Controllers\AssetQrController;
 use App\Http\Controllers\AssetTransferDocumentController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\InventoryReportController;
+use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\QrScannerController;
 use App\Http\Controllers\SchoolSettingController;
 use App\Http\Controllers\SessionActivityController;
 use App\Http\Middleware\EnforceIdleSession;
+use App\Http\Middleware\RequirePasswordChange;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,10 @@ Route::post('/session/activity', SessionActivityController::class)
 Route::post('/school-settings', SchoolSettingController::class)
     ->middleware('auth')
     ->name('school-settings.update');
+
+Route::post('/account/password', PasswordController::class)
+    ->middleware(['auth', RequirePasswordChange::class])
+    ->name('password.update');
 
 Route::middleware('auth')->prefix('asset-import')->name('asset-import.')->group(function (): void {
     Route::get('/template', [AssetImportController::class, 'template'])->name('template');

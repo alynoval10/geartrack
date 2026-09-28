@@ -24,12 +24,14 @@ class UserManagementService
 
         return DB::transaction(function () use ($data, $record): User {
             $record = $record ? User::lockForUpdate()->findOrFail($record->id) : new User;
+            $data['must_change_password'] ??= ! $record->exists;
             $data['email'] = mb_strtolower(trim((string) ($data['email'] ?? '')));
             $data = Validator::make($data, [
                 'name' => ['required', 'string', 'max:150'],
                 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($record->id)],
                 'role' => ['required', Rule::in(array_keys(User::ROLES))],
                 'is_active' => ['required', 'boolean'],
+                'must_change_password' => ['required', 'boolean'],
                 'password' => [$record->exists ? 'nullable' : 'required', 'string', 'min:8', 'max:255', 'confirmed'],
             ])->validate();
             if (empty($data['password'])) {
@@ -42,7 +44,7 @@ class UserManagementService
                 $this->ensureOtherAdmin($record);
             }
             $record->fill($data);
-            $revoke = $record->exists && $record->isDirty(['password', 'role', 'is_active']);
+            $revoke = $record->exists && $record->isDirty(['password', 'role', 'is_active', 'must_change_password']);
             if ($revoke) {
                 $record->session_version++;
                 $record->remember_token = Str::random(60);
