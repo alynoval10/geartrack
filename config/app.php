@@ -15,6 +15,10 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Informasi rilis ditampilkan pada halaman Tentang GearTrack.
+    'version' => env('APP_VERSION', '1.0.0'),
+    'creator' => 'Noval Aly, S.T',
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
