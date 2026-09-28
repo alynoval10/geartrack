@@ -13,9 +13,15 @@ use Illuminate\Validation\ValidationException;
 
 class UserManagementService
 {
+    /**
+     * Menyimpan user dalam transaksi agar aturan admin dan pencabutan sesi tetap utuh.
+     *
+     * @param  array<string, mixed>  $data
+     */
     public function save(array $data, ?User $record = null): User
     {
         Gate::authorize($record ? 'update' : 'create', $record ?? User::class);
+
         return DB::transaction(function () use ($data, $record): User {
             $record = $record ? User::lockForUpdate()->findOrFail($record->id) : new User;
             $data['email'] = mb_strtolower(trim((string) ($data['email'] ?? '')));
@@ -46,6 +52,7 @@ class UserManagementService
             if ($revoke) {
                 $this->clearSessions($record);
             }
+
             return $record;
         });
     }
@@ -53,6 +60,7 @@ class UserManagementService
     public function delete(User $record): bool
     {
         Gate::authorize('delete', $record);
+
         return DB::transaction(function () use ($record): bool {
             $record = User::lockForUpdate()->findOrFail($record->id);
             if ($record->isAdmin()) {
@@ -61,6 +69,7 @@ class UserManagementService
             $record->forceFill(['is_active' => false, 'remember_token' => Str::random(60), 'session_version' => $record->session_version + 1])->save();
             $record->delete();
             $this->clearSessions($record);
+
             return true;
         });
     }
@@ -69,6 +78,7 @@ class UserManagementService
     {
         Gate::authorize('restore', $record);
         $record->restore();
+
         return true;
     }
 
