@@ -40,8 +40,8 @@ class LoanForm
                         ->required()
                         ->helperText('Pilih guru atau administrator aktif yang bertanggung jawab.'),
                     DatePicker::make('due_date')->label('Batas Pengembalian')->default(today()->addDays(7))->minDate(today())->required(),
-                    Select::make('purpose_template')
-                        ->label('Template Keperluan')
+                    ToggleButtons::make('purpose_template')
+                        ->label('Saran Keperluan')
                         ->options([
                             'Praktikum pembelajaran' => 'Praktikum pembelajaran',
                             'Kegiatan ujian kompetensi' => 'Kegiatan ujian kompetensi',
@@ -49,9 +49,10 @@ class LoanForm
                             'Kegiatan sekolah' => 'Kegiatan sekolah',
                             'Peminjaman sementara' => 'Peminjaman sementara',
                         ])
-                        ->placeholder('Pilih template (opsional)')
+                        ->inline()
                         ->live()
                         ->dehydrated(false)
+                        ->columnSpanFull()
                         ->afterStateUpdated(function (?string $state, Set $set): void {
                             if (filled($state)) {
                                 $set('purpose', $state);

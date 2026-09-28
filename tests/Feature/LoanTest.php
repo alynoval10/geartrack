@@ -15,6 +15,7 @@ use App\Services\LoanService;
 use App\Services\StockTakeService;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\ToggleButtons;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -166,6 +167,11 @@ class LoanTest extends TestCase
         $this->actingAs(User::factory()->create());
 
         Livewire::test(CreateLoan::class)
+            ->assertSchemaComponentExists(
+                'purpose_template',
+                'form',
+                fn (ToggleButtons $component): bool => $component->isInline(),
+            )
             ->set('data.purpose_template', 'Praktikum pembelajaran')
             ->assertSet('data.purpose', 'Praktikum pembelajaran')
             ->set('data.purpose', 'Praktikum konfigurasi router kelas XI')
