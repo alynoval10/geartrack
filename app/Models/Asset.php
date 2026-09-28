@@ -29,6 +29,7 @@ class Asset extends Model
         'model',
         'serial_number',
         'location_id',
+        'custodian_user_id',
         'custodian_name',
         'asset_set_id',
         'set_role',
@@ -58,6 +59,21 @@ class Asset extends Model
         });
 
         static::saving(function (Asset $asset) {
+            if ($asset->isDirty('custodian_user_id')) {
+                // Nama disimpan sebagai snapshot agar laporan lama tetap terbaca jika user berubah.
+                $custodian = $asset->custodian_user_id
+                    ? User::query()->whereKey($asset->custodian_user_id)->where('is_active', true)->first()
+                    : null;
+
+                if ($asset->custodian_user_id && ! $custodian) {
+                    throw ValidationException::withMessages([
+                        'custodian_user_id' => 'Pilih user aktif sebagai penanggung jawab.',
+                    ]);
+                }
+
+                $asset->custodian_name = $custodian?->name;
+            }
+
             if ($asset->exists && $asset->isDirty(['status', 'asset_set_id', 'set_role'])
                 && $asset->loanItems()->whereNotNull('active_asset_id')->exists()
                 && ($asset->isDirty(['asset_set_id', 'set_role']) || ! in_array($asset->status, ['borrowed', 'lost'], true))) {
@@ -100,6 +116,11 @@ class Asset extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function custodian(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'custodian_user_id');
     }
 
     public function assetSet(): BelongsTo

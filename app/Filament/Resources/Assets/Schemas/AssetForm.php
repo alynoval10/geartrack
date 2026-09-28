@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Assets\Schemas;
 
+use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -9,6 +10,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class AssetForm
 {
@@ -51,8 +53,21 @@ class AssetForm
 
                 Section::make('Penempatan & Kondisi')
                     ->schema([
-                        TextInput::make('custodian_name')->label('Penanggung Jawab')->maxLength(150)
-                            ->helperText('Gunakan Mutasi Aset untuk perpindahan dengan berita acara.'),
+                        Select::make('custodian_user_id')
+                            ->label('Penanggung Jawab')
+                            ->relationship(
+                                name: 'custodian',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn (Builder $query): Builder => $query->where('is_active', true)->orderBy('name'),
+                            )
+                            ->getOptionLabelFromRecordUsing(
+                                fn (User $record): string => "{$record->name} ({$record->email})"
+                            )
+                            // User yang membuat aset menjadi pilihan awal dan tetap dapat diganti.
+                            ->default(fn (): ?int => auth()->id())
+                            ->searchable(['name', 'email'])
+                            ->preload()
+                            ->helperText('Pilih guru atau admin aktif. Gunakan Mutasi Aset untuk perpindahan dengan berita acara.'),
                         Select::make('location_id')
                             ->label('Lokasi')
                             ->relationship('location', 'name')

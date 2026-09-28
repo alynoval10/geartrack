@@ -49,7 +49,8 @@ class AssetTransferTest extends TestCase
 
         $transfer = AssetTransfer::sole();
         $this->assertSame($target->id, $asset->fresh()->location_id);
-        $this->assertSame('Guru Baru', $asset->fresh()->custodian_name);
+        $this->assertSame($user->name, $asset->fresh()->custodian_name);
+        $this->assertSame($user->id, $asset->fresh()->custodian_user_id);
         $this->assertDatabaseHas('asset_transfer_items', [
             'asset_id' => $asset->id, 'source_location_name' => 'Lab Asal', 'previous_custodian' => 'Guru Lama',
         ]);

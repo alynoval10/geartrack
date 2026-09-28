@@ -20,7 +20,8 @@ class AssetTransferService
         $data = Validator::make($data, [
             'destination_location_id' => ['required', 'integer', 'exists:locations,id'],
             'sender_name' => ['required', 'string', 'max:150'],
-            'receiver_name' => ['required', 'string', 'max:150'],
+            'receiver_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'receiver_name' => ['required_without:receiver_user_id', 'string', 'max:150'],
             'reason' => ['required', 'string', 'max:5000'],
             'asset_set_id' => ['nullable', 'integer', 'exists:asset_sets,id'],
             'asset_ids' => ['nullable', 'array', 'max:100'],
@@ -28,6 +29,16 @@ class AssetTransferService
         ])->validate();
 
         return DB::transaction(function () use ($data, $user): AssetTransfer {
+            $receiver = empty($data['receiver_user_id'])
+                ? null
+                : User::query()->whereKey($data['receiver_user_id'])->where('is_active', true)->lockForUpdate()->first();
+
+            if (! empty($data['receiver_user_id']) && ! $receiver) {
+                throw ValidationException::withMessages(['receiver_user_id' => 'Pilih user aktif sebagai penanggung jawab.']);
+            }
+
+            // Dokumen menyimpan nama sebagai snapshot, sementara aset menyimpan relasi user aktif.
+            $data['receiver_name'] = $receiver?->name ?? $data['receiver_name'];
             $assets = $this->selection->lock($data);
             $location = Location::query()->lockForUpdate()->findOrFail($data['destination_location_id']);
             if (! $location->is_active) {
@@ -43,7 +54,7 @@ class AssetTransferService
                 }
             }
             $transfer = AssetTransfer::create([
-                ...collect($data)->except('asset_ids')->all(),
+                ...collect($data)->except(['asset_ids', 'receiver_user_id'])->all(),
                 'code' => 'MUT-'.now()->format('Ymd').'-'.Str::upper(Str::random(8)),
                 'package_name' => empty($data['asset_set_id']) ? null : AssetSet::findOrFail($data['asset_set_id'])->name,
                 'destination_location_name' => $location->name,
@@ -56,7 +67,11 @@ class AssetTransferService
                     'condition' => $asset->condition, 'source_location_name' => $asset->location?->name,
                     'previous_custodian' => $asset->custodian_name,
                 ]);
-                $asset->update(['location_id' => $location->id, 'custodian_name' => $data['receiver_name']]);
+                $asset->update([
+                    'location_id' => $location->id,
+                    'custodian_user_id' => $receiver?->id,
+                    'custodian_name' => $data['receiver_name'],
+                ]);
                 $asset->histories()->create([
                     'user_id' => $user->id, 'action' => 'transfer',
                     'description' => "Mutasi {$transfer->code} ke {$location->name}, penanggung jawab {$transfer->receiver_name}.",
