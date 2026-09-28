@@ -189,6 +189,10 @@ class LoanTest extends TestCase
             ->assertActionExists($scannerAction)
             ->mountAction($scannerAction)
             ->assertMountedActionModalSee('Aktifkan Kamera');
+
+        $this->get(LoanResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('loan-scanner-', false);
     }
 
     public function test_unavailable_member_rolls_back_entire_package_loan(): void

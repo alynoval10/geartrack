@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Login;
+use App\Filament\Resources\Loans\Pages\CreateLoan;
 use App\Http\Middleware\EnforceIdleSession;
 use App\Http\Middleware\RequirePasswordChange;
 use Filament\Http\Middleware\Authenticate;
@@ -57,6 +58,12 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): string => Blade::render('@include(\'filament.components.idle-session\')'),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                // Muat pemindai sebelum modal dibuka agar tombol kamera selalu memiliki pengendali JavaScript.
+                fn (): string => Blade::render('@vite(\'resources/js/loan-scanner.js\')'),
+                CreateLoan::class,
             )
             ->middleware([
                 EncryptCookies::class,

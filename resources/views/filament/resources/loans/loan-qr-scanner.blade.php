@@ -40,8 +40,3 @@
         Setelah satu perangkat ditambahkan, arahkan kamera ke QR berikutnya. Anda juga tetap dapat memilih perangkat secara manual setelah menutup pemindai.
     </p>
 </div>
-
-{{-- Livewire memuat aset ini ketika modal pertama kali dibuka dan tidak mengunduhnya kembali pada pembukaan berikutnya. --}}
-@assets
-    @vite('resources/js/loan-scanner.js')
-@endassets
