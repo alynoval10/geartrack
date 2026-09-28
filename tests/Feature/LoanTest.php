@@ -188,7 +188,8 @@ class LoanTest extends TestCase
         Livewire::test(CreateLoan::class)
             ->assertActionExists($scannerAction)
             ->mountAction($scannerAction)
-            ->assertMountedActionModalSee('Aktifkan Kamera');
+            ->assertMountedActionModalSee('Aktifkan Kamera')
+            ->assertMountedActionModalSeeHtml('GearTrackLoanScanner?.initialize($el)');
 
         $this->get(LoanResource::getUrl('create'))
             ->assertOk()

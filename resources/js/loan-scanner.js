@@ -2,12 +2,11 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { extractAssetQrToken } from './qr-destination';
 import { cameraBlockReason, cameraErrorMessage, startLiveCamera } from './scanner-camera';
 
-const initializeLoanScanner = (root) => {
+export const initializeLoanScanner = (root) => {
     if (root.dataset.initialized === 'true') {
         return;
     }
 
-    root.dataset.initialized = 'true';
     const reader = root.querySelector('[data-loan-scanner-reader]');
     const status = root.querySelector('[data-loan-scanner-status]');
     const startButton = root.querySelector('[data-loan-scanner-start]');
@@ -19,6 +18,7 @@ const initializeLoanScanner = (root) => {
     }
 
     const scanner = new Html5Qrcode(reader.id);
+    root.dataset.initialized = 'true';
     const blocked = cameraBlockReason(window.isSecureContext, navigator.mediaDevices);
     let busy = false;
     let lastToken = null;
@@ -153,7 +153,16 @@ const initializeLoanScanners = () => {
     document.querySelectorAll('[data-loan-scanner]').forEach(initializeLoanScanner);
 };
 
+// Modal Filament dibuat setelah halaman selesai dimuat. Inisialisasi pada fase capture memastikan klik pertama sudah diterima tombol kamera.
+document.addEventListener('click', (event) => {
+    const root = event.target.closest?.('[data-loan-scanner]');
+
+    if (root) {
+        initializeLoanScanner(root);
+    }
+}, true);
 document.addEventListener('DOMContentLoaded', initializeLoanScanners);
 document.addEventListener('livewire:navigated', initializeLoanScanners);
 window.Livewire?.hook('morphed', initializeLoanScanners);
+window.GearTrackLoanScanner = { initialize: initializeLoanScanner };
 initializeLoanScanners();

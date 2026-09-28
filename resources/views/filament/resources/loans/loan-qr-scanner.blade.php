@@ -1,4 +1,9 @@
-<div data-loan-scanner class="grid gap-4">
+<div
+    data-loan-scanner
+    x-data
+    x-init="window.GearTrackLoanScanner?.initialize($el)"
+    class="grid gap-4"
+>
     <div
         id="loan-qr-reader-{{ uniqid() }}"
         data-loan-scanner-reader
