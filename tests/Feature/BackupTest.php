@@ -58,7 +58,10 @@ class BackupTest extends TestCase
 
     private function admin(): User
     {
-        return User::factory()->create(['email' => 'admin@example.test']);
+        return User::factory()->create([
+            'email' => 'admin@example.test',
+            'role' => 'admin',
+        ]);
     }
 
     private function service(): BackupService
@@ -213,16 +216,17 @@ class BackupTest extends TestCase
         $this->service()->restore($this->service()->archivePath($name), $admin->email);
     }
 
-    public function test_guest_and_unlisted_user_cannot_manage_or_download_backups(): void
+    public function test_guest_and_guru_cannot_manage_or_open_backups(): void
     {
         $this->post(route('backups.store'))->assertRedirect(route('filament.admin.auth.login'));
-        $user = User::factory()->create(['email' => 'operator@example.test']);
+        $user = User::factory()->create(['email' => 'operator@example.test', 'role' => 'guru']);
         $this->actingAs($user)->post(route('backups.store'))->assertForbidden();
         $this->get(route('backups.download', ['name' => 'geartrack-test.zip']))->assertForbidden();
         $this->post(route('backups.restore'))->assertForbidden();
         $this->delete(route('backups.destroy', ['name' => 'geartrack-test.zip']))->assertForbidden();
-        $this->get(Backups::getUrl())->assertSee('Akses backup belum aktif')
-            ->assertDontSee('Buat Backup Sekarang');
+        $this->get(Backups::getUrl())->assertForbidden();
+        $this->get(route('filament.admin.pages.dashboard'))
+            ->assertDontSee('href="'.Backups::getUrl().'"', false);
     }
 
     public function test_backup_menu_is_visible_when_admin_access_is_not_configured(): void
@@ -239,11 +243,14 @@ class BackupTest extends TestCase
             ->assertDontSee('Pulihkan Data');
     }
 
-    public function test_unlisted_user_cannot_see_archive_details_on_backup_page(): void
+    public function test_unlisted_admin_cannot_see_archive_details_on_backup_page(): void
     {
         $admin = $this->admin();
         $name = $this->service()->create($admin->email);
-        $this->actingAs(User::factory()->create(['email' => 'operator@example.test']));
+        $this->actingAs(User::factory()->create([
+            'email' => 'operator@example.test',
+            'role' => 'admin',
+        ]));
 
         $this->get(Backups::getUrl())
             ->assertSee('Akun Anda belum memiliki izin')
@@ -362,11 +369,13 @@ class BackupTest extends TestCase
             ->assertNotified('File backup sudah tidak tersedia');
     }
 
-    public function test_unlisted_user_cannot_use_delete_action(): void
+    public function test_unlisted_admin_cannot_use_delete_action(): void
     {
         $admin = $this->admin();
         $name = $this->service()->create($admin->email);
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->create([
+            'role' => 'admin',
+        ]));
 
         Livewire::test(Backups::class)->assertActionHidden('deleteBackup');
         $this->assertFileExists($this->service()->archivePath($name));

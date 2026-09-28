@@ -33,9 +33,12 @@ class Backups extends Page
 
     protected static ?int $navigationSort = 100;
 
+    /**
+     * Sembunyikan menu dan tolak akses langsung untuk akun selain Administrator.
+     */
     public static function canAccess(): bool
     {
-        return auth()->check();
+        return auth()->user()?->isAdmin() ?? false;
     }
 
     public function deleteBackupAction(): Action

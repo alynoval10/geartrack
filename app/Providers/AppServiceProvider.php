@@ -19,9 +19,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Gate::define('manage-backups', fn (User $user): bool => in_array(
-            strtolower($user->email), config('backup.admin_emails', []), true,
-        ));
+        // Operasi backup memerlukan role Administrator dan email yang terdaftar.
+        Gate::define('manage-backups', fn (User $user): bool => $user->isAdmin()
+            && in_array(
+                strtolower($user->email), config('backup.admin_emails', []), true,
+            ));
 
         $publicUrl = config('app.public_url');
 
