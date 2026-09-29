@@ -4,7 +4,12 @@ namespace App\Filament\Resources\AssetHistories\Tables;
 
 use App\Filament\Resources\Assets\AssetResource;
 use App\Models\AssetHistory;
+use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\Indicator;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +21,26 @@ class AssetHistoriesTable
         return $table
             ->defaultSort('created_at', 'desc')
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['asset', 'user']))
+            ->headerActions([
+                Action::make('print')
+                    ->label('Cetak Log')
+                    ->icon('heroicon-o-printer')
+                    ->color('gray')
+                    ->url(function (HasTable $livewire): string {
+                        $dateFilter = $livewire->getTableFilterState('created_at') ?? [];
+                        $actionFilter = $livewire->getTableFilterState('action') ?? [];
+                        $userFilter = $livewire->getTableFilterState('user') ?? [];
+
+                        // Teruskan filter tabel agar dokumen cetak berisi data yang sedang diperiksa.
+                        return route('activity-logs.print', array_filter([
+                            'from' => $dateFilter['from'] ?? null,
+                            'until' => $dateFilter['until'] ?? null,
+                            'action' => $actionFilter['value'] ?? null,
+                            'user' => $userFilter['value'] ?? null,
+                        ], fn (mixed $value): bool => filled($value)));
+                    })
+                    ->openUrlInNewTab(),
+            ])
             ->columns([
                 TextColumn::make('created_at')
                     ->label('Waktu')
@@ -71,6 +96,37 @@ class AssetHistoriesTable
                     ->toggleable(),
             ])
             ->filters([
+                Filter::make('created_at')
+                    ->label('Rentang Tanggal')
+                    ->schema([
+                        DatePicker::make('from')->label('Dari Tanggal'),
+                        DatePicker::make('until')->label('Sampai Tanggal'),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when(
+                            $data['from'] ?? null,
+                            fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '>=', $date),
+                        )
+                        ->when(
+                            $data['until'] ?? null,
+                            fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '<=', $date),
+                        ))
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if ($data['from'] ?? null) {
+                            $indicators[] = Indicator::make('Dari '.date('d/m/Y', strtotime($data['from'])))
+                                ->removeField('from');
+                        }
+
+                        if ($data['until'] ?? null) {
+                            $indicators[] = Indicator::make('Sampai '.date('d/m/Y', strtotime($data['until'])))
+                                ->removeField('until');
+                        }
+
+                        return $indicators;
+                    }),
+
                 SelectFilter::make('action')
                     ->label('Aktivitas')
                     ->options(AssetHistory::ACTIONS),

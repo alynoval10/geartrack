@@ -3,14 +3,17 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\AssetHistories\AssetHistoryResource;
+use App\Filament\Resources\AssetHistories\Pages\ListAssetHistories;
 use App\Models\Asset;
 use App\Models\AssetHistory;
 use App\Models\User;
 use App\Services\AssetTransferService;
 use App\Services\StockTakeService;
 use Database\Factories\LocationFactory;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ActivityLogTest extends TestCase
@@ -123,5 +126,66 @@ class ActivityLogTest extends TestCase
         $this->actingAs($guru)
             ->get(AssetHistoryResource::getUrl('index'))
             ->assertForbidden();
+    }
+
+    public function test_activity_log_table_has_date_filter_and_prints_the_active_range(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin);
+
+        Livewire::test(ListAssetHistories::class)
+            ->assertTableFilterExists('created_at')
+            ->filterTable('created_at', [
+                'from' => '2026-09-15',
+                'until' => '2026-09-25',
+            ])
+            ->assertActionHasUrl(
+                TestAction::make('print')->table(),
+                route('activity-logs.print', [
+                    'from' => '2026-09-15',
+                    'until' => '2026-09-25',
+                ]),
+            );
+    }
+
+    public function test_print_view_uses_filters_and_is_restricted_to_admin(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $guru = User::factory()->create(['role' => 'guru']);
+        $this->historyAt('LOG-CETAK', '2026-09-20 08:00:00', $admin, 'updated');
+        $this->historyAt('LOG-TIDAK-CETAK', '2026-09-10 08:00:00', $admin, 'created');
+
+        $url = route('activity-logs.print', [
+            'from' => '2026-09-15',
+            'until' => '2026-09-25',
+            'action' => 'updated',
+            'user' => $admin->id,
+        ]);
+
+        $response = $this->actingAs($admin)->get($url);
+
+        $response
+            ->assertOk()
+            ->assertSee('LOG-CETAK')
+            ->assertDontSee('LOG-TIDAK-CETAK')
+            ->assertSee('15/09/2026–25/09/2026')
+            ->assertSee('Cetak / Simpan PDF');
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+
+        $this->actingAs($guru)->get($url)->assertForbidden();
+    }
+
+    private function historyAt(string $assetCode, string $createdAt, ?User $user = null, string $action = 'updated'): AssetHistory
+    {
+        return AssetHistory::query()->forceCreate([
+            'asset_code' => $assetCode,
+            'asset_name' => 'Perangkat '.$assetCode,
+            'user_id' => $user?->id,
+            'user_name' => $user?->name ?? 'Administrator',
+            'action' => $action,
+            'description' => 'Aktivitas pengujian.',
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
+        ]);
     }
 }

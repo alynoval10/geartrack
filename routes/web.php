@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogPrintController;
 use App\Http\Controllers\AssetImportController;
 use App\Http\Controllers\AssetQrController;
 use App\Http\Controllers\AssetTransferDocumentController;
@@ -15,6 +16,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/reports/export', InventoryReportController::class)->middleware('auth')->name('reports.export');
+
+Route::get('/activity-logs/print', ActivityLogPrintController::class)
+    ->middleware('auth')
+    ->name('activity-logs.print');
 
 Route::post('/session/activity', SessionActivityController::class)
     ->middleware(['auth', EnforceIdleSession::class])
