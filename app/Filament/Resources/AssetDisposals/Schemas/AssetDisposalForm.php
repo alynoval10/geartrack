@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AssetDisposals\Schemas;
 
+use App\Filament\Schemas\EvidenceAttachments;
 use App\Models\AssetDisposal;
 use App\Services\AssetDisposalEligibility;
 use Filament\Forms\Components\DatePicker;
@@ -45,6 +46,7 @@ class AssetDisposalForm
                         ->maxLength(5000)
                         ->rows(4)
                         ->columnSpanFull(),
+                    EvidenceAttachments::field('evidence/asset-disposals'),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),

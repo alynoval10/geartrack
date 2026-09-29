@@ -18,12 +18,12 @@ class StockTakeItem extends Model
         'stock_take_id', 'asset_id', 'asset_code', 'asset_name',
         'expected_location_id', 'expected_location_name', 'original_status',
         'result', 'observed_location_id', 'observed_location_name',
-        'notes', 'checked_by', 'checked_at',
+        'notes', 'attachments', 'checked_by', 'checked_at',
     ];
 
     protected function casts(): array
     {
-        return ['checked_at' => 'datetime'];
+        return ['checked_at' => 'datetime', 'attachments' => 'array'];
     }
 
     public function stockTake(): BelongsTo

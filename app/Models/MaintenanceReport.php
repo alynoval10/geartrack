@@ -31,11 +31,12 @@ class MaintenanceReport extends Model
         'reported_condition', 'status', 'technician', 'previous_asset_status',
         'reported_by', 'closed_at',
         'maintenance_schedule_id', 'schedule_due_date',
+        'attachments',
     ];
 
     protected function casts(): array
     {
-        return ['closed_at' => 'datetime', 'schedule_due_date' => 'date'];
+        return ['closed_at' => 'datetime', 'schedule_due_date' => 'date', 'attachments' => 'array'];
     }
 
     public function asset(): BelongsTo

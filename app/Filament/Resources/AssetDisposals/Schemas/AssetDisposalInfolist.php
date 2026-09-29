@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AssetDisposals\Schemas;
 
+use App\Filament\Schemas\EvidenceAttachments;
 use App\Models\AssetDisposal;
 use App\Models\MaintenanceReport;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -29,6 +30,7 @@ class AssetDisposalInfolist
                 TextEntry::make('reviewed_at')->label('Waktu Pemeriksaan')->dateTime('d M Y H:i')->placeholder('-'),
                 TextEntry::make('reason')->label('Alasan / Dasar')->columnSpanFull(),
                 TextEntry::make('review_notes')->label('Catatan Pemeriksaan')->placeholder('-')->columnSpanFull(),
+                EvidenceAttachments::entry(),
             ])->columns(2)->columnSpanFull(),
             RepeatableEntry::make('items')->label('Daftar Aset')->schema([
                 TextEntry::make('asset_code')->label('Kode'),

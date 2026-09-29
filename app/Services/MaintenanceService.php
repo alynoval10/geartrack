@@ -21,6 +21,8 @@ class MaintenanceService
             'type' => ['required', Rule::in(array_keys(MaintenanceReport::TYPES))],
             'description' => ['required', 'string', 'max:5000'],
             'reported_condition' => ['required', Rule::in(array_keys(MaintenanceReport::CONDITIONS))],
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => ['string', 'max:2048', 'regex:/\.(jpe?g|png|webp|pdf)$/i'],
         ])->validate();
 
         if ($data['type'] === 'damage' && $data['reported_condition'] === 'good') {
@@ -55,6 +57,8 @@ class MaintenanceService
             'technician' => [Rule::requiredIf($action === 'started'), 'nullable', 'string', 'max:150'],
             'condition' => [Rule::requiredIf($action === 'resolved'), 'nullable', Rule::in(array_keys(MaintenanceReport::CONDITIONS))],
             'asset_status' => [Rule::requiredIf($action === 'resolved'), 'nullable', Rule::in(['available', 'in_use', 'retired'])],
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => ['string', 'max:2048', 'regex:/\.(jpe?g|png|webp|pdf)$/i'],
         ])->validate();
 
         return DB::transaction(function () use ($report, $action, $data, $user): MaintenanceReport {
@@ -110,19 +114,26 @@ class MaintenanceService
                     ]);
                 }
             }
-            $this->entry($report, $user, $action, $data['notes'], $data['cost'] ?? 0);
+            $this->entry($report, $user, $action, $data['notes'], $data['cost'] ?? 0, $data['attachments'] ?? []);
 
             return $report;
         });
     }
 
-    private function entry(MaintenanceReport $report, User $user, string $action, string $notes, int|float|string $cost = 0): void
-    {
+    private function entry(
+        MaintenanceReport $report,
+        User $user,
+        string $action,
+        string $notes,
+        int|float|string $cost = 0,
+        array $attachments = [],
+    ): void {
         $report->entries()->create([
             'user_id' => $user->id,
             'action' => $action,
             'notes' => $notes,
             'cost' => $cost,
+            'attachments' => $attachments,
         ]);
         $report->asset?->histories()->create([
             'user_id' => $user->id,

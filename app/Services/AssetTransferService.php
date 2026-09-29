@@ -30,6 +30,8 @@ class AssetTransferService
             'asset_set_id' => ['required_if:selection_type,package', 'nullable', 'integer', 'exists:asset_sets,id'],
             'asset_ids' => ['required_if:selection_type,asset', 'nullable', 'array', 'min:1', 'max:100'],
             'asset_ids.*' => ['integer', 'distinct', 'exists:assets,id'],
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => ['string', 'max:2048', 'regex:/\.(jpe?g|png|webp|pdf)$/i'],
         ])->validate();
 
         return DB::transaction(function () use ($data, $user): AssetTransfer {

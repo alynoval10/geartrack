@@ -62,6 +62,8 @@ class StockTakeService
             'result' => ['required', Rule::in(['found', 'missing', 'moved'])],
             'observed_location_id' => ['required_if:result,moved', 'nullable', 'integer', 'exists:locations,id'],
             'notes' => ['required_if:result,missing', 'nullable', 'string', 'max:5000'],
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => ['string', 'max:2048', 'regex:/\.(jpe?g|png|webp|pdf)$/i'],
         ], [
             'observed_location_id.required_if' => 'Pilih lokasi aktual untuk aset yang berpindah.',
             'notes.required_if' => 'Jelaskan hasil pencarian aset yang hilang.',
@@ -124,6 +126,7 @@ class StockTakeService
                 'observed_location_id' => $data['result'] === 'missing' ? null : ($location?->id ?? $item->expected_location_id),
                 'observed_location_name' => $data['result'] === 'missing' ? null : ($location?->name ?? $item->expected_location_name),
                 'notes' => $data['notes'] ?? null,
+                'attachments' => $data['attachments'] ?? $item->attachments,
                 'checked_by' => $user->id,
                 'checked_at' => now(),
             ]);

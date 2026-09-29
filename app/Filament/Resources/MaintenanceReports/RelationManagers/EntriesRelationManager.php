@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MaintenanceReports\RelationManagers;
 
 use App\Models\MaintenanceEntry;
+use Filament\Actions\Action;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -28,6 +29,18 @@ class EntriesRelationManager extends RelationManager
             TextColumn::make('notes')->label('Catatan')->wrap(),
             TextColumn::make('cost')->label('Biaya')->money('IDR'),
             TextColumn::make('user.name')->label('Dicatat Oleh')->placeholder('Pengguna dihapus'),
+        ])->recordActions([
+            Action::make('attachments')
+                ->label('Lihat Lampiran')
+                ->icon('heroicon-o-paper-clip')
+                ->color('gray')
+                ->visible(fn (MaintenanceEntry $record): bool => filled($record->attachments))
+                ->modalHeading('Lampiran Penanganan')
+                ->modalContent(fn (MaintenanceEntry $record) => view('filament.components.evidence-attachments', [
+                    'attachments' => $record->attachments,
+                ]))
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Tutup'),
         ])->emptyStateHeading('Belum ada catatan penanganan');
     }
 }

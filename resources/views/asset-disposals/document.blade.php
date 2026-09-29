@@ -68,6 +68,14 @@
             <p><strong>Catatan persetujuan:</strong></p>
             <p class="notes">{{ $disposal->review_notes }}</p>
         @endif
+        @if (filled($disposal->attachments))
+            <p><strong>Lampiran bukti ({{ count($disposal->attachments) }} berkas):</strong></p>
+            <ol>
+                @foreach ($disposal->attachments as $attachment)
+                    <li><a href="{{ Storage::disk('public')->url($attachment) }}" target="_blank" rel="noopener noreferrer">Lampiran {{ $loop->iteration }}</a></li>
+                @endforeach
+            </ol>
+        @endif
 
         <div class="signatures">
             <div class="signature">Pengusul<strong>{{ $disposal->submitted_by_name }}</strong></div>

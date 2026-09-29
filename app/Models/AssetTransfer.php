@@ -12,11 +12,11 @@ class AssetTransfer extends Model
     use HasFactory;
 
     protected $fillable = ['code', 'asset_set_id', 'package_name', 'destination_location_id',
-        'destination_location_name', 'sender_name', 'receiver_name', 'reason', 'transferred_at', 'created_by', 'created_by_name'];
+        'destination_location_name', 'sender_name', 'receiver_name', 'reason', 'attachments', 'transferred_at', 'created_by', 'created_by_name'];
 
     protected function casts(): array
     {
-        return ['transferred_at' => 'datetime'];
+        return ['transferred_at' => 'datetime', 'attachments' => 'array'];
     }
 
     public function items(): HasMany

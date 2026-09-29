@@ -63,6 +63,14 @@
         </div>
         <p><strong>Alasan / keterangan:</strong></p>
         <p class="notes">{{ $transfer->reason }}</p>
+        @if (filled($transfer->attachments))
+            <p><strong>Lampiran bukti ({{ count($transfer->attachments) }} berkas):</strong></p>
+            <ol>
+                @foreach ($transfer->attachments as $attachment)
+                    <li><a href="{{ Storage::disk('public')->url($attachment) }}" target="_blank" rel="noopener noreferrer">Lampiran {{ $loop->iteration }}</a></li>
+                @endforeach
+            </ol>
+        @endif
         <p>Dokumen ini mencatat keadaan perangkat pada saat serah terima. Para pihak membubuhkan tanda tangan setelah melakukan pemeriksaan.</p>
         <div class="signatures">
             <div class="signature">Yang Menyerahkan<strong>{{ $transfer->sender_name }}</strong></div>

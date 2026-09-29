@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MaintenanceReports\Schemas;
 
+use App\Filament\Schemas\EvidenceAttachments;
 use App\Models\MaintenanceReport;
 use App\Services\MaintenanceAssetEligibility;
 use Filament\Actions\Action;
@@ -72,6 +73,7 @@ class MaintenanceReportForm
                 ->rows(4)
                 ->helperText('Pilih saran di atas atau tulis keluhan dan kebutuhan perawatan secara manual.')
                 ->columnSpanFull(),
+            EvidenceAttachments::field('evidence/maintenance-reports'),
         ];
     }
 

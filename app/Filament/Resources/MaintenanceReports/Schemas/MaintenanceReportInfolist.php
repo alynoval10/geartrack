@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MaintenanceReports\Schemas;
 
+use App\Filament\Schemas\EvidenceAttachments;
 use App\Models\MaintenanceReport;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -27,6 +28,7 @@ class MaintenanceReportInfolist
                 TextEntry::make('total_cost')->label('Total Biaya')
                     ->state(fn (MaintenanceReport $record): string => (string) $record->entries()->sum('cost'))->money('IDR'),
                 TextEntry::make('description')->label('Keluhan / Kebutuhan Perawatan')->columnSpanFull(),
+                EvidenceAttachments::entry(),
             ])->columns(3)->columnSpanFull(),
         ]);
     }

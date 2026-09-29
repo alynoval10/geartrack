@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\AssetTransfers\Schemas;
 
 use App\Filament\Schemas\AssetSelectionFields;
+use App\Filament\Schemas\EvidenceAttachments;
 use App\Models\Location;
 use App\Models\User;
 use Filament\Forms\Components\Select;
@@ -55,6 +56,7 @@ class AssetTransferForm
                         ->maxLength(5000)
                         ->helperText('Pilih salah satu saran di atas atau tulis keterangan secara manual.')
                         ->columnSpanFull(),
+                    EvidenceAttachments::field('evidence/asset-transfers'),
                 ])->columns(2)->columnSpanFull(),
         ]);
     }

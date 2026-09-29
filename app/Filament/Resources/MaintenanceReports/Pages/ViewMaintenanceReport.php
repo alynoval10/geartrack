@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MaintenanceReports\Pages;
 
 use App\Filament\Actions\AssetOperationActions;
 use App\Filament\Resources\MaintenanceReports\MaintenanceReportResource;
+use App\Filament\Schemas\EvidenceAttachments;
 use App\Models\MaintenanceReport;
 use App\Services\MaintenanceService;
 use Filament\Actions\Action;
@@ -47,6 +48,7 @@ class ViewMaintenanceReport extends ViewRecord
                 ->maxValue(9999999999999.99)->prefix('Rp')->default(0)
                 ->helperText('Biaya tambahan untuk tindakan ini, bukan total biaya laporan.');
         }
+        $fields[] = EvidenceAttachments::field('evidence/maintenance-actions');
 
         return Action::make($name)->label($label)->schema($fields)
             ->action(function (array $data, Action $action, MaintenanceService $service) use ($name): void {

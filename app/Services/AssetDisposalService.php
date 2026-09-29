@@ -24,6 +24,8 @@ class AssetDisposalService
             'reason_type' => ['required', Rule::in(array_keys(AssetDisposal::REASON_TYPES))],
             'reason' => ['required', 'string', 'max:5000'],
             'disposal_date' => ['required', 'date_format:Y-m-d'],
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => ['string', 'max:2048', 'regex:/\.(jpe?g|png|webp|pdf)$/i'],
         ])->validate();
 
         return DB::transaction(function () use ($data, $user): AssetDisposal {
@@ -44,6 +46,7 @@ class AssetDisposalService
                 'status' => 'pending',
                 'submitted_by' => $user->id,
                 'submitted_by_name' => $user->name,
+                'attachments' => $data['attachments'] ?? [],
             ]);
 
             foreach ($assets as $asset) {

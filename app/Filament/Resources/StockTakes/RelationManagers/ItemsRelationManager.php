@@ -43,6 +43,7 @@ class ItemsRelationManager extends RelationManager
                         'result' => $record->result === 'pending' ? 'found' : $record->result,
                         'observed_location_id' => $record->observed_location_id,
                         'notes' => $record->notes,
+                        'attachments' => $record->attachments,
                     ])
                     ->schema(StockTakeResultFields::make())
                     ->action(function (StockTakeItem $record, array $data, Action $action, StockTakeService $service): void {
@@ -52,6 +53,17 @@ class ItemsRelationManager extends RelationManager
                 Action::make('qr')->label('Lihat QR')->icon('heroicon-o-qr-code')
                     ->visible(fn (StockTakeItem $record): bool => $record->asset_id !== null)
                     ->url(fn (StockTakeItem $record): string => route('asset.qr.show', ['token' => $record->asset->qr_token, 'stock_take' => $record->stock_take_id])),
+                Action::make('attachments')
+                    ->label('Lihat Lampiran')
+                    ->icon('heroicon-o-paper-clip')
+                    ->color('gray')
+                    ->visible(fn (StockTakeItem $record): bool => filled($record->attachments))
+                    ->modalHeading('Lampiran Stock Opname')
+                    ->modalContent(fn (StockTakeItem $record) => view('filament.components.evidence-attachments', [
+                        'attachments' => $record->attachments,
+                    ]))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup'),
             ])->modifyQueryUsing(fn ($query) => $query->with('asset'));
     }
 }

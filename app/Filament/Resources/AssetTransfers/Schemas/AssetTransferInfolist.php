@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AssetTransfers\Schemas;
 
+use App\Filament\Schemas\EvidenceAttachments;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -20,6 +21,7 @@ class AssetTransferInfolist
                 TextEntry::make('sender_name')->label('Yang Menyerahkan'),
                 TextEntry::make('receiver_name')->label('Penerima'),
                 TextEntry::make('reason')->label('Keterangan')->columnSpanFull(),
+                EvidenceAttachments::entry(),
             ])->columns(2)->columnSpanFull(),
             RepeatableEntry::make('items')->label('Perangkat yang Diserahterimakan')->schema([
                 TextEntry::make('asset_code')->label('Kode'),

@@ -39,6 +39,7 @@ class AssetDisposal extends Model
         'reviewed_by_name',
         'reviewed_at',
         'review_notes',
+        'attachments',
     ];
 
     protected function casts(): array
@@ -46,6 +47,7 @@ class AssetDisposal extends Model
         return [
             'disposal_date' => 'date',
             'reviewed_at' => 'datetime',
+            'attachments' => 'array',
         ];
     }
 

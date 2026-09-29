@@ -15,11 +15,11 @@ class MaintenanceEntry extends Model
         'cancelled' => 'Laporan Dibatalkan',
     ];
 
-    protected $fillable = ['maintenance_report_id', 'user_id', 'action', 'notes', 'cost'];
+    protected $fillable = ['maintenance_report_id', 'user_id', 'action', 'notes', 'cost', 'attachments'];
 
     protected function casts(): array
     {
-        return ['cost' => 'decimal:2'];
+        return ['cost' => 'decimal:2', 'attachments' => 'array'];
     }
 
     public function maintenanceReport(): BelongsTo

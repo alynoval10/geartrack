@@ -23,6 +23,7 @@ class StockTakeResultFields
             Textarea::make('notes')->label('Catatan Pemeriksaan')->maxLength(5000)->rows(3)
                 ->required(fn (Get $get): bool => $get('result') === 'missing')
                 ->helperText('Untuk aset hilang, jelaskan lokasi dan upaya pencarian.'),
+            EvidenceAttachments::field('evidence/stock-takes'),
         ];
     }
 }
