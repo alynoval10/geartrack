@@ -10,8 +10,10 @@ use App\Models\AssetTransfer;
 use App\Models\User;
 use App\Services\AssetTransferService;
 use App\Services\LoanService;
+use App\Services\TransferAssetEligibility;
 use Database\Factories\LocationFactory;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\ToggleButtons;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -80,6 +82,32 @@ class AssetTransferTest extends TestCase
         foreach ($assets as $asset) {
             $this->assertSame($target->id, $asset->fresh()->location_id);
         }
+    }
+
+    public function test_form_separates_standalone_devices_from_device_packages(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $standaloneAsset = Asset::factory()->create(['status' => 'available']);
+        $package = AssetSet::create(['name' => 'Paket Lab', 'is_active' => true]);
+        $packageMember = Asset::factory()->create([
+            'asset_set_id' => $package->id,
+            'set_role' => 'main_pc',
+            'status' => 'available',
+        ]);
+
+        $options = app(TransferAssetEligibility::class)->options();
+        $this->assertArrayHasKey($standaloneAsset->id, $options);
+        $this->assertArrayNotHasKey($packageMember->id, $options);
+
+        Livewire::test(CreateAssetTransfer::class)
+            ->assertSchemaComponentExists(
+                'selection_type',
+                'form',
+                fn (ToggleButtons $component): bool => $component->isInline(),
+            )
+            ->set('data.asset_ids', [$standaloneAsset->id])
+            ->set('data.selection_type', 'package')
+            ->assertSet('data.asset_ids', []);
     }
 
     public function test_borrowed_member_rejects_entire_transfer(): void
