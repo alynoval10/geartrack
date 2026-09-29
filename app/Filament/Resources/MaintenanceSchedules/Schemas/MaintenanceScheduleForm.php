@@ -3,11 +3,13 @@
 namespace App\Filament\Resources\MaintenanceSchedules\Schemas;
 
 use App\Models\Asset;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -20,6 +22,19 @@ class MaintenanceScheduleForm
                 Select::make('asset_id')->label('Perangkat')->relationship('asset', 'asset_code')
                     ->getOptionLabelFromRecordUsing(fn (Asset $record): string => $record->asset_code.' — '.$record->name)
                     ->searchable(['asset_code', 'name'])->preload()->required()->disabledOn('edit')->dehydrated(),
+                Actions::make([
+                    Action::make('scanScheduleAsset')
+                        ->label('Scan QR Perangkat')
+                        ->icon('heroicon-o-qr-code')
+                        ->color('info')
+                        ->modalHeading('Scan QR Perangkat untuk Jadwal Perawatan')
+                        ->modalDescription('Scan label QR perangkat. Jika berhasil, perangkat dipilih dan formulir jadwal terbuka kembali.')
+                        ->modalContent(fn () => view('filament.resources.maintenance-schedules.schedule-qr-scanner'))
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Selesai'),
+                ])
+                    ->key('scheduleAssetScannerActions')
+                    ->visibleOn('create'),
                 TextInput::make('title')->label('Kegiatan Perawatan')->required()->maxLength(150),
                 DatePicker::make('due_date')->label('Tanggal Perawatan Berikutnya')->required(),
                 TextInput::make('interval_days')->label('Ulangi Setiap (hari)')->numeric()->integer()->minValue(1)->maxValue(3650)->default(30)

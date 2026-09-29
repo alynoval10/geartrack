@@ -6,6 +6,7 @@ use App\Filament\Pages\Login;
 use App\Filament\Resources\AssetTransfers\Pages\CreateAssetTransfer;
 use App\Filament\Resources\Loans\Pages\CreateLoan;
 use App\Filament\Resources\MaintenanceReports\Pages\CreateMaintenanceReport;
+use App\Filament\Resources\MaintenanceSchedules\Pages\CreateMaintenanceSchedule;
 use App\Http\Middleware\EnforceIdleSession;
 use App\Http\Middleware\RequirePasswordChange;
 use Filament\Http\Middleware\Authenticate;
@@ -76,6 +77,11 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 fn (): string => Blade::render('@vite(\'resources/js/maintenance-scanner.js\')'),
                 CreateMaintenanceReport::class,
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => Blade::render('@vite(\'resources/js/schedule-scanner.js\')'),
+                CreateMaintenanceSchedule::class,
             )
             ->middleware([
                 EncryptCookies::class,

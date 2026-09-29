@@ -12,6 +12,7 @@ use App\Models\MaintenanceSchedule;
 use App\Models\User;
 use App\Services\MaintenanceScheduleService;
 use App\Services\MaintenanceService;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -54,6 +55,30 @@ class MaintenanceScheduleTest extends TestCase
             ->callAction('createReport')->assertHasNoActionErrors();
         $this->assertDatabaseHas('maintenance_reports', ['maintenance_schedule_id' => $schedule->id, 'status' => 'open']);
         $this->assertFalse(MaintenanceScheduleResource::canEdit($schedule));
+    }
+
+    public function test_qr_scanner_selects_a_device_and_closes_but_duplicate_stays_open(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $asset = Asset::factory()->create();
+        $scannerAction = TestAction::make('scanScheduleAsset')
+            ->schemaComponent('scheduleAssetScannerActions');
+
+        Livewire::test(CreateMaintenanceSchedule::class)
+            ->assertActionExists($scannerAction)
+            ->mountAction($scannerAction)
+            ->assertMountedActionModalSee('Aktifkan Kamera')
+            ->assertMountedActionModalSeeHtml('GearTrackScheduleScanner?.initialize($el)')
+            ->call('selectScannedAsset', $asset->qr_token)
+            ->assertSet('data.asset_id', $asset->id)
+            ->assertActionNotMounted($scannerAction)
+            ->mountAction($scannerAction)
+            ->call('selectScannedAsset', $asset->qr_token)
+            ->assertActionMounted($scannerAction);
+
+        $this->get(MaintenanceScheduleResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('schedule-scanner-', false);
     }
 
     public function test_resolving_recurring_report_advances_from_completion_day_once(): void
