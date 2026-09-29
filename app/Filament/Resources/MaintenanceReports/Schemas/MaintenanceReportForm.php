@@ -8,8 +8,10 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class MaintenanceReportForm
@@ -17,11 +19,59 @@ class MaintenanceReportForm
     public static function fields(): array
     {
         return [
-            TextInput::make('title')->label('Judul Laporan')->placeholder('Contoh: PC tidak menyala')->required()->maxLength(150),
+            ToggleButtons::make('title_template')
+                ->label('Saran Judul Laporan')
+                ->options([
+                    'Perangkat tidak menyala' => 'Perangkat tidak menyala',
+                    'Koneksi jaringan bermasalah' => 'Koneksi jaringan bermasalah',
+                    'Port atau kabel tidak berfungsi' => 'Port atau kabel tidak berfungsi',
+                    'Perangkat berjalan lambat' => 'Perangkat berjalan lambat',
+                    'Perawatan rutin perangkat' => 'Perawatan rutin perangkat',
+                ])
+                ->inline()
+                ->live()
+                ->dehydrated(false)
+                ->columnSpanFull()
+                ->afterStateUpdated(function (?string $state, Set $set): void {
+                    if (filled($state)) {
+                        $set('title', $state);
+                    }
+                }),
+            TextInput::make('title')
+                ->label('Judul Laporan')
+                ->placeholder('Contoh: PC tidak menyala')
+                ->required()
+                ->maxLength(150)
+                ->helperText('Pilih saran di atas atau tulis judul secara manual.')
+                ->columnSpanFull(),
             Select::make('type')->label('Jenis Laporan')->options(MaintenanceReport::TYPES)->default('damage')->required(),
             Select::make('reported_condition')->label('Kondisi Saat Dilaporkan')
                 ->options(MaintenanceReport::CONDITIONS)->default('minor_damage')->required(),
-            Textarea::make('description')->label('Keluhan / Kebutuhan Perawatan')->required()->maxLength(5000)->rows(4)->columnSpanFull(),
+            ToggleButtons::make('description_template')
+                ->label('Saran Keluhan / Kebutuhan Perawatan')
+                ->options([
+                    'Perangkat tidak dapat dinyalakan saat digunakan.' => 'Tidak dapat dinyalakan',
+                    'Koneksi jaringan terputus atau tidak stabil.' => 'Koneksi tidak stabil',
+                    'Port atau kabel tidak berfungsi dan perlu diperiksa.' => 'Port/kabel bermasalah',
+                    'Perangkat berjalan lambat dan perlu diperiksa.' => 'Kinerja perangkat lambat',
+                    'Perangkat perlu dibersihkan dan diperiksa secara berkala.' => 'Pembersihan dan pemeriksaan rutin',
+                ])
+                ->inline()
+                ->live()
+                ->dehydrated(false)
+                ->columnSpanFull()
+                ->afterStateUpdated(function (?string $state, Set $set): void {
+                    if (filled($state)) {
+                        $set('description', $state);
+                    }
+                }),
+            Textarea::make('description')
+                ->label('Keluhan / Kebutuhan Perawatan')
+                ->required()
+                ->maxLength(5000)
+                ->rows(4)
+                ->helperText('Pilih saran di atas atau tulis keluhan dan kebutuhan perawatan secara manual.')
+                ->columnSpanFull(),
         ];
     }
 

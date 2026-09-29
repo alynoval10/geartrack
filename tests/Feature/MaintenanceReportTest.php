@@ -14,6 +14,7 @@ use App\Services\MaintenanceService;
 use App\Services\StockTakeService;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\ToggleButtons;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -112,6 +113,31 @@ class MaintenanceReportTest extends TestCase
             ->call('selectScannedAsset', $assetWithReport->qr_token)
             ->assertActionMounted($scannerAction)
             ->assertSet('data.asset_id', $selectedAsset->id);
+    }
+
+    public function test_report_suggestions_fill_title_and_description_but_remain_editable(): void
+    {
+        $this->operator();
+
+        Livewire::test(CreateMaintenanceReport::class)
+            ->assertSchemaComponentExists(
+                'title_template',
+                'form',
+                fn (ToggleButtons $component): bool => $component->isInline(),
+            )
+            ->assertSchemaComponentExists(
+                'description_template',
+                'form',
+                fn (ToggleButtons $component): bool => $component->isInline(),
+            )
+            ->set('data.title_template', 'Perangkat tidak menyala')
+            ->assertSet('data.title', 'Perangkat tidak menyala')
+            ->set('data.description_template', 'Perangkat tidak dapat dinyalakan saat digunakan.')
+            ->assertSet('data.description', 'Perangkat tidak dapat dinyalakan saat digunakan.')
+            ->set('data.title', 'Router praktik tidak menyala')
+            ->set('data.description', 'Lampu daya router mati setelah adaptor dipasang.')
+            ->assertSet('data.title', 'Router praktik tidak menyala')
+            ->assertSet('data.description', 'Lampu daya router mati setelah adaptor dipasang.');
     }
 
     public function test_damage_report_cannot_claim_good_condition(): void
