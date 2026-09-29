@@ -10,6 +10,7 @@ use App\Filament\Resources\StockTakes\Schemas\StockTakeForm;
 use App\Filament\Resources\StockTakes\Schemas\StockTakeInfolist;
 use App\Filament\Resources\StockTakes\Tables\StockTakesTable;
 use App\Models\StockTake;
+use App\Services\OperationalAlertService;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -32,6 +33,19 @@ class StockTakeResource extends Resource
     protected static ?string $pluralModelLabel = 'Stock Opname';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
+
+    public static function getNavigationBadge(): ?string
+    {
+        $user = auth()->user();
+        $count = $user ? app(OperationalAlertService::class)->openStockTakes($user)->count() : 0;
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'info';
+    }
 
     public static function canEdit(Model $record): bool
     {

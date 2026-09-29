@@ -10,6 +10,7 @@ use App\Filament\Resources\MaintenanceReports\Schemas\MaintenanceReportForm;
 use App\Filament\Resources\MaintenanceReports\Schemas\MaintenanceReportInfolist;
 use App\Filament\Resources\MaintenanceReports\Tables\MaintenanceReportsTable;
 use App\Models\MaintenanceReport;
+use App\Services\OperationalAlertService;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -32,6 +33,19 @@ class MaintenanceReportResource extends Resource
     protected static ?string $pluralModelLabel = 'Kerusakan & Perawatan';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
+
+    public static function getNavigationBadge(): ?string
+    {
+        $user = auth()->user();
+        $count = $user ? app(OperationalAlertService::class)->openMaintenanceReports($user)->count() : 0;
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'danger';
+    }
 
     public static function canEdit(Model $record): bool
     {

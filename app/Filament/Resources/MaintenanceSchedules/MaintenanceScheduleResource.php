@@ -10,6 +10,7 @@ use App\Filament\Resources\MaintenanceSchedules\Schemas\MaintenanceScheduleForm;
 use App\Filament\Resources\MaintenanceSchedules\Schemas\MaintenanceScheduleInfolist;
 use App\Filament\Resources\MaintenanceSchedules\Tables\MaintenanceSchedulesTable;
 use App\Models\MaintenanceSchedule;
+use App\Services\OperationalAlertService;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -39,7 +40,8 @@ class MaintenanceScheduleResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $count = MaintenanceSchedule::query()->upcoming()->whereDate('due_date', '<=', today())->count();
+        $user = auth()->user();
+        $count = $user ? app(OperationalAlertService::class)->dueMaintenanceSchedules($user)->count() : 0;
 
         return $count > 0 ? (string) $count : null;
     }

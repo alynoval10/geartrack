@@ -10,6 +10,7 @@ use App\Filament\Resources\Loans\Schemas\LoanForm;
 use App\Filament\Resources\Loans\Schemas\LoanInfolist;
 use App\Filament\Resources\Loans\Tables\LoansTable;
 use App\Models\Loan;
+use App\Services\OperationalAlertService;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -40,6 +41,19 @@ class LoanResource extends Resource
     protected static ?string $model = Loan::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    public static function getNavigationBadge(): ?string
+    {
+        $user = auth()->user();
+        $count = $user ? app(OperationalAlertService::class)->overdueLoans($user)->count() : 0;
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'danger';
+    }
 
     public static function form(Schema $schema): Schema
     {
