@@ -14,6 +14,7 @@ use App\Services\MaintenanceScheduleService;
 use App\Services\MaintenanceService;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\ToggleButtons;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -83,6 +84,31 @@ class MaintenanceScheduleTest extends TestCase
         $this->get(MaintenanceScheduleResource::getUrl('create'))
             ->assertOk()
             ->assertSee('schedule-scanner-', false);
+    }
+
+    public function test_schedule_suggestions_fill_activity_and_instructions_but_remain_editable(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateMaintenanceSchedule::class)
+            ->assertSchemaComponentExists(
+                'title_template',
+                'form',
+                fn (ToggleButtons $component): bool => $component->isInline(),
+            )
+            ->assertSchemaComponentExists(
+                'notes_template',
+                'form',
+                fn (ToggleButtons $component): bool => $component->isInline(),
+            )
+            ->set('data.title_template', 'Pembersihan rutin perangkat')
+            ->assertSet('data.title', 'Pembersihan rutin perangkat')
+            ->set('data.notes_template', 'Bersihkan debu pada bagian luar, ventilasi, dan kipas perangkat.')
+            ->assertSet('data.notes', 'Bersihkan debu pada bagian luar, ventilasi, dan kipas perangkat.')
+            ->set('data.title', 'Pembersihan router praktik')
+            ->set('data.notes', 'Bersihkan ventilasi router dengan kuas halus.')
+            ->assertSet('data.title', 'Pembersihan router praktik')
+            ->assertSet('data.notes', 'Bersihkan ventilasi router dengan kuas halus.');
     }
 
     public function test_resolving_recurring_report_advances_from_completion_day_once(): void
