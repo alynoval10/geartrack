@@ -150,6 +150,22 @@ class AssetTransferTest extends TestCase
             ->assertSet('data.asset_ids', [$asset->id]);
     }
 
+    public function test_reason_suggestion_fills_the_field_and_remains_manually_editable(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateAssetTransfer::class)
+            ->assertSchemaComponentExists(
+                'reason_template',
+                'form',
+                fn (ToggleButtons $component): bool => $component->isInline(),
+            )
+            ->set('data.reason_template', 'Pemindahan aset ke ruang baru')
+            ->assertSet('data.reason', 'Pemindahan aset ke ruang baru')
+            ->set('data.reason', 'Pemindahan router ke Lab TKJ 2')
+            ->assertSet('data.reason', 'Pemindahan router ke Lab TKJ 2');
+    }
+
     public function test_borrowed_member_rejects_entire_transfer(): void
     {
         $user = User::factory()->create();

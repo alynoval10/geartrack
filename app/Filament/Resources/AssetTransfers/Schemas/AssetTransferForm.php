@@ -8,7 +8,9 @@ use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class AssetTransferForm
@@ -29,7 +31,30 @@ class AssetTransferForm
                         ->searchable()
                         ->preload(),
                     TextInput::make('sender_name')->label('Yang Menyerahkan')->default(fn (): string => auth()->user()->name)->required()->maxLength(150),
-                    Textarea::make('reason')->label('Alasan / Keterangan Serah Terima')->required()->maxLength(5000)->columnSpanFull(),
+                    ToggleButtons::make('reason_template')
+                        ->label('Saran Alasan / Keterangan')
+                        ->options([
+                            'Pemindahan aset ke ruang baru' => 'Pemindahan aset ke ruang baru',
+                            'Pergantian penanggung jawab aset' => 'Pergantian penanggung jawab aset',
+                            'Penataan ulang sarana laboratorium' => 'Penataan ulang sarana laboratorium',
+                            'Penyerahan aset untuk perawatan' => 'Penyerahan aset untuk perawatan',
+                            'Pengembalian aset ke ruang penyimpanan' => 'Pengembalian aset ke ruang penyimpanan',
+                        ])
+                        ->inline()
+                        ->live()
+                        ->dehydrated(false)
+                        ->columnSpanFull()
+                        ->afterStateUpdated(function (?string $state, Set $set): void {
+                            if (filled($state)) {
+                                $set('reason', $state);
+                            }
+                        }),
+                    Textarea::make('reason')
+                        ->label('Alasan / Keterangan Serah Terima')
+                        ->required()
+                        ->maxLength(5000)
+                        ->helperText('Pilih salah satu saran di atas atau tulis keterangan secara manual.')
+                        ->columnSpanFull(),
                 ])->columns(2)->columnSpanFull(),
         ]);
     }
