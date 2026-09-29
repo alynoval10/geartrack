@@ -16,6 +16,7 @@ class AssetHistory extends Model
         'loan' => 'Dipinjamkan',
         'loan_return' => 'Dikembalikan',
         'maintenance' => 'Perawatan',
+        'retirement' => 'Dihapuskan',
     ];
 
     protected $fillable = [

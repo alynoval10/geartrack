@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityLogPrintController;
+use App\Http\Controllers\AssetDisposalDocumentController;
 use App\Http\Controllers\AssetImportController;
 use App\Http\Controllers\AssetQrController;
 use App\Http\Controllers\AssetTransferDocumentController;
@@ -20,6 +21,10 @@ Route::get('/reports/export', InventoryReportController::class)->middleware('aut
 Route::get('/activity-logs/print', ActivityLogPrintController::class)
     ->middleware('auth')
     ->name('activity-logs.print');
+
+Route::get('/asset-disposals/{disposal}/document', AssetDisposalDocumentController::class)
+    ->middleware('auth')
+    ->name('asset-disposals.document');
 
 Route::post('/session/activity', SessionActivityController::class)
     ->middleware(['auth', EnforceIdleSession::class])

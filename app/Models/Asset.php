@@ -160,6 +160,11 @@ class Asset extends Model
         return $this->hasMany(AssetTransferItem::class);
     }
 
+    public function disposalItems(): HasMany
+    {
+        return $this->hasMany(AssetDisposalItem::class);
+    }
+
     public function maintenanceSchedules(): HasMany
     {
         return $this->hasMany(MaintenanceSchedule::class);
