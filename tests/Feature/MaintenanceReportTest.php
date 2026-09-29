@@ -12,6 +12,7 @@ use App\Models\MaintenanceReport;
 use App\Models\User;
 use App\Services\MaintenanceService;
 use App\Services\StockTakeService;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -71,6 +72,46 @@ class MaintenanceReportTest extends TestCase
 
         $this->assertDatabaseHas('maintenance_reports', ['asset_id' => $asset->id, 'type' => 'maintenance']);
         $this->assertDatabaseHas('assets', ['id' => $asset->id, 'condition' => 'good']);
+    }
+
+    public function test_qr_scanner_selects_an_asset_without_active_report_and_closes(): void
+    {
+        $this->operator();
+        $asset = Asset::factory()->create();
+        $scannerAction = TestAction::make('scanMaintenanceAsset')
+            ->schemaComponent('maintenanceAssetScannerActions');
+
+        Livewire::test(CreateMaintenanceReport::class)
+            ->assertActionExists($scannerAction)
+            ->mountAction($scannerAction)
+            ->assertMountedActionModalSee('Aktifkan Kamera')
+            ->assertMountedActionModalSeeHtml('GearTrackMaintenanceScanner?.initialize($el)')
+            ->call('selectScannedAsset', $asset->qr_token)
+            ->assertSet('data.asset_id', $asset->id)
+            ->assertActionNotMounted($scannerAction);
+
+        $this->get(MaintenanceReportResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('maintenance-scanner-', false);
+    }
+
+    public function test_qr_scanner_stays_open_for_selected_asset_or_asset_with_active_report(): void
+    {
+        $user = $this->operator();
+        $selectedAsset = Asset::factory()->create();
+        $assetWithReport = Asset::factory()->create();
+        app(MaintenanceService::class)->report($assetWithReport, $this->reportData(), $user);
+        $scannerAction = TestAction::make('scanMaintenanceAsset')
+            ->schemaComponent('maintenanceAssetScannerActions');
+
+        Livewire::test(CreateMaintenanceReport::class)
+            ->set('data.asset_id', $selectedAsset->id)
+            ->mountAction($scannerAction)
+            ->call('selectScannedAsset', $selectedAsset->qr_token)
+            ->assertActionMounted($scannerAction)
+            ->call('selectScannedAsset', $assetWithReport->qr_token)
+            ->assertActionMounted($scannerAction)
+            ->assertSet('data.asset_id', $selectedAsset->id);
     }
 
     public function test_damage_report_cannot_claim_good_condition(): void
