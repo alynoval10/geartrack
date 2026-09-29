@@ -12,6 +12,7 @@ use App\Services\AssetTransferService;
 use App\Services\LoanService;
 use App\Services\TransferAssetEligibility;
 use Database\Factories\LocationFactory;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\ToggleButtons;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -108,6 +109,45 @@ class AssetTransferTest extends TestCase
             ->set('data.asset_ids', [$standaloneAsset->id])
             ->set('data.selection_type', 'package')
             ->assertSet('data.asset_ids', []);
+    }
+
+    public function test_transfer_qr_scanner_adds_an_eligible_device_and_closes(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $asset = Asset::factory()->create(['status' => 'available']);
+        $scannerAction = TestAction::make('scanTransferAssets')
+            ->schemaComponent('transferAssetScannerActions');
+
+        Livewire::test(CreateAssetTransfer::class)
+            ->assertActionExists($scannerAction)
+            ->mountAction($scannerAction)
+            ->assertMountedActionModalSee('Aktifkan Kamera')
+            ->assertMountedActionModalSeeHtml('GearTrackTransferScanner?.initialize($el)')
+            ->call('addScannedAsset', $asset->qr_token)
+            ->assertSet('data.asset_ids', [$asset->id])
+            ->assertActionNotMounted($scannerAction);
+
+        $this->get(AssetTransferResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('transfer-scanner-', false);
+    }
+
+    public function test_transfer_qr_scanner_stays_open_for_duplicate_or_borrowed_device(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $asset = Asset::factory()->create(['status' => 'available']);
+        $borrowedAsset = Asset::factory()->create(['status' => 'borrowed']);
+        $scannerAction = TestAction::make('scanTransferAssets')
+            ->schemaComponent('transferAssetScannerActions');
+
+        Livewire::test(CreateAssetTransfer::class)
+            ->set('data.asset_ids', [$asset->id])
+            ->mountAction($scannerAction)
+            ->call('addScannedAsset', $asset->qr_token)
+            ->assertActionMounted($scannerAction)
+            ->call('addScannedAsset', $borrowedAsset->qr_token)
+            ->assertActionMounted($scannerAction)
+            ->assertSet('data.asset_ids', [$asset->id]);
     }
 
     public function test_borrowed_member_rejects_entire_transfer(): void

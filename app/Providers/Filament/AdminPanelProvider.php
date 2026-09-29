@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Login;
+use App\Filament\Resources\AssetTransfers\Pages\CreateAssetTransfer;
 use App\Filament\Resources\Loans\Pages\CreateLoan;
 use App\Http\Middleware\EnforceIdleSession;
 use App\Http\Middleware\RequirePasswordChange;
@@ -64,6 +65,11 @@ class AdminPanelProvider extends PanelProvider
                 // Muat pemindai sebelum modal dibuka agar tombol kamera selalu memiliki pengendali JavaScript.
                 fn (): string => Blade::render('@vite(\'resources/js/loan-scanner.js\')'),
                 CreateLoan::class,
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => Blade::render('@vite(\'resources/js/transfer-scanner.js\')'),
+                CreateAssetTransfer::class,
             )
             ->middleware([
                 EncryptCookies::class,

@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/scanner.js',
                 'resources/js/loan-scanner.js',
+                'resources/js/transfer-scanner.js',
                 'resources/css/filament/admin/theme.css',
             ],
             refresh: true,

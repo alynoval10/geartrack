@@ -4,8 +4,10 @@ namespace App\Filament\Schemas;
 
 use App\Models\AssetSet;
 use App\Services\TransferAssetEligibility;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 
@@ -43,6 +45,20 @@ class AssetSelectionFields
                 ->required(fn (Get $get): bool => $get('selection_type') === 'asset')
                 ->visible(fn (Get $get): bool => $get('selection_type') === 'asset')
                 ->helperText('Pilih satu atau beberapa perangkat yang tidak menjadi anggota paket.'),
+            Actions::make([
+                Action::make('scanTransferAssets')
+                    ->label('Scan QR Perangkat')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('info')
+                    ->modalHeading('Scan QR Perangkat yang Dimutasi')
+                    ->modalDescription('Scan satu label QR. Jika berhasil, perangkat ditambahkan dan formulir mutasi terbuka kembali.')
+                    ->modalContent(fn () => view('filament.resources.asset-transfers.transfer-qr-scanner'))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Selesai'),
+            ])
+                ->key('transferAssetScannerActions')
+                ->columnSpanFull()
+                ->visible(fn (Get $get): bool => $get('selection_type') === 'asset'),
             Select::make('asset_set_id')
                 ->label('Pilih Paket Perangkat')
                 ->options(fn (): array => AssetSet::query()

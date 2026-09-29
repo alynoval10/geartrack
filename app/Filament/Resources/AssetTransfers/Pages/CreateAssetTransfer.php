@@ -4,13 +4,65 @@ namespace App\Filament\Resources\AssetTransfers\Pages;
 
 use App\Filament\Resources\AssetTransfers\AssetTransferResource;
 use App\Services\AssetTransferService;
+use App\Services\TransferAssetEligibility;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\On;
 
 class CreateAssetTransfer extends CreateRecord
 {
     protected static string $resource = AssetTransferResource::class;
+
+    /**
+     * Tambahkan perangkat satuan dari QR dan pertahankan pilihan manual yang sudah ada.
+     */
+    #[On('transfer-asset-scanned')]
+    public function addScannedAsset(string $token): void
+    {
+        if (! Str::isUuid($token)) {
+            $this->sendScanResult(false, 'QR tidak dikenali sebagai label aset GearTrack.');
+
+            return;
+        }
+
+        $asset = app(TransferAssetEligibility::class)->findByQrToken($token);
+
+        if (! $asset) {
+            $this->sendScanResult(false, 'Perangkat tidak dapat dimutasi satuan karena sedang dipinjam, hilang, atau menjadi anggota paket.');
+
+            return;
+        }
+
+        $selectedAssetIds = collect($this->data['asset_ids'] ?? [])->map(fn ($id): int => (int) $id);
+
+        if ($selectedAssetIds->contains($asset->id)) {
+            $this->sendScanResult(false, $asset->asset_code.' sudah ada dalam pilihan.');
+
+            return;
+        }
+
+        if ($selectedAssetIds->count() >= 100) {
+            $this->sendScanResult(false, 'Maksimal 100 perangkat dalam satu mutasi.');
+
+            return;
+        }
+
+        $this->data['selection_type'] = 'asset';
+        $this->data['asset_set_id'] = null;
+        $this->data['asset_ids'] = [...$selectedAssetIds->all(), $asset->id];
+
+        $this->sendScanResult(true, $asset->asset_code.' — '.$asset->name.' ditambahkan.');
+
+        // Kesalahan tetap mempertahankan modal, sedangkan hasil valid langsung kembali ke formulir mutasi.
+        $this->unmountAction();
+    }
+
+    private function sendScanResult(bool $success, string $message): void
+    {
+        $this->dispatch('transfer-asset-scan-result', success: $success, message: $message);
+    }
 
     protected function handleRecordCreation(array $data): Model
     {
