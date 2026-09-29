@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MaintenanceSchedules\Schemas;
 
 use App\Models\Asset;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -39,7 +40,18 @@ class MaintenanceScheduleForm
                 DatePicker::make('due_date')->label('Tanggal Perawatan Berikutnya')->required(),
                 TextInput::make('interval_days')->label('Ulangi Setiap (hari)')->numeric()->integer()->minValue(1)->maxValue(3650)->default(30)
                     ->helperText('Kosongkan untuk sekali saja. Jadwal berikutnya dihitung dari tanggal penyelesaian laporan.'),
-                TextInput::make('technician')->label('Teknisi / Penanggung Jawab')->maxLength(150),
+                Select::make('technician_user_id')
+                    ->label('Teknisi / Penanggung Jawab')
+                    ->options(fn (): array => User::query()
+                        ->where('is_active', true)
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all())
+                    ->default(fn (): ?int => auth()->id())
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->helperText('Pilih pengguna aktif yang bertanggung jawab atas jadwal ini.'),
                 Toggle::make('is_active')->label('Pengingat Aktif')->default(true)->required(),
                 Textarea::make('notes')->label('Petunjuk Perawatan')->maxLength(5000)->columnSpanFull(),
             ])->columns(2)->columnSpanFull(),

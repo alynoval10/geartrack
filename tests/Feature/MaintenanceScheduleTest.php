@@ -32,9 +32,11 @@ class MaintenanceScheduleTest extends TestCase
 
     private function data(Asset $asset, array $extra = []): array
     {
+        $technician = User::factory()->create(['name' => 'Teknisi Lab']);
+
         return [...[
             'asset_id' => $asset->id, 'title' => 'Bersihkan kipas', 'due_date' => today()->toDateString(),
-            'interval_days' => 30, 'is_active' => true, 'technician' => 'Teknisi Lab',
+            'interval_days' => 30, 'is_active' => true, 'technician_user_id' => $technician->id,
         ], ...$extra];
     }
 
@@ -48,8 +50,10 @@ class MaintenanceScheduleTest extends TestCase
             ->call('create')->assertHasNoFormErrors();
 
         $schedule = MaintenanceSchedule::sole();
+        $newTechnician = User::factory()->create(['name' => 'Teknisi Baru']);
         Livewire::test(EditMaintenanceSchedule::class, ['record' => $schedule->id])
-            ->fillForm(['technician' => 'Teknisi Baru'])->call('save')->assertHasNoFormErrors();
+            ->fillForm(['technician_user_id' => $newTechnician->id])->call('save')->assertHasNoFormErrors();
+        $this->assertSame($newTechnician->id, $schedule->fresh()->technician_user_id);
         $this->assertSame('Teknisi Baru', $schedule->fresh()->technician);
         Livewire::test(ViewMaintenanceSchedule::class, ['record' => $schedule->id])
             ->callAction('createReport')->assertHasNoActionErrors();
@@ -220,5 +224,23 @@ class MaintenanceScheduleTest extends TestCase
 
         $this->expectException(ValidationException::class);
         app(MaintenanceScheduleService::class)->save($this->data($asset, ['interval_days' => 0]), $user);
+    }
+
+    public function test_inactive_user_cannot_be_assigned_as_schedule_technician(): void
+    {
+        $user = User::factory()->create();
+        $inactiveTechnician = User::factory()->create(['is_active' => false]);
+        $asset = Asset::factory()->create();
+
+        try {
+            app(MaintenanceScheduleService::class)->save($this->data($asset, [
+                'technician_user_id' => $inactiveTechnician->id,
+            ]), $user);
+            $this->fail('Inactive user was assigned to the maintenance schedule.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('technician_user_id', $exception->errors());
+        }
+
+        $this->assertDatabaseCount('maintenance_schedules', 0);
     }
 }

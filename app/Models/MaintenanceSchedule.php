@@ -14,7 +14,7 @@ class MaintenanceSchedule extends Model
     use HasFactory;
 
     protected $fillable = ['asset_id', 'asset_code', 'asset_name', 'title', 'due_date',
-        'interval_days', 'technician', 'notes', 'is_active', 'last_completed_at', 'created_by'];
+        'interval_days', 'technician_user_id', 'technician', 'notes', 'is_active', 'last_completed_at', 'created_by'];
 
     protected function casts(): array
     {
@@ -24,6 +24,11 @@ class MaintenanceSchedule extends Model
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
+    }
+
+    public function technicianUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'technician_user_id');
     }
 
     public function reports(): HasMany

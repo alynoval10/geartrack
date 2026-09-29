@@ -13,7 +13,8 @@ class MaintenanceScheduleFactory extends Factory
         return [
             'asset_id' => Asset::factory(), 'asset_code' => fake()->unique()->uuid(), 'asset_name' => 'Komputer',
             'title' => 'Pembersihan rutin', 'due_date' => today()->addDays(7),
-            'interval_days' => 30, 'is_active' => true, 'created_by' => User::factory(),
+            'interval_days' => 30, 'technician_user_id' => User::factory(),
+            'technician' => fake()->name(), 'is_active' => true, 'created_by' => User::factory(),
         ];
     }
 }

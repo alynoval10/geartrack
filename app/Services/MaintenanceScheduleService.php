@@ -21,13 +21,28 @@ class MaintenanceScheduleService
             'title' => ['required', 'string', 'max:150'],
             'due_date' => ['required', 'date_format:Y-m-d'],
             'interval_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
-            'technician' => ['nullable', 'string', 'max:150'],
+            'technician_user_id' => ['required', 'integer', 'exists:users,id'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'is_active' => ['required', 'boolean'],
         ])->validate();
 
         return DB::transaction(function () use ($data, $user, $schedule): MaintenanceSchedule {
             $asset = Asset::query()->lockForUpdate()->findOrFail($data['asset_id']);
+            $technician = User::query()
+                ->whereKey($data['technician_user_id'])
+                ->where('is_active', true)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $technician) {
+                throw ValidationException::withMessages([
+                    'technician_user_id' => 'Teknisi atau penanggung jawab harus merupakan pengguna aktif.',
+                ]);
+            }
+
+            // Simpan nama sebagai snapshot agar riwayat tetap terbaca ketika akun berubah.
+            $data['technician'] = $technician->name;
+
             if ($schedule) {
                 $schedule = MaintenanceSchedule::query()->lockForUpdate()->findOrFail($schedule->id);
                 if ($schedule->asset_id !== $asset->id || $schedule->reports()->whereIn('status', ['open', 'in_progress'])->exists()) {
