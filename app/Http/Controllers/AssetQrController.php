@@ -27,7 +27,7 @@ class AssetQrController extends Controller
         return view('assets.qr-detail', compact('asset', 'stockTakeId'));
     }
 
-    public function label(string $token): View
+    public function label(string $token, Request $request): View
     {
         $asset = Asset::with([
             'category',
@@ -50,7 +50,10 @@ class AssetQrController extends Controller
             ->errorCorrection('M')
             ->generate($url);
 
-        return view('assets.qr-label', [
+        // Mode uji menempatkan label berukuran nyata pada A4 agar dapat diperiksa sebelum membeli printer label.
+        $view = $request->boolean('test') ? 'assets.qr-label-test' : 'assets.qr-label';
+
+        return view($view, [
             'asset' => $asset,
             'qrCode' => $qrCode,
             'url' => $url,

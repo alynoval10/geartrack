@@ -202,6 +202,20 @@ class AssetSetTest extends TestCase
             ->assertSee($asset->asset_code)->assertSee('<svg', false);
     }
 
+    public function test_qr_label_has_an_a4_actual_size_test_sheet(): void
+    {
+        $asset = $this->asset(['name' => 'Router Praktik Lab TKJ 01']);
+
+        $this->get(route('asset.qr.label', ['token' => $asset->qr_token, 'test' => 1]))
+            ->assertOk()
+            ->assertViewIs('assets.qr-label-test')
+            ->assertSee('Uji fisik label 50 × 30 mm')
+            ->assertSee('width: 50mm', false)
+            ->assertSee('height: 30mm', false)
+            ->assertSee($asset->asset_code)
+            ->assertSee('<svg', false);
+    }
+
     public function test_scanner_remains_available(): void
     {
         $this->get(route('qr.scan'))->assertOk()->assertViewIs('scanner.index');

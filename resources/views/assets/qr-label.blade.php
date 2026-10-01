@@ -33,6 +33,9 @@
         }
 
         .print-button {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
             border: 0;
             border-radius: 8px;
             padding: 10px 16px;
@@ -139,13 +142,18 @@
             Label {{ $asset->asset_code }}
         </div>
 
-        <button
-            type="button"
-            class="print-button"
-            onclick="window.print()"
-        >
-            Cetak Label
-        </button>
+        <div style="display:flex;gap:8px">
+            <a class="print-button" href="{{ route('asset.qr.label', ['token' => $asset->qr_token, 'test' => 1]) }}">
+                Uji Ukuran 50 × 30 mm
+            </a>
+            <button
+                type="button"
+                class="print-button"
+                onclick="window.print()"
+            >
+                Cetak Label
+            </button>
+        </div>
 
     </div>
 
