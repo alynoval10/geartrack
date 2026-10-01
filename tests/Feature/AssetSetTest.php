@@ -216,6 +216,28 @@ class AssetSetTest extends TestCase
             ->assertSee('<svg', false);
     }
 
+    public function test_bulk_qr_labels_have_an_a4_actual_size_test_sheet(): void
+    {
+        $firstAsset = $this->asset(['name' => 'PC Lab 01']);
+        $secondAsset = $this->asset(['name' => 'Router Gateway Lab']);
+
+        $this->get(route('asset.qr.bulk-label', [
+            'assets' => $firstAsset->id.','.$secondAsset->id,
+        ]))
+            ->assertOk()
+            ->assertViewIs('assets.qr-labels-test')
+            ->assertSee('2 label ukuran 50 × 30 mm')
+            ->assertSee('width: 50mm', false)
+            ->assertSee('height: 30mm', false)
+            ->assertSee($firstAsset->asset_code)
+            ->assertSee($secondAsset->asset_code);
+
+        $this->get(route('asset.qr.bulk-label', [
+            'assets' => $firstAsset->id.','.$secondAsset->id,
+            'legacy' => 1,
+        ]))->assertOk()->assertViewIs('assets.qr-labels');
+    }
+
     public function test_scanner_remains_available(): void
     {
         $this->get(route('qr.scan'))->assertOk()->assertViewIs('scanner.index');

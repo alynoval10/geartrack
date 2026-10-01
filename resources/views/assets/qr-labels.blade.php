@@ -39,6 +39,9 @@
         }
 
         .print-button {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
             border: 0;
             border-radius: 8px;
             padding: 10px 18px;
@@ -168,13 +171,18 @@
             </div>
         </div>
 
-        <button
-            type="button"
-            class="print-button"
-            onclick="window.print()"
-        >
-            Cetak Semua
-        </button>
+        <div style="display:flex;gap:8px">
+            <a class="print-button" href="{{ route('asset.qr.bulk-label', ['assets' => $selection]) }}">
+                Gunakan 50 × 30 mm
+            </a>
+            <button
+                type="button"
+                class="print-button"
+                onclick="window.print()"
+            >
+                Cetak Semua
+            </button>
+        </div>
 
     </div>
 

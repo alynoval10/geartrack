@@ -60,9 +60,9 @@ class AssetQrController extends Controller
         ]);
     }
 
-    public function bulkLabel()
+    public function bulkLabel(Request $request): View
     {
-        $ids = collect(explode(',', request('assets')))
+        $ids = collect(explode(',', (string) $request->query('assets')))
             ->filter()
             ->map(fn ($id) => (int) $id);
 
@@ -86,8 +86,12 @@ class AssetQrController extends Controller
                 ->generate($url);
         });
 
-        return view('assets.qr-labels', [
+        // Format 50 × 30 mm menjadi bawaan; format lama tetap tersedia sebagai pembanding sementara.
+        $view = $request->boolean('legacy') ? 'assets.qr-labels' : 'assets.qr-labels-test';
+
+        return view($view, [
             'assets' => $assets,
+            'selection' => $ids->implode(','),
         ]);
     }
 }
