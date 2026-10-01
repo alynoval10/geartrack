@@ -39,11 +39,7 @@ class AssetQrController extends Controller
             ->where('qr_token', $token)
             ->firstOrFail();
 
-        $url = rtrim(config('app.url'), '/').route(
-            'asset.qr.show',
-            ['token' => $asset->qr_token],
-            false
-        );
+        $url = $this->assetPublicUrl($asset->qr_token);
 
         $qrCode = QrCode::format('svg')
             ->size(300)
@@ -75,10 +71,8 @@ class AssetQrController extends Controller
 
         abort_if($assets->isEmpty(), 404);
 
-        $assets->each(function ($asset) {
-            $url = route('asset.qr.show', [
-                'token' => $asset->qr_token,
-            ]);
+        $assets->each(function ($asset): void {
+            $url = $this->assetPublicUrl($asset->qr_token);
 
             $asset->generatedQr = QrCode::format('svg')
                 ->size(250)
@@ -119,5 +113,13 @@ class AssetQrController extends Controller
             'nameFontSize',
             'hintFontSize',
         );
+    }
+
+    private function assetPublicUrl(string $token): string
+    {
+        // Domain publik tetap dipakai meskipun halaman dicetak dari IP lokal; tanpa konfigurasi, gunakan domain permintaan saat ini.
+        $origin = rtrim((string) (config('app.public_url') ?: request()->getSchemeAndHttpHost()), '/');
+
+        return $origin.route('asset.qr.show', ['token' => $token], false);
     }
 }

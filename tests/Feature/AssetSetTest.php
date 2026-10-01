@@ -203,6 +203,35 @@ class AssetSetTest extends TestCase
             ->assertSee($asset->asset_code)->assertSee('<svg', false);
     }
 
+    public function test_qr_label_uses_the_configured_public_domain_instead_of_the_local_ip(): void
+    {
+        config([
+            'app.url' => 'http://172.16.20.251',
+            'app.public_url' => 'https://geartrack.smkn1krangkeng.my.id/',
+        ]);
+        $asset = $this->asset();
+
+        $this->get('/q/'.$asset->qr_token.'/label')
+            ->assertOk()
+            ->assertViewHas(
+                'url',
+                'https://geartrack.smkn1krangkeng.my.id/q/'.$asset->qr_token,
+            );
+    }
+
+    public function test_qr_label_falls_back_to_the_current_request_domain(): void
+    {
+        config([
+            'app.url' => 'http://172.16.20.251',
+            'app.public_url' => null,
+        ]);
+        $asset = $this->asset();
+
+        $this->get('https://geartrack.example/q/'.$asset->qr_token.'/label')
+            ->assertOk()
+            ->assertViewHas('url', 'https://geartrack.example/q/'.$asset->qr_token);
+    }
+
     public function test_single_qr_label_supports_configured_printer_and_a4_modes(): void
     {
         $asset = $this->asset(['name' => 'Router Praktik Lab TKJ 01']);
