@@ -12,9 +12,9 @@ class SchoolSettings extends Page
 {
     protected string $view = 'filament.pages.school-settings';
 
-    protected static ?string $title = 'Identitas Sekolah & Laporan';
+    protected static ?string $title = 'Pengaturan Sekolah & Laporan';
 
-    protected static ?string $navigationLabel = 'Identitas Sekolah';
+    protected static ?string $navigationLabel = 'Pengaturan Sekolah';
 
     protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
 

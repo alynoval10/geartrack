@@ -23,12 +23,16 @@ class SchoolSettingsTest extends TestCase
             'asset_manager_name' => 'Pengurus Barang',
             'report_signer_name' => 'Penandatangan',
             'report_signer_title' => 'Wakasek Sarpras',
+            'qr_label_width_mm' => 60,
+            'qr_label_height_mm' => 40,
         ])->assertRedirect(route('filament.admin.pages.school-settings'));
 
         $this->assertDatabaseHas('school_settings', [
             'school_name' => 'SMKN 1 Krangkeng',
             'academic_year' => '2026/2027',
             'report_signer_title' => 'Wakasek Sarpras',
+            'qr_label_width_mm' => 60,
+            'qr_label_height_mm' => 40,
         ]);
     }
 
@@ -52,5 +56,19 @@ class SchoolSettingsTest extends TestCase
             ->get(route('filament.admin.pages.school-settings'))
             ->assertOk()
             ->assertSee('Sekolah Pengujian');
+    }
+
+    public function test_label_size_is_validated(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->from(route('filament.admin.pages.school-settings'))
+            ->post(route('school-settings.update'), [
+                'school_name' => 'Sekolah Pengujian',
+                'qr_label_width_mm' => 20,
+                'qr_label_height_mm' => 10,
+            ])
+            ->assertRedirect(route('filament.admin.pages.school-settings'))
+            ->assertSessionHasErrors(['qr_label_width_mm', 'qr_label_height_mm']);
     }
 }

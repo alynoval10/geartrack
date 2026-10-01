@@ -9,6 +9,7 @@ use App\Filament\Resources\AssetSets\RelationManagers\AssetsRelationManager;
 use App\Models\Asset;
 use App\Models\AssetSet;
 use App\Models\Category;
+use App\Models\SchoolSetting;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -202,21 +203,29 @@ class AssetSetTest extends TestCase
             ->assertSee($asset->asset_code)->assertSee('<svg', false);
     }
 
-    public function test_qr_label_has_an_a4_actual_size_test_sheet(): void
+    public function test_single_qr_label_supports_configured_printer_and_a4_modes(): void
     {
         $asset = $this->asset(['name' => 'Router Praktik Lab TKJ 01']);
+        SchoolSetting::current()->update([
+            'qr_label_width_mm' => 60,
+            'qr_label_height_mm' => 40,
+        ]);
 
-        $this->get(route('asset.qr.label', ['token' => $asset->qr_token, 'test' => 1]))
+        $this->get(route('asset.qr.label', ['token' => $asset->qr_token, 'paper' => 'label']))
             ->assertOk()
-            ->assertViewIs('assets.qr-label-test')
-            ->assertSee('Uji fisik label 50 × 30 mm')
-            ->assertSee('width: 50mm', false)
-            ->assertSee('height: 30mm', false)
+            ->assertViewIs('assets.qr-label')
+            ->assertSee('Label printer 60 × 40 mm')
+            ->assertSee('size: 60mm 40mm', false)
             ->assertSee($asset->asset_code)
             ->assertSee('<svg', false);
+
+        $this->get(route('asset.qr.label', ['token' => $asset->qr_token, 'paper' => 'a4']))
+            ->assertOk()
+            ->assertViewIs('assets.qr-label-a4')
+            ->assertSee('Cetak Label QR A4');
     }
 
-    public function test_bulk_qr_labels_have_an_a4_actual_size_test_sheet(): void
+    public function test_bulk_qr_labels_support_printer_and_a4_modes(): void
     {
         $firstAsset = $this->asset(['name' => 'PC Lab 01']);
         $secondAsset = $this->asset(['name' => 'Router Gateway Lab']);
@@ -225,16 +234,15 @@ class AssetSetTest extends TestCase
             'assets' => $firstAsset->id.','.$secondAsset->id,
         ]))
             ->assertOk()
-            ->assertViewIs('assets.qr-labels-test')
-            ->assertSee('2 label ukuran 50 × 30 mm')
-            ->assertSee('width: 50mm', false)
-            ->assertSee('height: 30mm', false)
+            ->assertViewIs('assets.qr-labels-printer')
+            ->assertSee('2 label printer · 50 × 30 mm')
+            ->assertSee('size: 50mm 30mm', false)
             ->assertSee($firstAsset->asset_code)
             ->assertSee($secondAsset->asset_code);
 
         $this->get(route('asset.qr.bulk-label', [
             'assets' => $firstAsset->id.','.$secondAsset->id,
-            'legacy' => 1,
+            'paper' => 'a4',
         ]))->assertOk()->assertViewIs('assets.qr-labels');
     }
 

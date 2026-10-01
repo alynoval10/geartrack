@@ -2,19 +2,19 @@
 
 namespace App\Filament\Resources\Assets\Tables;
 
+use App\Filament\Exports\AssetExporter;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ExportAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
-use Filament\Tables\Filters\SelectFilter;
-use App\Filament\Exports\AssetExporter;
-use Filament\Actions\ExportAction;
 
 class AssetsTable
 {
@@ -126,8 +126,7 @@ class AssetsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-
-                        ->filters([
+            ->filters([
 
                 SelectFilter::make('category')
                     ->label('Kategori')
@@ -160,15 +159,12 @@ class AssetsTable
 
             ])
 
-
             ->headerActions([
                 ExportAction::make()
                     ->label('Export Aset')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->exporter(AssetExporter::class),
             ])
-
-
 
             ->recordActions([
                 ActionGroup::make([
@@ -182,7 +178,7 @@ class AssetsTable
                         ->icon('heroicon-o-pencil-square'),
 
                     Action::make('qrLabel')
-                        ->label('Label QR')
+                        ->label('Cetak Label QR')
                         ->icon('heroicon-o-qr-code')
                         ->color('info')
                         ->url(
@@ -190,9 +186,20 @@ class AssetsTable
                                 'asset.qr.label',
                                 [
                                     'token' => $record->qr_token,
+                                    'paper' => 'label',
                                 ]
                             )
                         )
+                        ->openUrlInNewTab(),
+
+                    Action::make('qrLabelA4')
+                        ->label('Cetak Label QR A4')
+                        ->icon('heroicon-o-document')
+                        ->color('gray')
+                        ->url(fn ($record): string => route('asset.qr.label', [
+                            'token' => $record->qr_token,
+                            'paper' => 'a4',
+                        ]))
                         ->openUrlInNewTab(),
 
                 ]),
@@ -212,10 +219,27 @@ class AssetsTable
 
                             $url = route('asset.qr.bulk-label', [
                                 'assets' => $ids,
+                                'paper' => 'label',
                             ]);
 
                             $livewire->js(
-                                "window.open(" . json_encode($url) . ", '_blank')"
+                                'window.open('.json_encode($url).", '_blank')"
+                            );
+                        }),
+
+                    BulkAction::make('printQrLabelsA4')
+                        ->label('Cetak Label QR A4')
+                        ->icon('heroicon-o-document')
+                        ->color('gray')
+                        ->action(function (Collection $records, $livewire) {
+                            $ids = $records->pluck('id')->implode(',');
+                            $url = route('asset.qr.bulk-label', [
+                                'assets' => $ids,
+                                'paper' => 'a4',
+                            ]);
+
+                            $livewire->js(
+                                'window.open('.json_encode($url).", '_blank')"
                             );
                         }),
 

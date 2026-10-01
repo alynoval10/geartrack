@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Cetak Label Aset | GearTrack</title>
+    <title>Label {{ $asset->asset_code }} | GearTrack</title>
 
     <style>
         * {
@@ -13,29 +13,23 @@
 
         body {
             margin: 0;
-            padding: 24px;
+            padding: 30px;
             font-family: Arial, Helvetica, sans-serif;
             background: #f1f5f9;
             color: #0f172a;
         }
 
         .toolbar {
-            max-width: 210mm;
+            max-width: 500px;
             margin: 0 auto 20px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
         }
 
         .toolbar-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
-        }
-
-        .toolbar-info {
-            margin-top: 4px;
-            color: #64748b;
-            font-size: 13px;
         }
 
         .print-button {
@@ -44,28 +38,17 @@
             text-decoration: none;
             border: 0;
             border-radius: 8px;
-            padding: 10px 18px;
+            padding: 10px 16px;
             background: #0369a1;
             color: white;
             font-weight: 700;
             cursor: pointer;
         }
 
-        .sheet {
-            width: 100%;
-            max-width: 210mm;
-            margin: 0 auto;
-
-            display: grid;
-            grid-template-columns: repeat(2, 85mm);
-            gap: 5mm;
-
-            justify-content: center;
-        }
-
         .label {
             width: 85mm;
             height: 45mm;
+            margin: 0 auto;
             padding: 4mm;
 
             display: flex;
@@ -75,9 +58,7 @@
             background: white;
             border: 1px solid #cbd5e1;
             border-radius: 3mm;
-
             overflow: hidden;
-            break-inside: avoid;
         }
 
         .qr {
@@ -145,13 +126,10 @@
                 display: none;
             }
 
-            .sheet {
-                gap: 5mm;
-            }
-
             .label {
-                page-break-inside: avoid;
+                margin: 0;
                 break-inside: avoid;
+                page-break-inside: avoid;
             }
         }
     </style>
@@ -161,18 +139,12 @@
 
     <div class="toolbar">
 
-        <div>
-            <div class="toolbar-title">
-                Label Aset GearTrack
-            </div>
-
-            <div class="toolbar-info">
-                {{ $assets->count() }} label siap dicetak
-            </div>
+        <div class="toolbar-title">
+            Label {{ $asset->asset_code }}
         </div>
 
         <div style="display:flex;gap:8px">
-            <a class="print-button" href="{{ route('asset.qr.bulk-label', ['assets' => $selection, 'paper' => 'label']) }}">
+            <a class="print-button" href="{{ route('asset.qr.label', ['token' => $asset->qr_token, 'paper' => 'label']) }}">
                 Versi Printer Label
             </a>
             <button
@@ -187,47 +159,39 @@
     </div>
 
 
-    <div class="sheet">
+    <div class="label">
 
-        @foreach ($assets as $asset)
+        <div class="qr">
+            {!! (string) $qrCode !!}
+        </div>
 
-            <div class="label">
+        <div class="info">
 
-                <div class="qr">
-                    {!! (string) $asset->generatedQr !!}
-                </div>
-
-                <div class="info">
-
-                    <div class="brand">
-                        GearTrack
-                    </div>
-
-                    <div class="code">
-                        {{ $asset->asset_code }}
-                    </div>
-
-                    <div class="name">
-                        {{ $asset->name }}
-                    </div>
-
-                    <div class="meta">
-                        {{ $asset->brand?->name ?? '-' }}
-
-                        @if ($asset->model)
-                            • {{ $asset->model }}
-                        @endif
-                    </div>
-
-                    <div class="hint">
-                        Scan untuk informasi aset
-                    </div>
-
-                </div>
-
+            <div class="brand">
+                GearTrack
             </div>
 
-        @endforeach
+            <div class="code">
+                {{ $asset->asset_code }}
+            </div>
+
+            <div class="name">
+                {{ $asset->name }}
+            </div>
+
+            <div class="meta">
+                {{ $asset->brand?->name ?? '-' }}
+
+                @if ($asset->model)
+                    • {{ $asset->model }}
+                @endif
+            </div>
+
+            <div class="hint">
+                Scan untuk informasi aset
+            </div>
+
+        </div>
 
     </div>
 

@@ -28,6 +28,8 @@ class SchoolSettingController extends Controller
             'report_signer_name' => ['nullable', 'string', 'max:150'],
             'report_signer_title' => ['nullable', 'string', 'max:100'],
             'report_signer_nip' => ['nullable', 'string', 'max:50'],
+            'qr_label_width_mm' => ['sometimes', 'required', 'integer', 'between:30,100'],
+            'qr_label_height_mm' => ['sometimes', 'required', 'integer', 'between:20,100'],
         ]);
 
         $setting = SchoolSetting::current();
@@ -40,6 +42,6 @@ class SchoolSettingController extends Controller
         $setting->update($data);
 
         return redirect()->route('filament.admin.pages.school-settings')
-            ->with('school_settings_status', 'Identitas sekolah berhasil disimpan.');
+            ->with('school_settings_status', 'Pengaturan sekolah berhasil disimpan.');
     }
 }

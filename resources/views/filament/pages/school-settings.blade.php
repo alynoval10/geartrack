@@ -47,6 +47,24 @@
             </x-filament::section>
         @endforeach
 
-        <div><x-filament::button type="submit">Simpan Identitas</x-filament::button></div>
+        <x-filament::section heading="Ukuran label QR" description="Ukuran ini digunakan oleh Cetak Label QR untuk printer label. Cetak Label QR A4 tetap menggunakan kertas HVS A4.">
+            <div class="grid gap-5 md:grid-cols-2">
+                <label class="grid gap-2 text-sm font-medium">Lebar label (mm)
+                    <x-filament::input.wrapper>
+                        <x-filament::input type="number" name="qr_label_width_mm" min="30" max="100" value="{{ old('qr_label_width_mm', $setting->qr_label_width_mm) }}" required />
+                    </x-filament::input.wrapper>
+                    @error('qr_label_width_mm')<span class="text-sm text-danger-600">{{ $message }}</span>@enderror
+                </label>
+                <label class="grid gap-2 text-sm font-medium">Tinggi label (mm)
+                    <x-filament::input.wrapper>
+                        <x-filament::input type="number" name="qr_label_height_mm" min="20" max="100" value="{{ old('qr_label_height_mm', $setting->qr_label_height_mm) }}" required />
+                    </x-filament::input.wrapper>
+                    @error('qr_label_height_mm')<span class="text-sm text-danger-600">{{ $message }}</span>@enderror
+                </label>
+            </div>
+            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Bawaan NIIMBOT B21 Pro: 50 × 30 mm. Setelah mengganti ukuran, lakukan satu kali cetak percobaan pada skala 100%.</p>
+        </x-filament::section>
+
+        <div><x-filament::button type="submit">Simpan Pengaturan</x-filament::button></div>
     </form>
 </x-filament-panels::page>

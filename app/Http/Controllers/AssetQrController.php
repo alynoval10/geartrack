@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\SchoolSetting;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -50,13 +51,13 @@ class AssetQrController extends Controller
             ->errorCorrection('M')
             ->generate($url);
 
-        // Mode uji menempatkan label berukuran nyata pada A4 agar dapat diperiksa sebelum membeli printer label.
-        $view = $request->boolean('test') ? 'assets.qr-label-test' : 'assets.qr-label';
+        $view = $request->query('paper') === 'a4' ? 'assets.qr-label-a4' : 'assets.qr-label';
 
         return view($view, [
             'asset' => $asset,
             'qrCode' => $qrCode,
             'url' => $url,
+            ...$this->labelLayout(),
         ]);
     }
 
@@ -86,12 +87,37 @@ class AssetQrController extends Controller
                 ->generate($url);
         });
 
-        // Format 50 × 30 mm menjadi bawaan; format lama tetap tersedia sebagai pembanding sementara.
-        $view = $request->boolean('legacy') ? 'assets.qr-labels' : 'assets.qr-labels-test';
+        $view = $request->query('paper') === 'a4' ? 'assets.qr-labels' : 'assets.qr-labels-printer';
 
         return view($view, [
             'assets' => $assets,
             'selection' => $ids->implode(','),
+            ...$this->labelLayout(),
         ]);
+    }
+
+    /** @return array{labelWidth: int, labelHeight: int, qrSize: float, brandFontSize: float, codeFontSize: float, nameFontSize: float, hintFontSize: float} */
+    private function labelLayout(): array
+    {
+        $setting = SchoolSetting::current();
+        $labelWidth = $setting->qr_label_width_mm;
+        $labelHeight = $setting->qr_label_height_mm;
+
+        // Sisakan ruang aman di sekeliling QR agar tetap mudah dipindai pada ukuran label yang berbeda.
+        $qrSize = round(max(14, min($labelHeight - 5, $labelWidth * 0.46)), 1);
+        $brandFontSize = round(max(5.5, min(9, $labelHeight * 0.22)), 1);
+        $codeFontSize = round(max(6.5, min(13, $labelHeight * 0.3)), 1);
+        $nameFontSize = round(max(5.5, min(10, $labelHeight * 0.23)), 1);
+        $hintFontSize = round(max(5, min(8, $labelHeight * 0.18)), 1);
+
+        return compact(
+            'labelWidth',
+            'labelHeight',
+            'qrSize',
+            'brandFontSize',
+            'codeFontSize',
+            'nameFontSize',
+            'hintFontSize',
+        );
     }
 }
