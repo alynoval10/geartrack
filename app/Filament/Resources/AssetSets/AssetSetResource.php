@@ -35,6 +35,8 @@ class AssetSetResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Inventaris';
 
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $recordTitleAttribute = 'name';
 
     /**

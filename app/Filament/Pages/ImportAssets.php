@@ -13,7 +13,9 @@ class ImportAssets extends Page
 
     protected static ?string $title = 'Impor Aset';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Laporan & Data';
+    protected static string|UnitEnum|null $navigationGroup = 'Administrasi';
+
+    protected static ?int $navigationSort = 4;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;
 

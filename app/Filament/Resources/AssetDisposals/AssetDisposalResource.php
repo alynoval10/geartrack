@@ -28,7 +28,9 @@ class AssetDisposalResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Penghapusan Aset';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
+    protected static string|\UnitEnum|null $navigationGroup = 'Administrasi';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'code';
 

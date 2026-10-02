@@ -16,20 +16,16 @@ use Filament\Tables\Table;
 
 class LocationResource extends Resource
 {
-    
     protected static ?string $navigationLabel = 'Lokasi';
 
     protected static ?string $modelLabel = 'Lokasi';
 
     protected static ?string $pluralModelLabel = 'Lokasi';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Pendukung';
 
-    protected static ?int $navigationSort = 3;    
+    protected static ?int $navigationSort = 3;
 
-
-
-    
     protected static ?string $model = Location::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

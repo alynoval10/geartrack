@@ -26,6 +26,8 @@ class AssetTransferResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
 
+    protected static ?int $navigationSort = 2;
+
     public static function canEdit(Model $record): bool
     {
         return false;

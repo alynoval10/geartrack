@@ -23,7 +23,7 @@ class AssetHistoryResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Log Aktivitas';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
+    protected static string|UnitEnum|null $navigationGroup = 'Administrasi';
 
     protected static ?int $navigationSort = 3;
 

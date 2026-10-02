@@ -9,6 +9,7 @@ use App\Filament\Widgets\OperationalAlerts;
 use App\Filament\Widgets\UserTasks;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Contracts\View\View;
+use UnitEnum;
 
 class Dashboard extends BaseDashboard
 {
@@ -16,7 +17,9 @@ class Dashboard extends BaseDashboard
 
     protected static ?string $navigationLabel = 'Dashboard';
 
-    protected static ?int $navigationSort = -2;
+    protected static string|UnitEnum|null $navigationGroup = 'Beranda';
+
+    protected static ?int $navigationSort = 1;
 
     public function getHeader(): ?View
     {

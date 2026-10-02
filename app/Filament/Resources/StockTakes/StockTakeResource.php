@@ -34,6 +34,8 @@ class StockTakeResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
 
+    protected static ?int $navigationSort = 3;
+
     public static function getNavigationBadge(): ?string
     {
         $user = auth()->user();

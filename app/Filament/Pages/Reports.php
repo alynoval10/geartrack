@@ -19,7 +19,9 @@ class Reports extends Page
 
     protected static ?string $title = 'Laporan';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Laporan & Data';
+    protected static string|UnitEnum|null $navigationGroup = 'Administrasi';
+
+    protected static ?int $navigationSort = 2;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentChartBar;
 

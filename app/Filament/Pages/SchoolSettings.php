@@ -16,7 +16,7 @@ class SchoolSettings extends Page
 
     protected static ?string $navigationLabel = 'Pengaturan Sekolah';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
+    protected static string|UnitEnum|null $navigationGroup = 'Sistem';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 

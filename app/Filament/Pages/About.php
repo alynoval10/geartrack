@@ -19,7 +19,7 @@ class About extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInformationCircle;
 
-    protected static ?int $navigationSort = 100;
+    protected static ?int $navigationSort = 2;
 
     protected function getViewData(): array
     {

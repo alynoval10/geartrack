@@ -28,6 +28,8 @@ class LoanResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
 
+    protected static ?int $navigationSort = 1;
+
     public static function canEdit(Model $record): bool
     {
         return false;

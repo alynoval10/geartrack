@@ -29,9 +29,9 @@ class Backups extends Page
         Heroicon::OutlinedCircleStack;
 
     protected static string|UnitEnum|null $navigationGroup =
-        'Pengaturan';
+        'Sistem';
 
-    protected static ?int $navigationSort = 100;
+    protected static ?int $navigationSort = 3;
 
     /**
      * Sembunyikan menu dan tolak akses langsung untuk akun selain Administrator.
