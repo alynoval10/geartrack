@@ -3,11 +3,13 @@
 namespace App\Filament\Resources\Assets\Schemas;
 
 use App\Models\User;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
@@ -119,10 +121,27 @@ class AssetForm
 
                 Section::make('Dokumentasi')
                     ->schema([
+                        Actions::make([
+                            Action::make('takeAssetPhoto')
+                                ->label('Ambil Foto')
+                                ->icon('heroicon-o-camera')
+                                ->color('primary')
+                                ->alpineClickHandler('window.GearTrackAssetPhotoPicker?.openCamera()'),
+                            Action::make('chooseAssetPhoto')
+                                ->label('Pilih Foto')
+                                ->icon('heroicon-o-photo')
+                                ->color('gray')
+                                ->alpineClickHandler('window.GearTrackAssetPhotoPicker?.openGallery()'),
+                        ])
+                            ->key('assetPhotoActions')
+                            ->columnSpanFull(),
+
                         FileUpload::make('photo')
                             ->label('Foto Aset')
                             ->image()
                             ->imageEditor()
+                            ->extraAttributes(['data-asset-photo-upload' => 'true'])
+                            ->helperText('Gunakan Ambil Foto untuk membuka kamera belakang, atau Pilih Foto untuk mengambil gambar dari galeri.')
                             ->directory('assets')
                             ->disk('public'),
 

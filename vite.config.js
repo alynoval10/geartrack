@@ -15,6 +15,7 @@ export default defineConfig({
                 'resources/js/maintenance-scanner.js',
                 'resources/js/schedule-scanner.js',
                 'resources/js/asset-set-scanner.js',
+                'resources/js/asset-photo-picker.js',
                 'resources/css/filament/admin/theme.css',
             ],
             refresh: true,

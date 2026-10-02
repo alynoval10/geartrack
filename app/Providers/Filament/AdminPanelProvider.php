@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Login;
+use App\Filament\Resources\Assets\Pages\CreateAsset;
+use App\Filament\Resources\Assets\Pages\EditAsset;
 use App\Filament\Resources\AssetSets\Pages\EditAssetSet;
 use App\Filament\Resources\AssetSets\Pages\ViewAssetSet;
 use App\Filament\Resources\AssetTransfers\Pages\CreateAssetTransfer;
@@ -112,6 +114,11 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 fn (): string => Blade::render('@vite(\'resources/js/asset-set-scanner.js\')'),
                 [ViewAssetSet::class, EditAssetSet::class],
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => Blade::render('@vite(\'resources/js/asset-photo-picker.js\')'),
+                [CreateAsset::class, EditAsset::class],
             )
             ->middleware([
                 EncryptCookies::class,
