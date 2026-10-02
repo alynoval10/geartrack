@@ -140,8 +140,13 @@ class AssetForm
                             ->label('Foto Aset')
                             ->image()
                             ->imageEditor()
+                            // Foto kamera HP diperkecil di browser sebelum dikirim agar tidak tertahan batas unggahan PHP/Nginx.
+                            ->automaticallyResizeImagesMode('contain')
+                            ->automaticallyResizeImagesToWidth('1280')
+                            ->automaticallyResizeImagesToHeight('1280')
+                            ->automaticallyUpscaleImagesWhenResizing(false)
                             ->extraAttributes(['data-asset-photo-upload' => 'true'])
-                            ->helperText('Gunakan Ambil Foto untuk membuka kamera belakang, atau Pilih Foto untuk mengambil gambar dari galeri.')
+                            ->helperText('Gunakan Ambil Foto untuk membuka kamera belakang, atau Pilih Foto untuk mengambil gambar dari galeri. Foto besar otomatis diperkecil sebelum diunggah.')
                             ->directory('assets')
                             ->disk('public'),
 

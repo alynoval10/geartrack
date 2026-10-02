@@ -42,7 +42,11 @@ class AssetPhotoUploadTest extends TestCase
             ->assertSchemaComponentExists(
                 'photo',
                 'form',
-                fn (FileUpload $component): bool => $component->getExtraAttributeBag()->get('data-asset-photo-upload') === 'true',
+                fn (FileUpload $component): bool => $component->getExtraAttributeBag()->get('data-asset-photo-upload') === 'true'
+                    && $component->getAutomaticallyResizeImagesMode() === 'contain'
+                    && $component->getAutomaticallyResizeImagesWidth() === '1280'
+                    && $component->getAutomaticallyResizeImagesHeight() === '1280'
+                    && ! $component->shouldAutomaticallyUpscaleImagesWhenResizing(),
             );
 
         $this->get(AssetResource::getUrl('create'))
