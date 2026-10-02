@@ -51,7 +51,7 @@ class AssetSetsTable
                     ->label('Lihat'),
 
                 EditAction::make()
-                    ->label('Edit'),
+                    ->label('Ubah'),
             ])
             ->toolbarActions([
                 DeleteBulkAction::make(),

@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // GearTrack menggunakan satu bahasa agar istilah operasional konsisten untuk seluruh pengguna.
+        app()->setLocale('id');
+
         // Operasi backup memerlukan role Administrator dan email yang terdaftar.
         Gate::define('manage-backups', fn (User $user): bool => $user->isAdmin()
             && in_array(
