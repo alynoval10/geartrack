@@ -176,6 +176,13 @@
     border-radius: 10px;
 }
 
+/* Sisakan ruang untuk bilah aksi tetap yang hanya tampil pada perangkat seluler. */
+@media (max-width: 767px) {
+    .fi-main {
+        padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+    }
+}
+
 
 
 /* =========================================================

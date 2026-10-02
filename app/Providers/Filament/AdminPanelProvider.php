@@ -13,9 +13,11 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -55,12 +57,33 @@ class AdminPanelProvider extends PanelProvider
                 in: app_path('Filament/Widgets'),
                 for: 'App\Filament\Widgets'
             )
+            ->navigationGroups([
+                'Beranda',
+                'Inventaris',
+                'Data Pendukung',
+                'Operasional',
+                'Administrasi',
+                'Sistem',
+                'Akun',
+            ])
+            ->navigationItems([
+                NavigationItem::make('Scan QR')
+                    ->group('Beranda')
+                    ->icon(Heroicon::OutlinedQrCode)
+                    ->sort(2)
+                    ->url(fn (): string => route('qr.scan'))
+                    ->isActiveWhen(fn (): bool => request()->routeIs('qr.scan')),
+            ])
             ->widgets([
                 AccountWidget::class,
             ])
             ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): string => Blade::render('@include(\'filament.components.idle-session\')'),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => Blade::render('@include(\'filament.components.mobile-quick-actions\')'),
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,

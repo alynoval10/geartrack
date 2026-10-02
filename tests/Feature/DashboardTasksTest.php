@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Loans\LoanResource;
+use App\Filament\Resources\MaintenanceReports\MaintenanceReportResource;
+use App\Filament\Resources\StockTakes\StockTakeResource;
 use App\Filament\Widgets\UserTasks;
 use App\Models\Asset;
 use App\Models\User;
@@ -46,5 +49,17 @@ class DashboardTasksTest extends TestCase
             ->assertOk()
             ->assertSee('href="'.route('qr.scan').'"', false)
             ->assertDontSee('Segera');
+    }
+
+    public function test_authenticated_mobile_quick_actions_link_to_common_workflows(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => 'guru']));
+
+        $this->get(route('filament.admin.pages.dashboard'))
+            ->assertSee('Navigasi cepat seluler')
+            ->assertSee('href="'.route('qr.scan').'"', false)
+            ->assertSee('href="'.LoanResource::getUrl('create').'"', false)
+            ->assertSee('href="'.MaintenanceReportResource::getUrl('create').'"', false)
+            ->assertSee('href="'.StockTakeResource::getUrl('index').'"', false);
     }
 }
