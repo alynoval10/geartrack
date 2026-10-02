@@ -6,7 +6,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class AssetSetForm
@@ -33,13 +35,32 @@ class AssetSetForm
                             ->preload()
                             ->placeholder('Pilih lokasi'),
 
+                        ToggleButtons::make('accessories_template')
+                            ->label('Saran Kelengkapan Tanpa QR')
+                            ->options([
+                                'Keyboard, Mouse, Mousepad' => 'Keyboard, Mouse, Mousepad',
+                                'Keyboard dan Mouse' => 'Keyboard dan Mouse',
+                                'Adaptor daya dan kabel daya' => 'Adaptor dan kabel daya',
+                                'Kabel daya dan kabel display' => 'Kabel daya dan display',
+                                'Remote dan adaptor daya' => 'Remote dan adaptor',
+                            ])
+                            ->inline()
+                            ->live()
+                            ->dehydrated(false)
+                            ->columnSpanFull()
+                            ->afterStateUpdated(function (?string $state, Set $set): void {
+                                if (filled($state)) {
+                                    $set('accessories', $state);
+                                }
+                            }),
+
                         Textarea::make('accessories')
                             ->label('Kelengkapan Tanpa QR')
                             ->placeholder(
                                 'Contoh: Keyboard, Mouse, Mousepad'
                             )
                             ->helperText(
-                                'Isi kelengkapan kecil yang menjadi bagian paket tetapi tidak perlu memiliki QR sendiri.'
+                                'Pilih saran di atas atau tulis manual kelengkapan kecil yang tidak perlu memiliki QR sendiri.'
                             )
                             ->rows(3),
 

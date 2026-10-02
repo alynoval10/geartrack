@@ -16,6 +16,7 @@ use App\Models\Category;
 use App\Models\SchoolSetting;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\ToggleButtons;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -74,6 +75,22 @@ class AssetSetTest extends TestCase
             ->call('create')->assertHasFormErrors(['name' => 'required']);
 
         $this->assertDatabaseCount('asset_sets', 0);
+    }
+
+    public function test_accessory_suggestion_fills_the_field_and_remains_manually_editable(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateAssetSet::class)
+            ->assertSchemaComponentExists(
+                'accessories_template',
+                'form',
+                fn (ToggleButtons $component): bool => $component->isInline(),
+            )
+            ->set('data.accessories_template', 'Keyboard, Mouse, Mousepad')
+            ->assertSet('data.accessories', 'Keyboard, Mouse, Mousepad')
+            ->set('data.accessories', 'Keyboard, Mouse, dan stabilizer')
+            ->assertSet('data.accessories', 'Keyboard, Mouse, dan stabilizer');
     }
 
     public function test_adds_pc_and_monitor_with_roles_from_detail_page(): void
