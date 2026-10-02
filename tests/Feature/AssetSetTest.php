@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Assets\AssetResource;
 use App\Filament\Resources\AssetSets\AssetSetResource;
 use App\Filament\Resources\AssetSets\Pages\CreateAssetSet;
 use App\Filament\Resources\AssetSets\Pages\ViewAssetSet;
 use App\Filament\Resources\AssetSets\RelationManagers\AssetsRelationManager;
+use App\Filament\Resources\AssetTransfers\AssetTransferResource;
+use App\Filament\Resources\Loans\LoanResource;
+use App\Filament\Resources\MaintenanceReports\MaintenanceReportResource;
 use App\Models\Asset;
 use App\Models\AssetSet;
 use App\Models\Category;
@@ -177,6 +181,28 @@ class AssetSetTest extends TestCase
 
         $this->get(route('asset.qr.show', $asset->qr_token))
             ->assertSee('PC Laboratorium')->assertSee('Perangkat ini belum tergabung dalam paket.');
+    }
+
+    public function test_qr_result_offers_asset_actions_with_the_scanned_asset_selected(): void
+    {
+        $asset = $this->asset(['status' => 'available', 'condition' => 'good']);
+
+        $this->get(route('asset.qr.show', $asset->qr_token))
+            ->assertSee('Lihat Detail Aset')
+            ->assertSee(AssetResource::getUrl('view', ['record' => $asset]), false)
+            ->assertSee(LoanResource::getUrl('create', ['asset' => $asset->id]), false)
+            ->assertSee(AssetTransferResource::getUrl('create', ['asset' => $asset->id]), false)
+            ->assertSee(MaintenanceReportResource::getUrl('create', ['asset' => $asset->id]), false)
+            ->assertSee('Cetak Label QR');
+    }
+
+    public function test_qr_result_explains_why_an_unavailable_action_is_disabled(): void
+    {
+        $asset = $this->asset(['status' => 'lost', 'condition' => 'minor_damage']);
+
+        $this->get(route('asset.qr.show', $asset->qr_token))
+            ->assertSee('Aset berstatus hilang.')
+            ->assertSee('Aset berstatus hilang dan belum dapat dimutasi.');
     }
 
     public function test_unknown_qr_returns_404(): void

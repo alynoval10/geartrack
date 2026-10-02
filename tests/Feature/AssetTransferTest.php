@@ -244,4 +244,15 @@ class AssetTransferTest extends TestCase
         $this->assertFalse(AssetTransferResource::canEdit($transfer));
         $this->assertFalse(AssetTransferResource::canDelete($transfer));
     }
+
+    public function test_qr_action_prefills_the_transfer_asset_selection(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $asset = Asset::factory()->create(['status' => 'available', 'asset_set_id' => null]);
+
+        Livewire::withQueryParams(['asset' => $asset->id])
+            ->test(CreateAssetTransfer::class)
+            ->assertSet('data.selection_type', 'asset')
+            ->assertSet('data.asset_ids', [$asset->id]);
+    }
 }

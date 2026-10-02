@@ -380,4 +380,14 @@ class MaintenanceReportTest extends TestCase
         $this->assertDatabaseHas('assets', ['id' => $asset->id, 'condition' => 'major_damage', 'status' => 'retired']);
         $this->assertDatabaseHas('maintenance_reports', ['id' => $report->id, 'status' => 'resolved']);
     }
+
+    public function test_qr_action_prefills_the_maintenance_asset_selection(): void
+    {
+        $this->operator();
+        $asset = Asset::factory()->create();
+
+        Livewire::withQueryParams(['asset' => $asset->id])
+            ->test(CreateMaintenanceReport::class)
+            ->assertSet('data.asset_id', $asset->id);
+    }
 }

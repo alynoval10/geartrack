@@ -4,14 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\SchoolSetting;
+use App\Services\LoanAssetEligibility;
+use App\Services\MaintenanceAssetEligibility;
+use App\Services\TransferAssetEligibility;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AssetQrController extends Controller
 {
-    public function show(string $token, Request $request): View
-    {
+    public function show(
+        string $token,
+        Request $request,
+        LoanAssetEligibility $loanAssets,
+        TransferAssetEligibility $transferAssets,
+        MaintenanceAssetEligibility $maintenanceAssets,
+    ): View {
         $asset = Asset::with([
             'category',
             'brand',
@@ -25,7 +33,13 @@ class AssetQrController extends Controller
 
         $stockTakeId = filter_var($request->query('stock_take'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: null;
 
-        return view('assets.qr-detail', compact('asset', 'stockTakeId'));
+        $actionAvailability = [
+            'loan' => $loanAssets->ineligibilityReason($asset),
+            'transfer' => $transferAssets->ineligibilityReason($asset),
+            'maintenance' => $maintenanceAssets->ineligibilityReason($asset),
+        ];
+
+        return view('assets.qr-detail', compact('asset', 'stockTakeId', 'actionAvailability'));
     }
 
     public function label(string $token, Request $request): View

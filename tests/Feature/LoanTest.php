@@ -351,4 +351,15 @@ class LoanTest extends TestCase
         $this->expectException(ValidationException::class);
         app(LoanService::class)->borrow($this->data(['asset_ids' => [$asset->id]]), $user);
     }
+
+    public function test_qr_action_prefills_the_loan_asset_selection(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $asset = Asset::factory()->create(['status' => 'available', 'condition' => 'good']);
+
+        Livewire::withQueryParams(['asset' => $asset->id])
+            ->test(CreateLoan::class)
+            ->assertSet('data.selection_type', 'asset')
+            ->assertSet('data.asset_ids', [$asset->id]);
+    }
 }

@@ -7,6 +7,27 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TransferAssetEligibility
 {
+    public function ineligibilityReason(Asset $asset): ?string
+    {
+        if ($asset->asset_set_id !== null) {
+            return 'Aset adalah anggota paket. Mutasikan paket agar seluruh anggota tetap bersama.';
+        }
+
+        if ($asset->status === 'borrowed') {
+            return 'Aset sedang dipinjam dan harus dikembalikan terlebih dahulu.';
+        }
+
+        if ($asset->status === 'lost') {
+            return 'Aset berstatus hilang dan belum dapat dimutasi.';
+        }
+
+        if ($asset->loanItems()->whereNotNull('active_asset_id')->exists()) {
+            return 'Aset masih tercatat pada peminjaman aktif.';
+        }
+
+        return null;
+    }
+
     /**
      * Perangkat satuan yang dapat dimutasi tanpa memecah paket perangkat.
      *

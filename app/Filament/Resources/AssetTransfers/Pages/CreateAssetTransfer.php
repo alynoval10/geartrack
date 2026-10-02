@@ -15,6 +15,26 @@ class CreateAssetTransfer extends CreateRecord
 {
     protected static string $resource = AssetTransferResource::class;
 
+    public function mount(): void
+    {
+        parent::mount();
+
+        $assetId = request()->integer('asset');
+        if ($assetId < 1) {
+            return;
+        }
+
+        $asset = app(TransferAssetEligibility::class)->query()->find($assetId);
+        if (! $asset) {
+            return;
+        }
+
+        // Pertahankan nilai default penerima dan penyerah sambil memilih aset hasil scan.
+        $this->data['selection_type'] = 'asset';
+        $this->data['asset_set_id'] = null;
+        $this->data['asset_ids'] = [$asset->id];
+    }
+
     /**
      * Tambahkan perangkat satuan dari QR dan pertahankan pilihan manual yang sudah ada.
      */

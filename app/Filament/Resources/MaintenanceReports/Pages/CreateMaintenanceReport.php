@@ -16,6 +16,21 @@ class CreateMaintenanceReport extends CreateRecord
 {
     protected static string $resource = MaintenanceReportResource::class;
 
+    public function mount(): void
+    {
+        parent::mount();
+
+        $assetId = request()->integer('asset');
+        if ($assetId < 1) {
+            return;
+        }
+
+        $asset = app(MaintenanceAssetEligibility::class)->query()->find($assetId);
+        if ($asset) {
+            $this->data['asset_id'] = $asset->id;
+        }
+    }
+
     /**
      * Pilih aset laporan dari QR tanpa melewati pemeriksaan laporan aktif.
      */

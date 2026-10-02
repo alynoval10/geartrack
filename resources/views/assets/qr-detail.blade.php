@@ -161,6 +161,25 @@
             text-align: center;
         }
 
+        .operations .operation-disabled {
+            display: block;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            color: #64748b;
+            background: #f8fafc;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .operation-disabled small {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
         .operations p {
             margin: 0;
             font-size: 13px;
@@ -463,11 +482,32 @@
                 @endforeach
             </section>
         @endif
-        <nav class="operations" aria-label="Tindakan Petugas">
+        <div class="section-title">Tindakan Aset</div>
+        <nav class="operations" aria-label="Tindakan Aset">
+            <a href="{{ \App\Filament\Resources\Assets\AssetResource::getUrl('view', ['record' => $asset], panel: 'admin') }}">Lihat Detail Aset</a>
+
+            @if ($actionAvailability['loan'] === null)
+                <a href="{{ \App\Filament\Resources\Loans\LoanResource::getUrl('create', ['asset' => $asset->id], panel: 'admin') }}">Pinjam Aset Ini</a>
+            @else
+                <span class="operation-disabled">Pinjam Aset Ini<small>{{ $actionAvailability['loan'] }}</small></span>
+            @endif
+
+            @if ($actionAvailability['transfer'] === null)
+                <a href="{{ \App\Filament\Resources\AssetTransfers\AssetTransferResource::getUrl('create', ['asset' => $asset->id], panel: 'admin') }}">Mutasi Aset Ini</a>
+            @else
+                <span class="operation-disabled">Mutasi Aset Ini<small>{{ $actionAvailability['transfer'] }}</small></span>
+            @endif
+
+            @if ($actionAvailability['maintenance'] === null)
+                <a href="{{ \App\Filament\Resources\MaintenanceReports\MaintenanceReportResource::getUrl('create', ['asset' => $asset->id], panel: 'admin') }}">Laporkan Kerusakan / Perawatan</a>
+            @else
+                <span class="operation-disabled">Laporkan Kerusakan / Perawatan<small>{{ $actionAvailability['maintenance'] }}</small></span>
+            @endif
+
             <a href="{{ \App\Filament\Resources\Assets\AssetResource::getUrl('view', ['record' => $asset, 'action' => 'stockTake', 'actionArguments' => ['stock_take_id' => $stockTakeId], 'stock_take' => $stockTakeId], panel: 'admin') }}">Catat Stock Opname</a>
-            <a href="{{ \App\Filament\Resources\Assets\AssetResource::getUrl('view', ['record' => $asset, 'action' => 'reportMaintenance'], panel: 'admin') }}">Laporkan Kerusakan / Perawatan</a>
+            <a href="{{ route('asset.qr.label', ['token' => $asset->qr_token]) }}">Cetak Label QR</a>
             <a href="{{ route('qr.scan', ['stock_take' => $stockTakeId]) }}">Scan Berikutnya</a>
-            <p>Pencatatan dan riwayat penanganan tersedia untuk petugas setelah login.</p>
+            <p>Jika belum login, tindakan petugas akan mengarah ke halaman masuk GearTrack.</p>
         </nav>
 
         <footer class="footer">

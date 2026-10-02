@@ -7,6 +7,33 @@ use Illuminate\Database\Eloquent\Builder;
 
 class LoanAssetEligibility
 {
+    public function ineligibilityReason(Asset $asset): ?string
+    {
+        if (! in_array($asset->status, ['available', 'in_use'], true)) {
+            return match ($asset->status) {
+                'borrowed' => 'Aset sedang dipinjam.',
+                'maintenance' => 'Aset sedang dalam perawatan.',
+                'lost' => 'Aset berstatus hilang.',
+                'retired' => 'Aset sudah dipensiunkan.',
+                default => 'Aset belum tersedia untuk dipinjam.',
+            };
+        }
+
+        if ($asset->condition !== 'good') {
+            return 'Hanya aset berkondisi baik yang dapat dipinjam.';
+        }
+
+        if ($asset->loanItems()->whereNotNull('active_asset_id')->exists()) {
+            return 'Aset masih tercatat pada peminjaman aktif.';
+        }
+
+        if ($asset->maintenanceReports()->whereIn('status', ['open', 'in_progress'])->exists()) {
+            return 'Selesaikan laporan kerusakan atau perawatan aktif terlebih dahulu.';
+        }
+
+        return null;
+    }
+
     /**
      * Query perangkat yang aman ditawarkan pada transaksi peminjaman baru.
      *

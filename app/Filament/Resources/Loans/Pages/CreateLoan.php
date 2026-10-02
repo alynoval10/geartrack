@@ -15,6 +15,26 @@ class CreateLoan extends CreateRecord
 {
     protected static string $resource = LoanResource::class;
 
+    public function mount(): void
+    {
+        parent::mount();
+
+        $assetId = request()->integer('asset');
+        if ($assetId < 1) {
+            return;
+        }
+
+        $asset = app(LoanAssetEligibility::class)->query()->find($assetId);
+        if (! $asset) {
+            return;
+        }
+
+        // Tautan dari hasil scan harus langsung membawa aset ke pilihan tanpa menghapus default form lain.
+        $this->data['selection_type'] = 'asset';
+        $this->data['asset_set_id'] = null;
+        $this->data['asset_ids'] = [$asset->id];
+    }
+
     /**
      * Tambahkan hasil scan tanpa menghapus perangkat yang telah dipilih sebelumnya.
      */

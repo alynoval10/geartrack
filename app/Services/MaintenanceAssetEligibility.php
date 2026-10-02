@@ -7,6 +7,15 @@ use Illuminate\Database\Eloquent\Builder;
 
 class MaintenanceAssetEligibility
 {
+    public function ineligibilityReason(Asset $asset): ?string
+    {
+        if ($asset->maintenanceReports()->whereIn('status', ['open', 'in_progress'])->exists()) {
+            return 'Aset sudah memiliki laporan kerusakan atau perawatan aktif.';
+        }
+
+        return null;
+    }
+
     /**
      * Aset yang belum memiliki laporan kerusakan atau perawatan aktif.
      *
