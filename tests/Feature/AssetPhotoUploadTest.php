@@ -25,28 +25,23 @@ class AssetPhotoUploadTest extends TestCase
         $this->actingAs(User::factory()->create());
     }
 
-    public function test_asset_form_offers_camera_and_gallery_photo_sources(): void
+    public function test_asset_form_offers_camera_beside_the_default_photo_uploader(): void
     {
         $cameraAction = TestAction::make('takeAssetPhoto')->schemaComponent('assetPhotoActions');
-        $galleryAction = TestAction::make('chooseAssetPhoto')->schemaComponent('assetPhotoActions');
+        $removedGalleryAction = TestAction::make('chooseAssetPhoto')->schemaComponent('assetPhotoActions');
 
         Livewire::test(CreateAsset::class)
             ->assertActionExists(
                 $cameraAction,
                 fn (Action $action): bool => str_contains($action->getCustomAlpineClickHandler(), 'openCamera'),
             )
-            ->assertActionExists(
-                $galleryAction,
-                fn (Action $action): bool => str_contains($action->getCustomAlpineClickHandler(), 'openGallery'),
-            )
+            ->assertActionDoesNotExist($removedGalleryAction)
             ->assertSchemaComponentExists(
                 'photo',
                 'form',
                 fn (FileUpload $component): bool => $component->getExtraAttributeBag()->get('data-asset-photo-upload') === 'true'
-                    && $component->getAutomaticallyResizeImagesMode() === 'contain'
-                    && $component->getAutomaticallyResizeImagesWidth() === '1280'
-                    && $component->getAutomaticallyResizeImagesHeight() === '1280'
-                    && ! $component->shouldAutomaticallyUpscaleImagesWhenResizing(),
+                    && $component->getAutomaticallyResizeImagesWidth() === null
+                    && $component->getAutomaticallyResizeImagesHeight() === null,
             );
 
         $this->get(AssetResource::getUrl('create'))
