@@ -15,6 +15,7 @@ use App\Models\AssetSet;
 use App\Models\Category;
 use App\Models\SchoolSetting;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\ToggleButtons;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -108,6 +109,39 @@ class AssetSetTest extends TestCase
         $this->assertDatabaseHas('assets', ['id' => $pc->id, 'asset_set_id' => $set->id, 'set_role' => 'main_pc']);
         $this->assertDatabaseHas('assets', ['id' => $monitor->id, 'asset_set_id' => $set->id, 'set_role' => 'monitor']);
         $this->assertDatabaseHas('asset_histories', ['asset_id' => $pc->id, 'field' => 'asset_set_id', 'new_value' => 'PC Lab 01']);
+    }
+
+    public function test_associate_modal_offers_qr_scanner_and_selects_an_unassigned_asset(): void
+    {
+        $set = AssetSet::create(['name' => 'PC Lab 01']);
+        $asset = $this->asset();
+        $associateAction = TestAction::make('associate')->table();
+
+        $this->members($set)
+            ->mountAction($associateAction)
+            ->assertMountedActionModalSee('Aktifkan Kamera')
+            ->assertMountedActionModalSeeHtml('GearTrackAssetSetScanner?.initialize($el)')
+            ->call('selectScannedAsset', $asset->qr_token)
+            ->assertSet('mountedActions.0.data.recordId', $asset->id)
+            ->set('mountedActions.0.data.set_role', 'monitor')
+            ->assertSet('mountedActions.0.data.set_role', 'monitor')
+            ->assertActionMounted($associateAction);
+    }
+
+    public function test_qr_scanner_rejects_an_asset_that_already_belongs_to_a_package(): void
+    {
+        $first = AssetSet::create(['name' => 'Paket Pertama']);
+        $second = AssetSet::create(['name' => 'Paket Kedua']);
+        $asset = $this->asset(['asset_set_id' => $first->id, 'set_role' => 'main_pc']);
+        $associateAction = TestAction::make('associate')->table();
+
+        $this->members($second)
+            ->mountAction($associateAction)
+            ->call('selectScannedAsset', $asset->qr_token)
+            ->assertSet('mountedActions.0.data.recordId', null)
+            ->assertActionMounted($associateAction);
+
+        $this->assertDatabaseHas('assets', ['id' => $asset->id, 'asset_set_id' => $first->id]);
     }
 
     public function test_rejects_missing_and_invalid_roles(): void
