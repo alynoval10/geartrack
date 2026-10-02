@@ -134,6 +134,8 @@ Ada dua format cetak, baik untuk pilihan massal maupun satu aset:
 - `Cetak Label QR`: untuk printer label. Ukuran awal 50 × 30 mm dan dapat diubah dari Pengaturan Sekolah.
 - `Cetak Label QR A4`: untuk kertas HVS A4.
 
+Ukuran QR, tipografi, jarak, dan susunan isi label printer mengikuti dimensi yang dipilih. Label lebar memakai susunan QR dan teks berdampingan, sedangkan label yang mendekati persegi atau berbentuk potret memakai susunan vertikal.
+
 Target perangkat yang direncanakan adalah NIIMBOT B21 Pro/B1 dengan label putih 50 × 30 mm. Layout sudah dibuat sesuai ukuran fisik, tetapi printer sebenarnya belum diuji. Setelah perangkat tersedia, periksa skala cetak 100%, margin driver, keterbacaan QR, dan potongan label; lalu sesuaikan pengaturan lebar/tinggi bila diperlukan.
 
 File utama:
@@ -471,4 +473,3 @@ Jika scheduler diaktifkan, cron server menjalankan Laravel scheduler setiap meni
 6. Jalankan test target, Pint untuk PHP, dan build untuk frontend.
 7. Periksa diff agar tidak ada `.env`, database, backup, upload, atau kredensial yang ikut ter-commit.
 8. Commit dengan pesan yang menjelaskan satu perubahan, lalu push ke `origin/main` jika memang melanjutkan pola kerja proyek ini.
-

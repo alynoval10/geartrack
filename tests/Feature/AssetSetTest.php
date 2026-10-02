@@ -275,6 +275,36 @@ class AssetSetTest extends TestCase
         ]))->assertOk()->assertViewIs('assets.qr-labels');
     }
 
+    public function test_printer_label_content_scales_with_configured_dimensions(): void
+    {
+        $asset = $this->asset(['name' => 'Router Praktik Lab TKJ 01']);
+        SchoolSetting::current()->update([
+            'qr_label_width_mm' => 100,
+            'qr_label_height_mm' => 60,
+        ]);
+
+        $this->get(route('asset.qr.label', $asset->qr_token))
+            ->assertViewHas('qrSize', 50.8)
+            ->assertViewHas('codeFontSize', 18.0)
+            ->assertViewHas('isStacked', false)
+            ->assertSee('width:50.8mm', false)
+            ->assertSee('font-size:18pt', false);
+    }
+
+    public function test_portrait_printer_label_stacks_qr_above_asset_information(): void
+    {
+        $asset = $this->asset();
+        SchoolSetting::current()->update([
+            'qr_label_width_mm' => 40,
+            'qr_label_height_mm' => 60,
+        ]);
+
+        $this->get(route('asset.qr.label', $asset->qr_token))
+            ->assertViewHas('isStacked', true)
+            ->assertSee('flex-direction:column', false)
+            ->assertSee('text-align:center', false);
+    }
+
     public function test_scanner_remains_available(): void
     {
         $this->get(route('qr.scan'))->assertOk()->assertViewIs('scanner.index');

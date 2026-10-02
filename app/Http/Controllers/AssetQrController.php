@@ -90,28 +90,45 @@ class AssetQrController extends Controller
         ]);
     }
 
-    /** @return array{labelWidth: int, labelHeight: int, qrSize: float, brandFontSize: float, codeFontSize: float, nameFontSize: float, hintFontSize: float} */
+    /** @return array{labelWidth: int, labelHeight: int, labelPadding: float, labelGap: float, isStacked: bool, qrSize: float, brandFontSize: float, codeFontSize: float, nameFontSize: float, hintFontSize: float, lineGap: float} */
     private function labelLayout(): array
     {
         $setting = SchoolSetting::current();
         $labelWidth = $setting->qr_label_width_mm;
         $labelHeight = $setting->qr_label_height_mm;
 
-        // Sisakan ruang aman di sekeliling QR agar tetap mudah dipindai pada ukuran label yang berbeda.
-        $qrSize = round(max(14, min($labelHeight - 5, $labelWidth * 0.46)), 1);
-        $brandFontSize = round(max(5.5, min(9, $labelHeight * 0.22)), 1);
-        $codeFontSize = round(max(6.5, min(13, $labelHeight * 0.3)), 1);
-        $nameFontSize = round(max(5.5, min(10, $labelHeight * 0.23)), 1);
-        $hintFontSize = round(max(5, min(8, $labelHeight * 0.18)), 1);
+        $labelPadding = round(max(1, min($labelWidth, $labelHeight) * 0.05), 1);
+        $labelGap = $labelPadding;
+        $contentWidth = $labelWidth - ($labelPadding * 2);
+        $contentHeight = $labelHeight - ($labelPadding * 2);
+
+        // Label yang mendekati persegi memakai susunan vertikal agar ruang tambahan tetap dipakai oleh QR dan teks.
+        $isStacked = $labelHeight >= ($labelWidth * 0.9);
+        $fontScale = $isStacked
+            ? min($labelWidth / 45, $labelHeight / 50)
+            : min($labelWidth / 50, $labelHeight / 30);
+
+        $qrSize = round($isStacked
+            ? min($contentWidth * 0.72, $contentHeight * 0.56)
+            : min($contentHeight, $contentWidth * 0.54), 1);
+        $brandFontSize = round(max(4.5, 6.5 * $fontScale), 1);
+        $codeFontSize = round(max(5.5, 9 * $fontScale), 1);
+        $nameFontSize = round(max(4.5, 6.5 * $fontScale), 1);
+        $hintFontSize = round(max(4, 5 * $fontScale), 1);
+        $lineGap = round(max(0.4, 0.7 * $fontScale), 1);
 
         return compact(
             'labelWidth',
             'labelHeight',
+            'labelPadding',
+            'labelGap',
+            'isStacked',
             'qrSize',
             'brandFontSize',
             'codeFontSize',
             'nameFontSize',
             'hintFontSize',
+            'lineGap',
         );
     }
 
