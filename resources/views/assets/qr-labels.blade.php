@@ -171,10 +171,7 @@
             </div>
         </div>
 
-        <div style="display:flex;gap:8px">
-            <a class="print-button" href="{{ route('asset.qr.bulk-label', ['assets' => $selection, 'paper' => 'label']) }}">
-                Versi Printer Label
-            </a>
+        <div>
             <button
                 type="button"
                 class="print-button"

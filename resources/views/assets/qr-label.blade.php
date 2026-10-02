@@ -12,7 +12,6 @@
         .toolbar p { margin: 5px 0 12px; color: #475569; font-size: 13px; }
         .actions { display: flex; gap: 8px; }
         .button { display: inline-flex; align-items: center; padding: 10px 16px; border: 0; border-radius: 8px; background: #0369a1; color: white; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
-        .button.secondary { background: #475569; }
         .preview { display: flex; justify-content: center; overflow: auto; padding: 18px; }
         .label-page { width: {{ $labelWidth }}mm; height: {{ $labelHeight }}mm; flex: 0 0 auto; background: white; }
         .label-page svg { display: block; width: 100%; height: 100%; }
@@ -30,7 +29,6 @@
         <p>Pilih ukuran kertas yang sama pada driver printer dan gunakan skala 100% / Actual size.</p>
         <div class="actions">
             <button type="button" class="button" onclick="window.print()">Cetak Label QR</button>
-            <a class="button secondary" href="{{ route('asset.qr.label', ['token' => $asset->qr_token, 'paper' => 'a4']) }}">Versi A4</a>
         </div>
     </section>
 

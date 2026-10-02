@@ -143,10 +143,7 @@
             Label {{ $asset->asset_code }}
         </div>
 
-        <div style="display:flex;gap:8px">
-            <a class="print-button" href="{{ route('asset.qr.label', ['token' => $asset->qr_token, 'paper' => 'label']) }}">
-                Versi Printer Label
-            </a>
+        <div>
             <button
                 type="button"
                 class="print-button"
