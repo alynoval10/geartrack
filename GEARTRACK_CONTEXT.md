@@ -243,6 +243,8 @@ File utama:
 
 Dashboard guru menampilkan aset tanggung jawabnya, pinjaman aktif, perawatan, serta tugas stock opname. Dashboard admin merangkum semua ruangan dan masalah. Peringatan operasional meliputi pinjaman terlambat, perawatan jatuh tempo, stock opname belum selesai, serta kerusakan belum ditangani.
 
+Sidebar dikelompokkan dalam urutan Beranda, Inventaris, Data Pendukung, Operasional, Administrasi, Sistem, dan Akun. Pada HP, bilah tindakan tetap menyediakan akses cepat ke Scan, Pinjam, Kerusakan, dan Opname. Seluruh istilah bawaan Filament memakai Bahasa Indonesia melalui locale dan override terjemahan aplikasi.
+
 Pencarian global mencari kode aset, nama, nomor seri, pengguna/penanggung jawab, lokasi, atau paket perangkat. Laporan inventaris mendukung filter, cetak, dan ekspor spreadsheet.
 
 File utama:
@@ -447,6 +449,8 @@ Jika scheduler diaktifkan, cron server menjalankan Laravel scheduler setiap meni
 - Template teks ditampilkan sebagai tombol saran; pengguna tetap dapat mengetik atau mengubah isinya.
 - Setelah membuat peminjaman, kembali ke daftar peminjaman.
 - Kamera QR harus bekerja pada HTTPS; unggah/foto QR tetap menjadi alternatif.
+- Hasil scan QR menampilkan tindakan aset yang relevan dan menjelaskan alasan ketika suatu tindakan tidak dapat digunakan.
+- Tabel kosong harus memberi petunjuk langkah berikutnya; halaman kesalahan harus memakai pesan Indonesia yang membantu pengguna kembali bekerja.
 - Format label printer dan A4 harus tetap terpisah.
 - QR baru harus memakai domain publik, bukan IP lokal.
 - User baru tidak dipaksa mengganti password.

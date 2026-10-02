@@ -55,6 +55,9 @@ class AssetSetsTable
             ])
             ->toolbarActions([
                 DeleteBulkAction::make(),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-squares-2x2')
+            ->emptyStateHeading('Belum ada paket perangkat')
+            ->emptyStateDescription('Buat paket untuk mengelompokkan PC, monitor, dan perangkat pendukung yang digunakan bersama.');
     }
 }

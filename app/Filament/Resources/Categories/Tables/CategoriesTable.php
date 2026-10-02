@@ -47,6 +47,9 @@ class CategoriesTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-tag')
+            ->emptyStateHeading('Belum ada kategori')
+            ->emptyStateDescription('Tambahkan kategori dan prefix kode sebelum mulai mendaftarkan aset.');
     }
 }

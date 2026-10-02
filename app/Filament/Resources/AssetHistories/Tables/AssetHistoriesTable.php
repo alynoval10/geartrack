@@ -136,6 +136,9 @@ class AssetHistoriesTable
                     ->relationship('user', 'name')
                     ->searchable()
                     ->preload(),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-clock')
+            ->emptyStateHeading('Belum ada aktivitas yang tercatat')
+            ->emptyStateDescription('Aktivitas aset akan muncul setelah pengguna menambah, mengubah, meminjam, memindahkan, atau memeriksa aset.');
     }
 }

@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\Loans\Pages;
 
 use App\Filament\Resources\Loans\LoanResource;
+use App\Models\Asset;
 use App\Services\LoanAssetEligibility;
 use App\Services\LoanService;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -24,8 +26,17 @@ class CreateLoan extends CreateRecord
             return;
         }
 
-        $asset = app(LoanAssetEligibility::class)->query()->find($assetId);
+        $asset = Asset::find($assetId);
         if (! $asset) {
+            Notification::make()->title('Aset tidak ditemukan')->body('Periksa kembali QR atau pilih perangkat secara manual.')->warning()->send();
+
+            return;
+        }
+
+        $reason = app(LoanAssetEligibility::class)->ineligibilityReason($asset);
+        if ($reason !== null) {
+            Notification::make()->title('Aset tidak dapat dipinjam')->body($reason)->warning()->send();
+
             return;
         }
 

@@ -21,6 +21,9 @@ class StockTakesTable
             TextColumn::make('completed_at')->label('Selesai')->dateTime('d M Y H:i')->placeholder('-'),
         ])->filters([
             SelectFilter::make('status')->label('Status')->options(StockTake::STATUSES),
-        ])->recordActions([ViewAction::make()->label('Periksa')]);
+        ])->recordActions([ViewAction::make()->label('Periksa')])
+            ->emptyStateIcon('heroicon-o-clipboard-document-check')
+            ->emptyStateHeading('Belum ada sesi stock opname')
+            ->emptyStateDescription('Buat sesi berdasarkan lokasi, lalu scan QR aset untuk mencatat hasil pemeriksaan.');
     }
 }

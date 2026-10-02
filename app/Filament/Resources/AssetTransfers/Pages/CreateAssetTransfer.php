@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\AssetTransfers\Pages;
 
 use App\Filament\Resources\AssetTransfers\AssetTransferResource;
+use App\Models\Asset;
 use App\Services\AssetTransferService;
 use App\Services\TransferAssetEligibility;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -24,8 +26,17 @@ class CreateAssetTransfer extends CreateRecord
             return;
         }
 
-        $asset = app(TransferAssetEligibility::class)->query()->find($assetId);
+        $asset = Asset::find($assetId);
         if (! $asset) {
+            Notification::make()->title('Aset tidak ditemukan')->body('Periksa kembali QR atau pilih perangkat secara manual.')->warning()->send();
+
+            return;
+        }
+
+        $reason = app(TransferAssetEligibility::class)->ineligibilityReason($asset);
+        if ($reason !== null) {
+            Notification::make()->title('Aset tidak dapat dimutasi')->body($reason)->warning()->send();
+
             return;
         }
 

@@ -6,6 +6,7 @@ use App\Filament\Resources\MaintenanceReports\MaintenanceReportResource;
 use App\Models\Asset;
 use App\Services\MaintenanceAssetEligibility;
 use App\Services\MaintenanceService;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -25,10 +26,21 @@ class CreateMaintenanceReport extends CreateRecord
             return;
         }
 
-        $asset = app(MaintenanceAssetEligibility::class)->query()->find($assetId);
-        if ($asset) {
-            $this->data['asset_id'] = $asset->id;
+        $asset = Asset::find($assetId);
+        if (! $asset) {
+            Notification::make()->title('Aset tidak ditemukan')->body('Periksa kembali QR atau pilih perangkat secara manual.')->warning()->send();
+
+            return;
         }
+
+        $reason = app(MaintenanceAssetEligibility::class)->ineligibilityReason($asset);
+        if ($reason !== null) {
+            Notification::make()->title('Laporan belum dapat dibuat')->body($reason)->warning()->send();
+
+            return;
+        }
+
+        $this->data['asset_id'] = $asset->id;
     }
 
     /**

@@ -33,6 +33,9 @@ class AssetDisposalsTable
             ->recordActions([
                 ViewAction::make(),
             ])
-            ->toolbarActions([]);
+            ->toolbarActions([])
+            ->emptyStateIcon('heroicon-o-archive-box-x-mark')
+            ->emptyStateHeading('Belum ada pengajuan penghapusan aset')
+            ->emptyStateDescription('Ajukan aset rusak berat, hilang permanen, dijual, atau dimusnahkan untuk persetujuan admin.');
     }
 }

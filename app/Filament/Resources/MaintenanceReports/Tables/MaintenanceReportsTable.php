@@ -26,6 +26,9 @@ class MaintenanceReportsTable
         ])->filters([
             SelectFilter::make('status')->label('Status')->options(MaintenanceReport::STATUSES),
             SelectFilter::make('type')->label('Jenis')->options(MaintenanceReport::TYPES),
-        ])->recordActions([ViewAction::make()->label('Tangani')]);
+        ])->recordActions([ViewAction::make()->label('Tangani')])
+            ->emptyStateIcon('heroicon-o-wrench-screwdriver')
+            ->emptyStateHeading('Belum ada laporan kerusakan atau perawatan')
+            ->emptyStateDescription('Gunakan scan QR atau pilih aset secara manual untuk membuat laporan pertama.');
     }
 }

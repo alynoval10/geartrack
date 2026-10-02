@@ -25,6 +25,9 @@ class LoansTable
         ])->filters([
             SelectFilter::make('status')->label('Status')->options(['open' => 'Dipinjam', 'returned' => 'Dikembalikan']),
             Filter::make('overdue')->label('Terlambat')->query(fn ($query) => $query->where('status', 'open')->whereDate('due_date', '<', today())),
-        ])->recordActions([ViewAction::make()])->toolbarActions([]);
+        ])->recordActions([ViewAction::make()])->toolbarActions([])
+            ->emptyStateIcon('heroicon-o-arrow-up-on-square-stack')
+            ->emptyStateHeading('Belum ada peminjaman')
+            ->emptyStateDescription('Buat peminjaman baru atau scan QR perangkat dari HP untuk memilih aset.');
     }
 }

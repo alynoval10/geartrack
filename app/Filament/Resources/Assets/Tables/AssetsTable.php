@@ -250,6 +250,9 @@ class AssetsTable
 
                 ])
                     ->label('Tindakan'),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-rectangle-stack')
+            ->emptyStateHeading('Belum ada aset')
+            ->emptyStateDescription('Tambahkan aset pertama atau gunakan menu Impor Aset untuk memasukkan data inventaris.');
     }
 }

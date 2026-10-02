@@ -28,6 +28,9 @@ class MaintenanceSchedulesTable
             Filter::make('overdue')->label('Lewat Jadwal')->query(fn ($query) => $query->where('is_active', true)->whereHas('asset')->whereDate('due_date', '<', today())),
             Filter::make('upcoming')->label('Sampai 7 Hari ke Depan')->query(fn ($query) => $query->upcoming()),
             TernaryFilter::make('is_active')->label('Aktif'),
-        ])->recordActions([ViewAction::make(), EditAction::make()])->toolbarActions([]);
+        ])->recordActions([ViewAction::make(), EditAction::make()])->toolbarActions([])
+            ->emptyStateIcon('heroicon-o-calendar-days')
+            ->emptyStateHeading('Belum ada jadwal perawatan')
+            ->emptyStateDescription('Tambahkan jadwal berkala agar perangkat mendapat pengingat perawatan tepat waktu.');
     }
 }

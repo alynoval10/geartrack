@@ -38,6 +38,9 @@ class BrandsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-building-storefront')
+            ->emptyStateHeading('Belum ada merek')
+            ->emptyStateDescription('Tambahkan merek perangkat agar data aset lebih mudah dicari dan dilaporkan.');
     }
 }

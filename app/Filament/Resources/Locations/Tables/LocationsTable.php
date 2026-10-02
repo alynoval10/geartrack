@@ -48,6 +48,9 @@ class LocationsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-map-pin')
+            ->emptyStateHeading('Belum ada lokasi')
+            ->emptyStateDescription('Tambahkan ruang, laboratorium, atau tempat penyimpanan sebelum menempatkan aset.');
     }
 }

@@ -70,6 +70,9 @@ class UsersTable
                 DeleteAction::make()
                     ->label('Hapus')
                     ->using(fn (User $record): bool => app(UserManagementService::class)->delete($record)),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-users')
+            ->emptyStateHeading('Belum ada pengguna')
+            ->emptyStateDescription('Tambahkan akun guru atau administrator agar tanggung jawab aset dapat ditetapkan.');
     }
 }

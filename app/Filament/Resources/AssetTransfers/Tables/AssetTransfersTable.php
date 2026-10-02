@@ -16,6 +16,9 @@ class AssetTransfersTable
             TextColumn::make('destination_location_name')->label('Tujuan')->searchable(),
             TextColumn::make('receiver_name')->label('Penerima')->searchable(),
             TextColumn::make('items_count')->label('Perangkat')->counts('items'),
-        ])->recordActions([ViewAction::make()])->toolbarActions([]);
+        ])->recordActions([ViewAction::make()])->toolbarActions([])
+            ->emptyStateIcon('heroicon-o-arrows-right-left')
+            ->emptyStateHeading('Belum ada mutasi aset')
+            ->emptyStateDescription('Catat mutasi saat lokasi atau penanggung jawab aset berubah.');
     }
 }
