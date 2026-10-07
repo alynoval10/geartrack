@@ -526,9 +526,16 @@
     // visible after connecting. Measured 2026-08-13: with that filter the chooser was
     // empty for a D11 *and* for a B1 Pro, a printer this driver prints with every day.
     // A filter that cannot find hardware we own is not a filter, it is a dead end.
-    const req = prefixes.length
-      ? { filters: prefixes.map((p) => ({ namePrefix: p })), optionalServices: [SVC_UUID] }
-      : { acceptAllDevices: true, optionalServices: [SVC_UUID] };
+  //  const req = prefixes.length
+    //  ? { filters: prefixes.map((p) => ({ namePrefix: p })), optionalServices: [SVC_UUID] }
+      //: { acceptAllDevices: true, optionalServices: [SVC_UUID] };
+
+const req = {
+    acceptAllDevices: true,
+    optionalServices: [SVC_UUID],
+};
+
+
     device = await navigator.bluetooth.requestDevice(req);
     logMsg(`device name: "${device.name || "?"}"`);
     const server = await device.gatt.connect();
