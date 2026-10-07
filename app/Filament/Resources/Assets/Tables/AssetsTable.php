@@ -126,6 +126,7 @@ class AssetsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+
             ->filters([
 
                 SelectFilter::make('category')
@@ -177,6 +178,11 @@ class AssetsTable
                         ->label('Edit Aset')
                         ->icon('heroicon-o-pencil-square'),
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Cetak Label QR
+                    |--------------------------------------------------------------------------
+                    */
                     Action::make('qrLabel')
                         ->label('Cetak Label QR')
                         ->icon('heroicon-o-qr-code')
@@ -192,14 +198,43 @@ class AssetsTable
                         )
                         ->openUrlInNewTab(),
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Cetak NIIMBOT
+                    |--------------------------------------------------------------------------
+                    */
+                    Action::make('niimbot')
+                        ->label('Cetak NIIMBOT')
+                        ->icon('heroicon-o-printer')
+                        ->color('success')
+                        ->url(
+                            fn ($record): string => route(
+                                'asset.qr.niimbot',
+                                [
+                                    'token' => $record->qr_token,
+                                ]
+                            )
+                        )
+                        ->openUrlInNewTab(),
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Cetak Label QR A4
+                    |--------------------------------------------------------------------------
+                    */
                     Action::make('qrLabelA4')
                         ->label('Cetak Label QR A4')
                         ->icon('heroicon-o-document')
                         ->color('gray')
-                        ->url(fn ($record): string => route('asset.qr.label', [
-                            'token' => $record->qr_token,
-                            'paper' => 'a4',
-                        ]))
+                        ->url(
+                            fn ($record): string => route(
+                                'asset.qr.label',
+                                [
+                                    'token' => $record->qr_token,
+                                    'paper' => 'a4',
+                                ]
+                            )
+                        )
                         ->openUrlInNewTab(),
 
                 ]),
@@ -208,6 +243,11 @@ class AssetsTable
             ->toolbarActions([
                 BulkActionGroup::make([
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Bulk Cetak Label QR
+                    |--------------------------------------------------------------------------
+                    */
                     BulkAction::make('printQrLabels')
                         ->label('Cetak Label QR')
                         ->icon('heroicon-o-qr-code')
@@ -223,26 +263,39 @@ class AssetsTable
                             ]);
 
                             $livewire->js(
-                                'window.open('.json_encode($url).", '_blank')"
+                                'window.open(' . json_encode($url) . ", '_blank')"
                             );
                         }),
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Bulk Cetak Label QR A4
+                    |--------------------------------------------------------------------------
+                    */
                     BulkAction::make('printQrLabelsA4')
                         ->label('Cetak Label QR A4')
                         ->icon('heroicon-o-document')
                         ->color('gray')
                         ->action(function (Collection $records, $livewire) {
-                            $ids = $records->pluck('id')->implode(',');
+                            $ids = $records
+                                ->pluck('id')
+                                ->implode(',');
+
                             $url = route('asset.qr.bulk-label', [
                                 'assets' => $ids,
                                 'paper' => 'a4',
                             ]);
 
                             $livewire->js(
-                                'window.open('.json_encode($url).", '_blank')"
+                                'window.open(' . json_encode($url) . ", '_blank')"
                             );
                         }),
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Hapus Aset
+                    |--------------------------------------------------------------------------
+                    */
                     DeleteBulkAction::make()
                         ->label('Hapus Aset')
                         ->icon('heroicon-o-trash')
@@ -251,8 +304,11 @@ class AssetsTable
                 ])
                     ->label('Tindakan'),
             ])
+
             ->emptyStateIcon('heroicon-o-rectangle-stack')
             ->emptyStateHeading('Belum ada aset')
-            ->emptyStateDescription('Tambahkan aset pertama atau gunakan menu Impor Aset untuk memasukkan data inventaris.');
+            ->emptyStateDescription(
+                'Tambahkan aset pertama atau gunakan menu Impor Aset untuk memasukkan data inventaris.'
+            );
     }
 }

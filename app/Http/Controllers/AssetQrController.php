@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
+
 class AssetQrController extends Controller
 {
     public function show(
@@ -153,4 +154,31 @@ class AssetQrController extends Controller
 
         return $origin.route('asset.qr.show', ['token' => $token], false);
     }
+
+
+    public function niimbot(string $token): View
+{
+    $asset = Asset::with([
+        'category',
+        'brand',
+        'location',
+        'specifications',
+    ])
+        ->where('qr_token', $token)
+        ->firstOrFail();
+
+    $url = $this->assetPublicUrl($asset->qr_token);
+
+    $qrCode = QrCode::format('svg')
+        ->size(180)
+        ->margin(0)
+        ->errorCorrection('M')
+        ->generate($url);
+
+    return view('assets.niimbot', [
+        'asset' => $asset,
+        'qrCode' => $qrCode,
+        'url' => $url,
+    ]);
+}
 }
