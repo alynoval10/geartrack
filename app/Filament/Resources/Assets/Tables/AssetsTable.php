@@ -248,6 +248,19 @@ class AssetsTable
                     | Bulk Cetak Label QR
                     |--------------------------------------------------------------------------
                     */
+                    BulkAction::make('printNiimbotLabels')
+                        ->label('Cetak NIIMBOT')
+                        ->icon('heroicon-o-printer')
+                        ->color('success')
+                        ->action(function (Collection $records, $livewire) {
+                            $url = route('asset.qr.bulk-niimbot', [
+                                'assets' => $records->pluck('id')->implode(','),
+                            ]);
+
+                            $livewire->js(
+                                'window.open('.json_encode($url).", '_blank')"
+                            );
+                        }),
                     BulkAction::make('printQrLabels')
                         ->label('Cetak Label QR')
                         ->icon('heroicon-o-qr-code')
@@ -263,7 +276,7 @@ class AssetsTable
                             ]);
 
                             $livewire->js(
-                                'window.open(' . json_encode($url) . ", '_blank')"
+                                'window.open('.json_encode($url).", '_blank')"
                             );
                         }),
 
@@ -287,7 +300,7 @@ class AssetsTable
                             ]);
 
                             $livewire->js(
-                                'window.open(' . json_encode($url) . ", '_blank')"
+                                'window.open('.json_encode($url).", '_blank')"
                             );
                         }),
 

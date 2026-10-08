@@ -165,7 +165,7 @@
 
 </div>
 
-<script src="{{ asset('js/niimbot.js') }}"></script>
+<script src="{{ asset('js/niimbot.js') }}?v={{ filemtime(public_path('js/niimbot.js')) }}"></script>
 
 <script>
 const button = document.getElementById('printButton');
@@ -192,9 +192,10 @@ button.addEventListener('click', async () => {
     try {
 
         if (!Niimbot.isSupported()) {
-            throw new Error(
-                'Browser ini tidak mendukung Web Bluetooth.'
-            );
+            const message = !window.isSecureContext
+                ? `Web Bluetooth diblokir karena halaman ini memakai HTTP (${window.location.origin}). Buka GearTrack melalui HTTPS dengan sertifikat yang dipercaya perangkat.`
+                : 'Browser ini tidak menyediakan Web Bluetooth. Gunakan Google Chrome di Android atau Chrome/Edge di komputer.';
+            throw new Error(message);
         }
 
         setStatus(

@@ -26,6 +26,12 @@ class ViewAsset extends ViewRecord
                 ->url(function (): string {
                     return route('qr.scan', ['stock_take' => $this->stockTakeId]);
                 }),
+            Action::make('printNiimbot')
+                ->label('Cetak NIIMBOT')
+                ->icon('heroicon-o-printer')
+                ->color('success')
+                ->url(fn (): string => route('asset.qr.niimbot', ['token' => $this->record->qr_token]))
+                ->openUrlInNewTab(),
             EditAction::make()
                 ->label('Edit Aset'),
         ];

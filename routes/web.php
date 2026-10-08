@@ -76,5 +76,8 @@ Route::get('/q/{token}/label', [AssetQrController::class, 'label'])
 Route::get('/q/{token}/niimbot', [AssetQrController::class, 'niimbot'])
     ->name('asset.qr.niimbot');
 
+Route::get('/labels/niimbot', [AssetQrController::class, 'bulkNiimbot'])
+    ->name('asset.qr.bulk-niimbot');
+
 Route::get('/labels/print', [AssetQrController::class, 'bulkLabel'])
     ->name('asset.qr.bulk-label');

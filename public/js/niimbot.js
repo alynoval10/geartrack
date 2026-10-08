@@ -526,19 +526,34 @@
     // visible after connecting. Measured 2026-08-13: with that filter the chooser was
     // empty for a D11 *and* for a B1 Pro, a printer this driver prints with every day.
     // A filter that cannot find hardware we own is not a filter, it is a dead end.
-  //  const req = prefixes.length
-    //  ? { filters: prefixes.map((p) => ({ namePrefix: p })), optionalServices: [SVC_UUID] }
-      //: { acceptAllDevices: true, optionalServices: [SVC_UUID] };
+    // Reuse a printer this origin has already been granted access to. This avoids
+    // reopening the device chooser for every label while keeping the first print
+    // inside the browser's user gesture.
+    if (typeof navigator.bluetooth.getDevices === "function") {
+      try {
+        const devices = await navigator.bluetooth.getDevices();
+        device = devices.find((candidate) => {
+          const name = candidate.name || "";
+          return prefixes.length === 0 || prefixes.some((prefix) =>
+            name.toUpperCase().startsWith(prefix.toUpperCase())
+          );
+        }) || null;
+        if (device) logMsg(`Reusing permitted printer: "${device.name || "?"}"`);
+      } catch (error) {
+        logMsg(`Could not list permitted printers: ${error.message || error}`);
+      }
+    }
 
-const req = {
-    acceptAllDevices: true,
-    optionalServices: [SVC_UUID],
-};
+    if (!device) {
+      const req = prefixes.length
+        ? { filters: prefixes.map((prefix) => ({ namePrefix: prefix })), optionalServices: [SVC_UUID] }
+        : { acceptAllDevices: true, optionalServices: [SVC_UUID] };
+      device = await navigator.bluetooth.requestDevice(req);
+    }
 
-
-    device = await navigator.bluetooth.requestDevice(req);
-    logMsg(`device name: "${device.name || "?"}"`);
+    if (!device.gatt) throw new Error("Selected Bluetooth device has no GATT server.");
     const server = await device.gatt.connect();
+    logMsg(`device name: "${device.name || "?"}"`);
     const svc = await server.getPrimaryService(SVC_UUID);
     characteristic = await svc.getCharacteristic(CHAR_UUID);
     const props = characteristic.properties || {};

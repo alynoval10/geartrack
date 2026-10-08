@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-
 class AssetQrController extends Controller
 {
     public function show(
@@ -105,6 +104,34 @@ class AssetQrController extends Controller
         ]);
     }
 
+    public function bulkNiimbot(Request $request): View
+    {
+        $ids = collect(explode(',', (string) $request->query('assets')))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        abort_if($ids->isEmpty(), 404);
+
+        $assets = Asset::with(['category', 'brand', 'location', 'specifications'])
+            ->whereIn('id', $ids)
+            ->get();
+
+        abort_if($assets->isEmpty(), 404);
+
+        $assets->each(function (Asset $asset): void {
+            $url = $this->assetPublicUrl($asset->qr_token);
+            $asset->generatedQr = QrCode::format('svg')
+                ->size(180)
+                ->margin(0)
+                ->errorCorrection('M')
+                ->generate($url);
+        });
+
+        return view('assets.niimbot-bulk', ['assets' => $assets]);
+    }
+
     /** @return array{labelWidth: int, labelHeight: int, labelPadding: float, labelGap: float, isStacked: bool, qrSize: float, brandFontSize: float, codeFontSize: float, nameFontSize: float, hintFontSize: float, lineGap: float} */
     private function labelLayout(): array
     {
@@ -155,30 +182,29 @@ class AssetQrController extends Controller
         return $origin.route('asset.qr.show', ['token' => $token], false);
     }
 
-
     public function niimbot(string $token): View
-{
-    $asset = Asset::with([
-        'category',
-        'brand',
-        'location',
-        'specifications',
-    ])
-        ->where('qr_token', $token)
-        ->firstOrFail();
+    {
+        $asset = Asset::with([
+            'category',
+            'brand',
+            'location',
+            'specifications',
+        ])
+            ->where('qr_token', $token)
+            ->firstOrFail();
 
-    $url = $this->assetPublicUrl($asset->qr_token);
+        $url = $this->assetPublicUrl($asset->qr_token);
 
-    $qrCode = QrCode::format('svg')
-        ->size(180)
-        ->margin(0)
-        ->errorCorrection('M')
-        ->generate($url);
+        $qrCode = QrCode::format('svg')
+            ->size(180)
+            ->margin(0)
+            ->errorCorrection('M')
+            ->generate($url);
 
-    return view('assets.niimbot', [
-        'asset' => $asset,
-        'qrCode' => $qrCode,
-        'url' => $url,
-    ]);
-}
+        return view('assets.niimbot', [
+            'asset' => $asset,
+            'qrCode' => $qrCode,
+            'url' => $url,
+        ]);
+    }
 }
