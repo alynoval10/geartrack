@@ -535,7 +535,7 @@
         device = devices.find((candidate) => {
           const name = candidate.name || "";
           return prefixes.length === 0 || prefixes.some((prefix) =>
-            name.toUpperCase().startsWith(prefix.toUpperCase())
+            name.toUpperCase().includes(prefix.toUpperCase())
           );
         }) || null;
         if (device) logMsg(`Reusing permitted printer: "${device.name || "?"}"`);
@@ -545,12 +545,14 @@
     }
 
     if (!device) {
-      const req = prefixes.length
-        ? { filters: prefixes.map((prefix) => ({ namePrefix: prefix })), optionalServices: [SVC_UUID] }
-        : { acceptAllDevices: true, optionalServices: [SVC_UUID] };
-      device = await navigator.bluetooth.requestDevice(req);
+      // Device names vary by firmware (for example, "NIIMBOT B1" instead
+      // of "B1"). Do not filter the chooser by advertised name.
+      logMsg("No previously permitted printer found. Opening Bluetooth chooser.");
+      device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [SVC_UUID],
+      });
     }
-
     if (!device.gatt) throw new Error("Selected Bluetooth device has no GATT server.");
     const server = await device.gatt.connect();
     logMsg(`device name: "${device.name || "?"}"`);
