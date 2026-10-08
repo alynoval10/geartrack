@@ -81,12 +81,53 @@
         }
 
         #status {
-            margin-top: 16px;
-            padding: 12px;
-            background: #f8fafc;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 14px 16px;
+            border: 1px solid #cbd5e1;
             border-radius: 10px;
+            background: #f8fafc;
+            color: #334155;
             white-space: pre-wrap;
             line-height: 1.5;
+        }
+
+        #status::before {
+            flex: 0 0 auto;
+            font-weight: 700;
+            content: 'i';
+        }
+
+        #status[data-state="progress"] {
+            border-color: #93c5fd;
+            background: #eff6ff;
+            color: #1e40af;
+        }
+
+        #status[data-state="progress"]::before {
+            content: '…';
+        }
+
+        #status[data-state="success"] {
+            border-color: #86efac;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        #status[data-state="success"]::before {
+            content: '✓';
+        }
+
+        #status[data-state="error"] {
+            border-color: #fca5a5;
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        #status[data-state="error"]::before {
+            content: '!';
         }
     </style>
 </head>
@@ -155,12 +196,10 @@
         </svg>
     </div>
 
-    <button id="printButton">
-        🖨️ Hubungkan & Cetak
-    </button>
+    <button id="printButton">🖨️ Sambungkan ke Printer & Cetak</button>
 
-    <div id="status">
-        Siap.
+    <div id="status" data-state="info" role="status" aria-live="polite" aria-atomic="true">
+        <span class="status-message">Siap mencetak. Tekan tombol di atas untuk memulai.</span>
     </div>
 
 </div>
@@ -172,8 +211,27 @@ const button = document.getElementById('printButton');
 const statusBox = document.getElementById('status');
 const svg = document.getElementById('niimbotLabel');
 
-function setStatus(message) {
-    statusBox.textContent = message;
+function setStatus(message, state = 'info') {
+    statusBox.dataset.state = state;
+    statusBox.querySelector('.status-message').textContent = message;
+}
+
+function setPrintProgress(progress) {
+    const message = String(progress || '').toLowerCase();
+    const percentage = message.match(/(\d+)%/);
+
+    if (message.includes('connecting')) {
+        setStatus('Menghubungkan ke printer NIIMBOT...', 'progress');
+    } else if (message.includes('configuring')) {
+        setStatus('Menyiapkan printer...', 'progress');
+    } else if (message.includes('sending')) {
+        setStatus('Mengirim label ke printer...', 'progress');
+    } else if (message.includes('printing')) {
+        setStatus(
+            percentage ? `Mencetak label... ${percentage[1]}%` : 'Printer sedang mencetak label...',
+            'progress'
+        );
+    }
 }
 
 function svgToDataUrl() {
@@ -198,10 +256,7 @@ button.addEventListener('click', async () => {
             throw new Error(message);
         }
 
-        setStatus(
-            'Membuka Bluetooth...\n' +
-            'Pilih NIIMBOT B1 pada daftar perangkat.'
-        );
+        setStatus('Menghubungkan ke printer. Pilih NIIMBOT pada daftar perangkat yang ditampilkan browser.', 'progress');
 
         const model = {
             name_prefixes: ['B1'],
@@ -219,35 +274,22 @@ button.addEventListener('click', async () => {
 
         const imageUrl = svgToDataUrl();
 
-        setStatus(
-            'Mengirim label ke NIIMBOT...'
-        );
+        setStatus('Menyiapkan pencetakan label...', 'progress');
 
         await Niimbot.printImage(imageUrl, {
             model,
             size,
 
-            onProgress(progress) {
-                setStatus(
-                    'Mencetak label...\n' +
-                    `${Math.round(progress * 100)}%`
-                );
-            },
+            onProgress: setPrintProgress,
         });
 
-        setStatus(
-            'Berhasil mencetak label ' +
-            '{{ $asset->asset_code }}.'
-        );
+        setStatus('Label {{ $asset->asset_code }} berhasil dicetak.', 'success');
 
     } catch (error) {
 
         console.error(error);
 
-        setStatus(
-            'Gagal mencetak.\n\n' +
-            (error?.message || String(error))
-        );
+        setStatus('Pencetakan gagal. ' + (error?.message || String(error)), 'error');
 
     } finally {
 
