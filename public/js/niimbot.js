@@ -49,7 +49,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "2.6.0";   // shown in the demo/console; bump on each release (or dev change)
+  const VERSION = "2.6.2";   // shown in the demo/console; bump on each release (or dev change)
   const SVC_UUID = "e7810a71-73ae-499d-8c15-faa9aef0c3f2";
   const CHAR_UUID = "bef8d6c9-9c21-4c9e-b632-bd58c1009f9f";
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -907,28 +907,102 @@ const req = {
   }
 
   // ── Bitmap: image → rows packed MSB-first (1 = black) ───────────────────────
-  async function imageToPacked(url, w, h, offsetY) {
-    const dy = offsetY | 0;   // print-position calibration (paper registration, not scale — w/h stay put); dy > 0 shifts down, dy < 0 shifts up
-    const bmp = await fetch(url).then((r) => r.blob()).then((b) => createImageBitmap(b));
-    const canvas = document.createElement("canvas");
-    canvas.width = w; canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
-    ctx.drawImage(bmp, 0, dy, w, h);   // dy > 0 (e.g. T50x30_b1: +4): top dy rows stay white, bottom dy rows fall off the page.
-                                       // dy < 0 (e.g. T15x50: -2): top |dy| rows of the SOURCE image are cut off, bottom |dy| rows of the page stay white.
-                                       // Both directions are real hardware, not hypothetical: the B1 needed the print pushed down, the D110 needed it pulled up.
-    const px = ctx.getImageData(0, 0, w, h).data;
-    const stride = (w + 7) >> 3;
-    const buf = new Uint8Array(stride * h);
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const i = (y * w + x) * 4;
-        const lum = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
-        if (px[i + 3] > 32 && lum < 128) buf[y * stride + (x >> 3)] |= 0x80 >> (x & 7);
+ async function loadImageForCanvas(url) {
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Gagal mengambil gambar label: HTTP ${response.status} ${response.statusText}`
+    );
+  }
+
+  const blob = await response.blob();
+
+  if (!blob.size) {
+    throw new Error("Gambar label kosong.");
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
+
+  try {
+    const img = new Image();
+
+    img.decoding = "async";
+
+    await new Promise((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(
+        new Error(
+          `Source image tidak dapat didecode.\nURL: ${url}\nTipe: ${blob.type || "unknown"}\nUkuran: ${blob.size} bytes`
+        )
+      );
+
+      img.src = objectUrl;
+    });
+
+    return img;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+
+async function imageToPacked(url, w, h, offsetY) {
+  const dy = offsetY | 0;
+
+  const img = await loadImageForCanvas(url);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+
+  const ctx = canvas.getContext("2d", {
+    willReadFrequently: true,
+  });
+
+  if (!ctx) {
+    throw new Error("Canvas 2D tidak tersedia pada browser ini.");
+  }
+
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.drawImage(img, 0, dy, w, h);
+
+  const px = ctx.getImageData(0, 0, w, h).data;
+
+  const stride = (w + 7) >> 3;
+  const buf = new Uint8Array(stride * h);
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+
+      const lum =
+        0.299 * px[i] +
+        0.587 * px[i + 1] +
+        0.114 * px[i + 2];
+
+      if (
+        px[i + 3] > 32 &&
+        lum < 128
+      ) {
+        buf[
+          y * stride + (x >> 3)
+        ] |= 0x80 >> (x & 7);
       }
     }
-    return { buf, stride };
   }
+
+  return {
+    buf,
+    stride,
+  };
+}
 
   function rowEmpty(buf, off, stride) {
     for (let b = 0; b < stride; b++) if (buf[off + b]) return false;
