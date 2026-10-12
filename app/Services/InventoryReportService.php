@@ -65,17 +65,17 @@ class InventoryReportService
             throw ValidationException::withMessages(['report' => 'Hasil melebihi 5.000 baris. Persempit filter laporan.']);
         }
         $headers = match ($type) {
-            'assets' => ['Kode Aset', 'Nama', 'Kategori', 'Merek', 'Model', 'Nomor Seri', 'Lokasi', 'Penanggung Jawab', 'Paket', 'Kondisi', 'Status', 'Tanggal Pengadaan', 'Harga Perolehan (Rp)'],
-            'overdue' => ['Kode Pinjaman', 'Peminjam', 'Penanggung Jawab', 'Kode Aset', 'Nama Aset', 'Tanggal Pinjam', 'Jatuh Tempo', 'Terlambat (hari)'],
-            'stock_take' => ['Stock Opname', 'Kode Aset', 'Nama Aset', 'Lokasi Awal', 'Lokasi Ditemukan', 'Hasil', 'Diperiksa Pada', 'Petugas', 'Catatan'],
-            'maintenance' => ['Kode Aset', 'Nama Aset', 'Laporan', 'Jenis', 'Status', 'Teknisi', 'Tanggal Laporan', 'Selesai Pada', 'Biaya (Rp)'],
+            'assets' => ['No.', 'Kode Aset', 'Nama', 'Kategori', 'Merek', 'Model', 'Nomor Seri', 'Lokasi', 'Penanggung Jawab', 'Paket', 'Kondisi', 'Status', 'Tanggal Pengadaan', 'Harga Perolehan (Rp)'],
+            'overdue' => ['No.', 'Kode Pinjaman', 'Peminjam', 'Penanggung Jawab', 'Kode Aset', 'Nama Aset', 'Tanggal Pinjam', 'Jatuh Tempo', 'Terlambat (hari)'],
+            'stock_take' => ['No.', 'Stock Opname', 'Kode Aset', 'Nama Aset', 'Lokasi Awal', 'Lokasi Ditemukan', 'Hasil', 'Diperiksa Pada', 'Petugas', 'Catatan'],
+            'maintenance' => ['No.', 'Kode Aset', 'Nama Aset', 'Laporan', 'Jenis', 'Status', 'Teknisi', 'Tanggal Laporan', 'Selesai Pada', 'Biaya (Rp)'],
         };
-        $rows = $records->map(fn ($record): array => match ($type) {
+        $rows = $records->values()->map(fn ($record, int $index): array => array_merge([$index + 1], match ($type) {
             'assets' => [$record->asset_code, $record->name, $record->category?->name, $record->brand?->name, $record->model, $record->serial_number, $record->location?->fullName(), $record->custodian_name, $record->assetSet?->name, MaintenanceReport::CONDITIONS[$record->condition] ?? $record->condition, self::STATUSES[$record->status] ?? $record->status, $record->acquisition_date?->format('Y-m-d'), $record->purchase_price === null ? null : (float) $record->purchase_price],
             'overdue' => [$record->loan->code, $record->loan->borrower_name, $record->loan->responsible_name, $record->asset_code, $record->asset_name, $record->loan->borrowed_at->format('Y-m-d'), $record->loan->due_date->format('Y-m-d'), (int) $record->loan->due_date->diffInDays(today())],
             'stock_take' => [$record->stockTake->name, $record->asset_code, $record->asset_name, $record->expected_location_name, $record->observed_location_name, StockTakeItem::RESULTS[$record->result], $record->checked_at?->format('Y-m-d H:i'), $record->checker?->name, $record->notes],
             'maintenance' => [$record->asset_code, $record->asset_name, $record->title, MaintenanceReport::TYPES[$record->type], MaintenanceReport::STATUSES[$record->status], $record->technician, $record->created_at->format('Y-m-d'), $record->closed_at?->format('Y-m-d'), (float) ($record->entries_sum_cost ?? 0)],
-        })->all();
+        }))->all();
         $summary = count($rows).' baris';
         if ($type === 'assets' && filter_var($filters['show_acquisition_total'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $sum = $records->sum('purchase_price');

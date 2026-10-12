@@ -42,7 +42,7 @@ class InventoryReportTest extends TestCase
         Asset::factory()->create(['name' => 'Excluded damaged', 'location_id' => $location->id, 'condition' => 'major_damage']);
         $this->get(route('reports.export', ['type' => 'assets', 'format' => 'print', 'location_id' => $location->id, 'condition' => 'good', 'date_to' => '2026-12-31']))
             ->assertOk()->assertSee('<script>alert(1)</script>')->assertDontSee('<script>alert(1)</script>', false)
-            ->assertDontSee('Excluded damaged')->assertSee('1.250.000,00');
+            ->assertDontSee('Excluded damaged')->assertSee('1.250.000,00')->assertSee('No.');
     }
 
     public function test_overdue_report_excludes_returned_items_and_today_due_loans(): void
@@ -55,8 +55,10 @@ class InventoryReportTest extends TestCase
         $todayLoan->items()->create(['asset_code' => 'TODAY', 'asset_name' => 'Not overdue', 'condition_before' => 'good', 'previous_status' => 'available']);
         $report = app(InventoryReportService::class)->generate(['type' => 'overdue']);
         $this->assertCount(1, $report['rows']);
-        $this->assertSame('LATE', $report['rows'][0][3]);
-        $this->assertSame(2, $report['rows'][0][7]);
+        $this->assertSame('No.', $report['headers'][0]);
+        $this->assertSame(1, $report['rows'][0][0]);
+        $this->assertSame('LATE', $report['rows'][0][4]);
+        $this->assertSame(2, $report['rows'][0][8]);
     }
 
     public function test_stock_take_preserves_snapshot_and_pending_rows(): void
@@ -64,8 +66,9 @@ class InventoryReportTest extends TestCase
         $stockTake = StockTake::factory()->create();
         $stockTake->items()->create(['asset_code' => 'OLD-01', 'asset_name' => 'Snapshot asset', 'expected_location_name' => 'Original lab', 'original_status' => 'available', 'result' => 'pending']);
         $report = app(InventoryReportService::class)->generate(['type' => 'stock_take', 'stock_take_id' => $stockTake->id]);
-        $this->assertSame('Original lab', $report['rows'][0][3]);
-        $this->assertSame('Belum Diperiksa', $report['rows'][0][5]);
+        $this->assertSame(1, $report['rows'][0][0]);
+        $this->assertSame('Original lab', $report['rows'][0][4]);
+        $this->assertSame('Belum Diperiksa', $report['rows'][0][6]);
     }
 
     public function test_maintenance_costs_are_summed_without_duplicate_report_rows(): void
@@ -75,7 +78,8 @@ class InventoryReportTest extends TestCase
         $report->entries()->create(['action' => 'note', 'notes' => 'Service', 'cost' => 50000]);
         $data = app(InventoryReportService::class)->generate(['type' => 'maintenance']);
         $this->assertCount(1, $data['rows']);
-        $this->assertSame(175000.0, $data['rows'][0][8]);
+        $this->assertSame(1, $data['rows'][0][0]);
+        $this->assertSame(175000.0, $data['rows'][0][9]);
     }
 
     public function test_xlsx_preserves_leading_zero_and_does_not_execute_text_as_formula(): void
