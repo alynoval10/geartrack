@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\MaintenanceReport;
 use App\Models\StockTakeItem;
 use App\Services\InventoryReportService;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,6 +24,11 @@ class InventoryReportRequest extends FormRequest
             'location_id' => ['nullable', 'integer', 'exists:locations,id'],
             'include_children' => ['nullable', 'boolean'],
             'show_acquisition_total' => ['nullable', 'boolean'],
+            'responsible_user_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('users', 'id')->where(fn (Builder $query): Builder => $query->where('is_active', true)->whereNull('deleted_at')),
+            ],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'condition' => ['nullable', Rule::in(array_keys(MaintenanceReport::CONDITIONS))],
             'status' => ['nullable', Rule::in(array_keys(InventoryReportService::STATUSES))],

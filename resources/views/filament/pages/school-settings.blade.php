@@ -28,7 +28,7 @@
         @foreach ([
             ['Kepala sekolah', 'principal', 'Nama kepala sekolah', 'NIP kepala sekolah'],
             ['Pengurus barang', 'asset_manager', 'Nama pengurus barang', 'NIP pengurus barang'],
-            ['Penandatangan laporan', 'report_signer', 'Nama penandatangan', 'NIP penandatangan'],
+            ['Tanda tangan Kepala Program Keahlian', 'report_signer', 'Nama Kepala Program Keahlian', 'NIP Kepala Program Keahlian'],
         ] as [$heading, $prefix, $nameLabel, $nipLabel])
             <x-filament::section :heading="$heading">
                 <div class="grid gap-5 md:grid-cols-2">
@@ -39,8 +39,8 @@
                         <x-filament::input.wrapper><x-filament::input name="{{ $prefix }}_nip" value="{{ old($prefix.'_nip', $setting->{$prefix.'_nip'}) }}" /></x-filament::input.wrapper>
                     </label>
                     @if ($prefix === 'report_signer')
-                        <label class="grid gap-2 text-sm font-medium md:col-span-2">Jabatan penandatangan
-                            <x-filament::input.wrapper><x-filament::input name="report_signer_title" value="{{ old('report_signer_title', $setting->report_signer_title) }}" placeholder="Wakil Kepala Sekolah Bidang Sarana Prasarana" /></x-filament::input.wrapper>
+                        <label class="grid gap-2 text-sm font-medium md:col-span-2">Jabatan Kepala Program Keahlian
+                            <x-filament::input.wrapper><x-filament::input name="report_signer_title" value="{{ old('report_signer_title', $setting->report_signer_title) }}" placeholder="Kepala Program Keahlian" /></x-filament::input.wrapper>
                         </label>
                     @endif
                 </div>

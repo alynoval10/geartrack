@@ -7,6 +7,7 @@ use App\Models\Location;
 use App\Models\MaintenanceReport;
 use App\Models\StockTake;
 use App\Models\StockTakeItem;
+use App\Models\User;
 use App\Services\InventoryReportService;
 use BackedEnum;
 use Filament\Pages\Page;
@@ -29,6 +30,7 @@ class Reports extends Page
     {
         return ['types' => InventoryReportService::TYPES, 'locations' => Location::selectOptions(activeOnly: false),
             'categories' => Category::orderBy('name')->pluck('name', 'id'), 'stockTakes' => StockTake::latest()->pluck('name', 'id'),
+            'responsibleUsers' => User::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'),
             'conditions' => MaintenanceReport::CONDITIONS, 'statuses' => InventoryReportService::STATUSES, 'results' => StockTakeItem::RESULTS];
     }
 }

@@ -9,6 +9,8 @@
         th,td {border:1px solid #cbd5e1; padding:8px; text-align:left; overflow-wrap:anywhere;}
         th {background:#e2e8f0;} .scroll {overflow:auto;} .tools {display:flex;gap:16px; margin-bottom:24px;}
         button,a {font:inherit;} @page {size:A4 landscape; margin:12mm;}
+        .signatures {display:flex;justify-content:space-between;gap:24px;margin-top:40px;break-inside:avoid;} .signature {width:280px;text-align:center;}
+        .signature-name {display:block;margin-top:65px;min-height:1em;text-decoration:underline;} .signature-name:empty {border-bottom:1px solid #172033;text-decoration:none;}
         @media print {body {padding:0; font-size:9px;} .tools {display:none;} .scroll {overflow:visible;} thead {display:table-header-group;} tr {break-inside:avoid;} }
     </style>
 </head>
@@ -24,11 +26,16 @@
         <tbody>@forelse ($rows as $row)<tr>@foreach ($row as $value)<td>{{ $value ?? '—' }}</td>@endforeach</tr>
         @empty<tr><td colspan="{{ count($headers) }}">Tidak ada data sesuai filter.</td></tr>@endforelse</tbody>
     </table></div>
-    @if ($school->report_signer_name)
-        <div style="width:280px;margin:40px 0 0 auto;text-align:center;break-inside:avoid">
-            {{ $school->report_signer_title ?: 'Penanggung Jawab' }}<br><strong style="display:block;margin-top:65px;text-decoration:underline">{{ $school->report_signer_name }}</strong>
+    <div class="signatures">
+        @if ($responsible)
+            <div class="signature">
+                Penanggung Jawab<br><strong class="signature-name">{{ $responsible->name }}</strong>
+            </div>
+        @endif
+        <div class="signature">
+            {{ $school->report_signer_title ?: 'Kepala Program Keahlian' }}<br><strong class="signature-name">{{ $school->report_signer_name }}</strong>
             <span>NIP. {{ $school->report_signer_nip ?: '—' }}</span>
         </div>
-    @endif
+    </div>
 </body>
 </html>

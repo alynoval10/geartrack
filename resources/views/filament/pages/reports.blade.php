@@ -9,6 +9,14 @@
                     @foreach ($types as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
                 </x-filament::input.select></x-filament::input.wrapper>
             </label>
+            <label class="grid gap-2 text-sm font-medium">Penanggung jawab laporan (opsional)
+                <x-filament::input.wrapper><x-filament::input.select name="responsible_user_id">
+                    <option value="">Pilih penanggung jawab</option>
+                    @foreach ($responsibleUsers as $value => $label)
+                        <option value="{{ $value }}" @selected((string) request()->query('responsible_user_id') === (string) $value)>{{ $label }}</option>
+                    @endforeach
+                </x-filament::input.select></x-filament::input.wrapper>
+            </label>
             <div x-show="type === 'assets'" class="grid gap-4 sm:grid-cols-2">
                 @foreach (['location_id' => ['Lokasi', $locations], 'category_id' => ['Kategori', $categories], 'condition' => ['Kondisi', $conditions], 'status' => ['Status', $statuses]] as $name => [$label, $options])
                     <label class="grid gap-2 text-sm font-medium">{{ $label }}
