@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class LocationResource extends Resource
 {
@@ -31,6 +32,11 @@ class LocationResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('parent');
+    }
 
     public static function form(Schema $schema): Schema
     {

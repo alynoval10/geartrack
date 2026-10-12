@@ -17,7 +17,9 @@ class AssetSetInfolist
                 Section::make('Informasi Paket')->schema([
                     TextEntry::make('code')->label('Kode Paket')->badge(),
                     TextEntry::make('name')->label('Nama Paket'),
-                    TextEntry::make('location.name')->label('Lokasi Paket')->placeholder('Belum ditentukan'),
+                    TextEntry::make('location.name')->label('Lokasi Paket')
+                        ->formatStateUsing(fn (?string $state, AssetSet $record): ?string => $record->location?->fullName() ?? $state)
+                        ->placeholder('Belum ditentukan'),
                     IconEntry::make('is_active')->label('Paket Aktif')->boolean(),
                     TextEntry::make('member_count')->label('Jumlah Anggota')
                         ->state(fn (AssetSet $record): int => $record->assets()->count())->suffix(' perangkat'),

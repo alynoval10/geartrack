@@ -78,10 +78,10 @@ class UserTasks extends Widget
         return [
             'isAdmin' => $isAdmin,
             'taskCounts' => $taskCounts,
-            'assignedAssets' => $assets->clone()->with('location')->latest()->limit(5)->get(),
+            'assignedAssets' => $assets->clone()->with('location.parent')->latest()->limit(5)->get(),
             'overdueLoans' => $isAdmin ? Loan::where('status', 'open')->whereDate('due_date', '<', today())->count() : 0,
             'dueMaintenance' => $isAdmin ? MaintenanceSchedule::upcoming()->count() : 0,
-            'locationSummaries' => $isAdmin ? Location::withCount('assets')->orderByDesc('assets_count')->limit(5)->get() : collect(),
+            'locationSummaries' => $isAdmin ? Location::with(['parent'])->withCount('assets')->orderByDesc('assets_count')->limit(5)->get() : collect(),
             'timeline' => $isAdmin ? $adminTimeline : $guruTimeline,
         ];
     }

@@ -6,25 +6,29 @@ use App\Models\Asset;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
+use Illuminate\Database\Eloquent\Builder;
 
 class AssetExporter extends Exporter
 {
     protected static ?string $model = Asset::class;
-    
-    
+
+    public static function modifyQuery(Builder $query): Builder
+    {
+        return $query->with('location.parent');
+    }
 
     public static function getColumns(): array
     {
         return [
-        
+
             ExportColumn::make('number')
-            ->label('No.')
-            ->state(function (Asset $record): int {
-                return Asset::where('id', '<=', $record->id)->count();
-            }),
-                
+                ->label('No.')
+                ->state(function (Asset $record): int {
+                    return Asset::where('id', '<=', $record->id)->count();
+                }),
+
             ExportColumn::make('asset_code')
-            ->label('Kode Aset'),
+                ->label('Kode Aset'),
 
             ExportColumn::make('name')
                 ->label('Nama Aset'),
@@ -42,7 +46,8 @@ class AssetExporter extends Exporter
                 ->label('Nomor Seri'),
 
             ExportColumn::make('location.name')
-                ->label('Lokasi'),
+                ->label('Lokasi')
+                ->state(fn (Asset $record): ?string => $record->location?->fullName()),
 
             ExportColumn::make('condition')
                 ->label('Kondisi')
@@ -80,13 +85,13 @@ class AssetExporter extends Exporter
     public static function getCompletedNotificationBody(Export $export): string
     {
         $body = 'Export data aset selesai. '
-            . number_format($export->successful_rows)
-            . ' data berhasil diekspor.';
+            .number_format($export->successful_rows)
+            .' data berhasil diekspor.';
 
         if ($failedRowsCount = $export->getFailedRowsCount()) {
             $body .= ' '
-                . number_format($failedRowsCount)
-                . ' data gagal diekspor.';
+                .number_format($failedRowsCount)
+                .' data gagal diekspor.';
         }
 
         return $body;

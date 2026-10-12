@@ -115,7 +115,7 @@ class AssetObserver
             'brand_id' => Brand::find($value)?->name
                 ?? (string) $value,
 
-            'location_id' => Location::find($value)?->name
+            'location_id' => Location::with('parent')->find($value)?->fullName()
                 ?? (string) $value,
 
             'condition' => match ($value) {

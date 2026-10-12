@@ -62,6 +62,7 @@ class AssetInfolist
                     ->schema([
                         TextEntry::make('location.name')
                             ->label('Lokasi')
+                            ->formatStateUsing(fn (?string $state, Asset $record): ?string => $record->location?->fullName() ?? $state)
                             ->placeholder('Belum ditentukan'),
                         TextEntry::make('custodian_name')
                             ->label('Penanggung Jawab')

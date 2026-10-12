@@ -23,9 +23,9 @@ class AssetQrController extends Controller
         $asset = Asset::with([
             'category',
             'brand',
-            'location',
+            'location.parent',
+            'assetSet.location.parent',
             'specifications',
-            'assetSet.location',
             'assetSet.assets',
         ])
             ->where('qr_token', $token)
@@ -47,7 +47,7 @@ class AssetQrController extends Controller
         $asset = Asset::with([
             'category',
             'brand',
-            'location',
+            'location.parent',
             'specifications',
         ])
             ->where('qr_token', $token)
@@ -187,7 +187,7 @@ class AssetQrController extends Controller
         $asset = Asset::with([
             'category',
             'brand',
-            'location',
+            'location.parent',
             'specifications',
         ])
             ->where('qr_token', $token)

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AssetSets\Schemas;
 
+use App\Models\Location;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -30,7 +31,7 @@ class AssetSetForm
 
                         Select::make('location_id')
                             ->label('Lokasi')
-                            ->relationship('location', 'name')
+                            ->options(fn (): array => Location::selectOptions(activeOnly: false))
                             ->searchable()
                             ->preload()
                             ->placeholder('Pilih lokasi'),

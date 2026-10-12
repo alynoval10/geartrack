@@ -42,7 +42,7 @@ class LoanAssetEligibility
     public function query(): Builder
     {
         return Asset::query()
-            ->with(['category', 'location'])
+            ->with(['category', 'location.parent'])
             ->whereIn('status', ['available', 'in_use'])
             ->where('condition', 'good')
             ->whereDoesntHave('loanItems', fn (Builder $query): Builder => $query->whereNotNull('active_asset_id'))
@@ -97,7 +97,7 @@ class LoanAssetEligibility
         return collect([
             $asset->asset_code.' — '.$asset->name,
             $asset->category?->name,
-            $asset->location?->name,
+            $asset->location?->fullName(),
         ])->filter()->implode(' | ');
     }
 }

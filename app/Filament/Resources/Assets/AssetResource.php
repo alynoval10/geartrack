@@ -42,6 +42,11 @@ class AssetResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('location.parent');
+    }
+
     /**
      * Kolom aset dan relasi yang dapat ditemukan dari pencarian global.
      *
@@ -65,7 +70,7 @@ class AssetResource extends Resource
     public static function getGlobalSearchEloquentQuery(): Builder
     {
         return parent::getGlobalSearchEloquentQuery()
-            ->with(['custodian', 'location', 'assetSet']);
+            ->with(['custodian', 'location.parent', 'assetSet.location.parent']);
     }
 
     /**
@@ -78,7 +83,7 @@ class AssetResource extends Resource
         /** @var Asset $record */
         return [
             'Kode' => $record->asset_code,
-            'Lokasi' => $record->location?->name ?? '-',
+            'Lokasi' => $record->location?->fullName() ?? '-',
             'Penanggung Jawab' => $record->custodian?->name ?? $record->custodian_name ?? '-',
             'Paket' => $record->assetSet?->name ?? '-',
         ];

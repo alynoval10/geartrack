@@ -23,7 +23,7 @@ class AssetTransferForm
                 ->schema([
                     ...AssetSelectionFields::make(),
                     Select::make('destination_location_id')->label('Lokasi Tujuan')->required()->searchable()
-                        ->options(fn (): array => Location::where('is_active', true)->orderBy('name')->pluck('name', 'id')->all()),
+                        ->options(fn (): array => Location::selectOptions()),
                     Select::make('receiver_user_id')
                         ->label('Penerima / Penanggung Jawab Baru')
                         ->options(fn (): array => User::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all())

@@ -425,7 +425,7 @@
             <div class="detail-row">
                 <span class="label">Lokasi</span>
                 <span class="value">
-                    {{ $asset->location?->name ?? '-' }}
+                    {{ $asset->location?->fullName() ?? '-' }}
                 </span>
             </div>
 
@@ -444,7 +444,7 @@
                 </div>
                 <div class="detail-row">
                     <span class="label">Lokasi Paket</span>
-                    <span class="value">{{ $asset->assetSet->location?->name ?? 'Belum ditentukan' }}</span>
+                    <span class="value">{{ $asset->assetSet->location?->fullName() ?? 'Belum ditentukan' }}</span>
                 </div>
                 <div class="detail-row">
                     <span class="label">Peran Perangkat Ini</span>

@@ -17,7 +17,7 @@
                 </div>
                 <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                     @foreach ($locationSummaries as $location)
-                        <div class="rounded-xl bg-gray-50 p-3 text-sm dark:bg-gray-800"><strong class="block">{{ $location->name }}</strong>{{ $location->assets_count }} aset</div>
+                        <div class="rounded-xl bg-gray-50 p-3 text-sm dark:bg-gray-800"><strong class="block">{{ $location->fullName() }}</strong>{{ $location->assets_count }} aset</div>
                     @endforeach
                 </div>
             @else
@@ -25,7 +25,7 @@
                     <h3 class="font-semibold">Aset yang menjadi tanggung jawab Anda</h3>
                     @forelse ($assignedAssets as $asset)
                         <a href="{{ \App\Filament\Resources\Assets\AssetResource::getUrl('view', ['record' => $asset]) }}" class="flex items-center justify-between gap-4 rounded-xl bg-gray-50 p-3 text-sm dark:bg-gray-800">
-                            <span><strong>{{ $asset->asset_code }}</strong> · {{ $asset->name }}</span><span class="text-gray-500">{{ $asset->location?->name ?: 'Tanpa lokasi' }}</span>
+                            <span><strong>{{ $asset->asset_code }}</strong> · {{ $asset->name }}</span><span class="text-gray-500">{{ $asset->location?->fullName() ?: 'Tanpa lokasi' }}</span>
                         </a>
                     @empty
                         <p class="rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700">Belum ada aset yang ditugaskan kepada akun Anda.</p>

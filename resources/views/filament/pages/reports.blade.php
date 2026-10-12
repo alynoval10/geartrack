@@ -19,6 +19,16 @@
                     </label>
                 @endforeach
             </div>
+            <div x-cloak x-show="type === 'assets'" class="grid gap-3 sm:grid-cols-2">
+                <label class="flex items-start gap-3 text-sm">
+                    <input type="checkbox" name="include_children" value="1" checked x-bind:disabled="type !== 'assets'" class="mt-1 rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-600">
+                    <span><span class="font-medium">Sertakan sub-lokasi</span><span class="block text-gray-500">Jika lokasi induk dipilih, aset di seluruh sub-lokasinya ikut dicetak.</span></span>
+                </label>
+                <label class="flex items-start gap-3 text-sm">
+                    <input type="checkbox" name="show_acquisition_total" value="1" checked x-bind:disabled="type !== 'assets'" class="mt-1 rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-600">
+                    <span><span class="font-medium">Tampilkan total nilai perolehan</span><span class="block text-gray-500">Tampilkan atau sembunyikan jumlah nilai perolehan pada ringkasan laporan.</span></span>
+                </label>
+            </div>
             <div x-cloak x-show="type === 'stock_take'" class="grid gap-4 sm:grid-cols-2">
                 <label class="grid gap-2 text-sm font-medium">Stock opname
                     <x-filament::input.wrapper><x-filament::input.select name="stock_take_id" x-bind:disabled="type !== 'stock_take'" x-bind:required="type === 'stock_take'">

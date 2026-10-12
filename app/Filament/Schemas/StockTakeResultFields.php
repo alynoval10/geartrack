@@ -17,7 +17,7 @@ class StockTakeResultFields
                 ->required()->live()
                 ->helperText('Hilang memperbarui status aset. Berpindah memperbarui lokasi aset, bukan lokasi seluruh paket.'),
             Select::make('observed_location_id')->label('Lokasi Aktual')
-                ->options(fn (): array => Location::orderBy('name')->pluck('name', 'id')->all())
+                ->options(fn (): array => Location::selectOptions(activeOnly: false))
                 ->searchable()->visible(fn (Get $get): bool => $get('result') === 'moved')
                 ->required(fn (Get $get): bool => $get('result') === 'moved'),
             Textarea::make('notes')->label('Catatan Pemeriksaan')->maxLength(5000)->rows(3)

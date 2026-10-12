@@ -27,7 +27,7 @@ class Reports extends Page
 
     protected function getViewData(): array
     {
-        return ['types' => InventoryReportService::TYPES, 'locations' => Location::orderBy('name')->pluck('name', 'id'),
+        return ['types' => InventoryReportService::TYPES, 'locations' => Location::selectOptions(activeOnly: false),
             'categories' => Category::orderBy('name')->pluck('name', 'id'), 'stockTakes' => StockTake::latest()->pluck('name', 'id'),
             'conditions' => MaintenanceReport::CONDITIONS, 'statuses' => InventoryReportService::STATUSES, 'results' => StockTakeItem::RESULTS];
     }

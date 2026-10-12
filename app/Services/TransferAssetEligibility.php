@@ -36,7 +36,7 @@ class TransferAssetEligibility
     public function query(): Builder
     {
         return Asset::query()
-            ->with(['category', 'location'])
+            ->with(['category', 'location.parent'])
             ->whereNull('asset_set_id')
             ->whereNotIn('status', ['borrowed', 'lost'])
             ->whereDoesntHave('loanItems', fn (Builder $query): Builder => $query->whereNotNull('active_asset_id'));
@@ -88,7 +88,7 @@ class TransferAssetEligibility
         return collect([
             $asset->asset_code.' — '.$asset->name,
             $asset->category?->name,
-            $asset->location?->name,
+            $asset->location?->fullName(),
         ])->filter()->implode(' | ');
     }
 }

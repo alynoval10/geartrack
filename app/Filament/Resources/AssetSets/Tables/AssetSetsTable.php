@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AssetSets\Tables;
 
+use App\Models\AssetSet;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -30,6 +31,7 @@ class AssetSetsTable
                     ->label('Lokasi')
                     ->searchable()
                     ->sortable()
+                    ->formatStateUsing(fn (?string $state, AssetSet $record): ?string => $record->location?->fullName() ?? $state)
                     ->placeholder('-'),
 
                 TextColumn::make('assets_count')

@@ -24,7 +24,7 @@ class InventoryReportService
     {
         $type = $filters['type'];
         $query = match ($type) {
-            'assets' => Asset::with(['category', 'location', 'brand', 'assetSet']),
+            'assets' => Asset::with(['category', 'location.parent', 'brand', 'assetSet']),
             'overdue' => LoanItem::with('loan')->whereNull('returned_at')->whereHas('loan', fn (Builder $query) => $query->where('status', 'open')->whereDate('due_date', '<', today())),
             'stock_take' => StockTakeItem::with(['stockTake', 'checker'])->where('stock_take_id', $filters['stock_take_id']),
             'maintenance' => MaintenanceReport::with('asset.location')->withSum('entries', 'cost'),
@@ -32,7 +32,15 @@ class InventoryReportService
         if ($type === 'assets') {
             foreach (['location_id', 'category_id', 'condition', 'status'] as $field) {
                 if (filled($filters[$field] ?? null)) {
-                    $query->where($field, $filters[$field]);
+                    if ($field === 'location_id') {
+                        $location = Location::findOrFail($filters[$field]);
+                        $locationIds = filter_var($filters['include_children'] ?? false, FILTER_VALIDATE_BOOLEAN)
+                            ? $location->hierarchyIds()
+                            : [$location->id];
+                        $query->whereIn('location_id', $locationIds);
+                    } else {
+                        $query->where($field, $filters[$field]);
+                    }
                 }
             }
         }
@@ -63,21 +71,26 @@ class InventoryReportService
             'maintenance' => ['Kode Aset', 'Nama Aset', 'Laporan', 'Jenis', 'Status', 'Teknisi', 'Tanggal Laporan', 'Selesai Pada', 'Biaya (Rp)'],
         };
         $rows = $records->map(fn ($record): array => match ($type) {
-            'assets' => [$record->asset_code, $record->name, $record->category?->name, $record->brand?->name, $record->model, $record->serial_number, $record->location?->name, $record->custodian_name, $record->assetSet?->name, MaintenanceReport::CONDITIONS[$record->condition] ?? $record->condition, self::STATUSES[$record->status] ?? $record->status, $record->acquisition_date?->format('Y-m-d'), $record->purchase_price === null ? null : (float) $record->purchase_price],
+            'assets' => [$record->asset_code, $record->name, $record->category?->name, $record->brand?->name, $record->model, $record->serial_number, $record->location?->fullName(), $record->custodian_name, $record->assetSet?->name, MaintenanceReport::CONDITIONS[$record->condition] ?? $record->condition, self::STATUSES[$record->status] ?? $record->status, $record->acquisition_date?->format('Y-m-d'), $record->purchase_price === null ? null : (float) $record->purchase_price],
             'overdue' => [$record->loan->code, $record->loan->borrower_name, $record->loan->responsible_name, $record->asset_code, $record->asset_name, $record->loan->borrowed_at->format('Y-m-d'), $record->loan->due_date->format('Y-m-d'), (int) $record->loan->due_date->diffInDays(today())],
             'stock_take' => [$record->stockTake->name, $record->asset_code, $record->asset_name, $record->expected_location_name, $record->observed_location_name, StockTakeItem::RESULTS[$record->result], $record->checked_at?->format('Y-m-d H:i'), $record->checker?->name, $record->notes],
             'maintenance' => [$record->asset_code, $record->asset_name, $record->title, MaintenanceReport::TYPES[$record->type], MaintenanceReport::STATUSES[$record->status], $record->technician, $record->created_at->format('Y-m-d'), $record->closed_at?->format('Y-m-d'), (float) ($record->entries_sum_cost ?? 0)],
         })->all();
         $summary = count($rows).' baris';
-        if (in_array($type, ['assets', 'maintenance'], true)) {
-            $sum = $records->sum($type === 'assets' ? 'purchase_price' : 'entries_sum_cost');
-            $summary .= ' · Total '.($type === 'assets' ? 'nilai perolehan' : 'biaya tercatat').': Rp '.number_format($sum, 2, ',', '.');
+        if ($type === 'assets' && filter_var($filters['show_acquisition_total'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            $sum = $records->sum('purchase_price');
+            $summary .= ' · Total nilai perolehan: Rp '.number_format($sum, 2, ',', '.');
+        } elseif ($type === 'maintenance') {
+            $sum = $records->sum('entries_sum_cost');
+            $summary .= ' · Total biaya tercatat: Rp '.number_format($sum, 2, ',', '.');
         }
         $filterLabels = [];
         if ($type === 'assets') {
             foreach (['location_id' => Location::class, 'category_id' => Category::class] as $key => $model) {
                 if (filled($filters[$key] ?? null)) {
-                    $filterLabels[] = $model::find($filters[$key])?->name;
+                    $filterLabels[] = $key === 'location_id'
+                        ? Location::with('parent')->find($filters[$key])?->fullName()
+                        : $model::find($filters[$key])?->name;
                 }
             }
             if (filled($filters['condition'] ?? null)) {

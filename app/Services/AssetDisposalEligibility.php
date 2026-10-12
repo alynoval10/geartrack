@@ -11,7 +11,7 @@ class AssetDisposalEligibility
     public function query(): Builder
     {
         return Asset::query()
-            ->with(['category', 'location'])
+            ->with(['category', 'location.parent'])
             ->whereNotIn('status', ['retired', 'borrowed'])
             ->whereDoesntHave('loanItems', fn (Builder $query): Builder => $query->whereNotNull('active_asset_id'))
             ->whereDoesntHave('maintenanceReports', fn (Builder $query): Builder => $query->whereIn('status', ['open', 'in_progress']))
@@ -57,7 +57,7 @@ class AssetDisposalEligibility
         return collect([
             $asset->asset_code.' — '.$asset->name,
             $asset->category?->name,
-            $asset->location?->name,
+            $asset->location?->fullName(),
             $asset->status === 'lost' ? 'Hilang' : null,
         ])->filter()->implode(' | ');
     }

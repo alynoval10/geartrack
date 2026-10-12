@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Locations\Tables;
 
+use App\Models\Location;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -24,7 +26,13 @@ class LocationsTable
                     ->label('Lokasi')
                     ->searchable()
                     ->sortable()
+                    ->formatStateUsing(fn (string $state, Location $record): string => $record->fullName())
                     ->weight('bold'),
+
+                TextColumn::make('parent.name')
+                    ->label('Lokasi Induk')
+                    ->placeholder('Lokasi utama')
+                    ->toggleable(),
 
                 TextColumn::make('description')
                     ->label('Deskripsi')
@@ -42,6 +50,12 @@ class LocationsTable
             ])
             ->defaultSort('name')
             ->recordActions([
+                Action::make('printLabel')
+                    ->label('Cetak Label A4')
+                    ->icon('heroicon-o-printer')
+                    ->color('success')
+                    ->url(fn (Location $record): string => route('locations.label', $record))
+                    ->openUrlInNewTab(),
                 EditAction::make(),
             ])
             ->toolbarActions([

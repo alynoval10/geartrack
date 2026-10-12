@@ -21,7 +21,7 @@ class LatestAssets extends TableWidget
             ->description('Perangkat yang terakhir ditambahkan ke GearTrack.')
             ->query(
                 fn (): Builder => Asset::query()
-                    ->with(['category', 'location'])
+                    ->with(['category', 'location.parent'])
                     ->latest()
                     ->limit(5)
             )
@@ -42,6 +42,7 @@ class LatestAssets extends TableWidget
 
                 TextColumn::make('location.name')
                     ->label('Lokasi')
+                    ->formatStateUsing(fn (?string $state, Asset $record): ?string => $record->location?->fullName() ?? $state)
                     ->placeholder('-'),
 
                 TextColumn::make('condition')
@@ -69,7 +70,7 @@ class LatestAssets extends TableWidget
     }
 
     public function getColumnSpan(): int|string|array
-{
-    return 'full';
-}
+    {
+        return 'full';
+    }
 }

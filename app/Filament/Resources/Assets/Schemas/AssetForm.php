@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Assets\Schemas;
 
+use App\Models\Location;
 use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -72,7 +73,7 @@ class AssetForm
                             ->helperText('Pilih guru atau admin aktif. Gunakan Mutasi Aset untuk perpindahan dengan berita acara.'),
                         Select::make('location_id')
                             ->label('Lokasi')
-                            ->relationship('location', 'name')
+                            ->options(fn (): array => Location::selectOptions(activeOnly: false))
                             ->searchable()
                             ->preload(),
 

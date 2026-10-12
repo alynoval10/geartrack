@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Assets\Tables;
 
 use App\Filament\Exports\AssetExporter;
+use App\Models\Asset;
+use App\Models\Location;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -14,6 +16,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class AssetsTable
@@ -61,6 +64,7 @@ class AssetsTable
                     ->label('Lokasi')
                     ->searchable()
                     ->sortable()
+                    ->formatStateUsing(fn (?string $state, Asset $record): ?string => $record->location?->fullName() ?? $state)
                     ->placeholder('-'),
 
                 TextColumn::make('condition')
@@ -137,9 +141,20 @@ class AssetsTable
 
                 SelectFilter::make('location')
                     ->label('Lokasi')
-                    ->relationship('location', 'name')
+                    ->options(fn (): array => Location::selectOptions(activeOnly: false))
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (blank($data['value'] ?? null)) {
+                            return $query;
+                        }
+
+                        $location = Location::find($data['value']);
+
+                        return $location
+                            ? $query->whereIn('location_id', $location->hierarchyIds())
+                            : $query->whereRaw('1 = 0');
+                    }),
 
                 SelectFilter::make('condition')
                     ->label('Kondisi')

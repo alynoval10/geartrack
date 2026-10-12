@@ -30,7 +30,7 @@ class AssetDisposalService
 
         return DB::transaction(function () use ($data, $user): AssetDisposal {
             $assets = Asset::query()
-                ->with(['location', 'assetSet'])
+                ->with(['location.parent', 'assetSet'])
                 ->whereIn('id', $data['asset_ids'])
                 ->orderBy('id')
                 ->lockForUpdate()
@@ -57,7 +57,7 @@ class AssetDisposalService
                     'serial_number' => $asset->serial_number,
                     'condition' => $asset->condition,
                     'previous_status' => $asset->status,
-                    'location_name' => $asset->location?->name,
+                    'location_name' => $asset->location?->fullName(),
                     'custodian_name' => $asset->custodian_name,
                 ]);
             }

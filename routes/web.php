@@ -7,6 +7,7 @@ use App\Http\Controllers\AssetQrController;
 use App\Http\Controllers\AssetTransferDocumentController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\InventoryReportController;
+use App\Http\Controllers\LocationLabelController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\QrScannerController;
 use App\Http\Controllers\SchoolSettingController;
@@ -17,6 +18,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/reports/export', InventoryReportController::class)->middleware('auth')->name('reports.export');
+
+Route::get('/locations/{location}/label', LocationLabelController::class)
+    ->middleware('auth')
+    ->name('locations.label');
 
 Route::get('/activity-logs/print', ActivityLogPrintController::class)
     ->middleware('auth')

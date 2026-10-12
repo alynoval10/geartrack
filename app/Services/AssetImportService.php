@@ -43,7 +43,7 @@ class AssetImportService
                 ['Penyimpanan', 'Seluruh baris harus valid. Impor menambah aset baru, tidak mengganti data lama.']],
             'Kategori' => [['Kode', 'Nama'], ...Category::where('is_active', true)->orderBy('name')->get()->map(fn ($item) => [$item->code, $item->name])->all()],
             'Merek' => [['Nama'], ...Brand::where('is_active', true)->orderBy('name')->get()->map(fn ($item) => [$item->name])->all()],
-            'Lokasi' => [['Kode', 'Nama'], ...Location::where('is_active', true)->orderBy('name')->get()->map(fn ($item) => [$item->code, $item->name])->all()],
+            'Lokasi' => [['Kode', 'Nama'], ...Location::with('parent')->where('is_active', true)->orderBy('name')->get()->map(fn (Location $item) => [$item->code, $item->fullName()])->all()],
         ];
     }
 

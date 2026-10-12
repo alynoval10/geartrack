@@ -24,7 +24,7 @@ class MaintenanceAssetEligibility
     public function query(): Builder
     {
         return Asset::query()
-            ->with(['category', 'location'])
+            ->with(['category', 'location.parent'])
             ->whereDoesntHave('maintenanceReports', fn (Builder $query): Builder => $query->whereIn('status', ['open', 'in_progress']));
     }
 
@@ -74,7 +74,7 @@ class MaintenanceAssetEligibility
         return collect([
             $asset->asset_code.' — '.$asset->name,
             $asset->category?->name,
-            $asset->location?->name,
+            $asset->location?->fullName(),
         ])->filter()->implode(' | ');
     }
 }

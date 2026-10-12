@@ -23,9 +23,9 @@ class StockTakeService
         ])->validate();
 
         return DB::transaction(function () use ($data, $user): StockTake {
-            $location = ! empty($data['location_id']) ? Location::findOrFail($data['location_id']) : null;
-            $assets = Asset::query()->with('location')
-                ->when($location, fn ($query) => $query->where('location_id', $location->id));
+            $location = ! empty($data['location_id']) ? Location::with('parent')->findOrFail($data['location_id']) : null;
+            $assets = Asset::query()->with('location.parent')
+                ->when($location, fn ($query) => $query->whereIn('location_id', $location->hierarchyIds()));
 
             if (! $assets->exists()) {
                 throw ValidationException::withMessages(['location_id' => 'Tidak ada aset untuk diperiksa dalam cakupan ini.']);
@@ -33,7 +33,7 @@ class StockTakeService
 
             $stockTake = StockTake::create([
                 ...$data,
-                'location_name' => $location?->name,
+                'location_name' => $location?->fullName(),
                 'status' => 'open',
                 'created_by' => $user->id,
             ]);
@@ -45,7 +45,7 @@ class StockTakeService
                         'asset_code' => $asset->asset_code,
                         'asset_name' => $asset->name,
                         'expected_location_id' => $asset->location_id,
-                        'expected_location_name' => $asset->location?->name,
+                        'expected_location_name' => $asset->location?->fullName(),
                         'original_status' => $asset->status,
                         'result' => 'pending',
                     ]);
@@ -82,7 +82,7 @@ class StockTakeService
             }
 
             $location = $data['result'] === 'moved'
-                ? Location::findOrFail($data['observed_location_id']) : null;
+                ? Location::with('parent')->findOrFail($data['observed_location_id']) : null;
 
             if ($location && $location->id === $item->expected_location_id) {
                 throw ValidationException::withMessages(['observed_location_id' => 'Lokasi masih sama dengan lokasi awal. Pilih Ditemukan.']);
@@ -113,7 +113,7 @@ class StockTakeService
                     'user_id' => $user->id,
                     'action' => 'stock_take',
                     'description' => "Stock opname {$session->name}: ".StockTakeItem::RESULTS[$data['result']].'.'
-                        .($location ? ' Lokasi aktual: '.$location->name.'.' : '')
+                    .($location ? ' Lokasi aktual: '.$location->fullName().'.' : '')
                         .(filled($data['notes'] ?? null) ? ' Catatan: '.$data['notes'] : ''),
                     'field' => 'stock_take_result',
                     'old_value' => StockTakeItem::RESULTS[$item->result],
@@ -124,7 +124,7 @@ class StockTakeService
             $item->update([
                 'result' => $data['result'],
                 'observed_location_id' => $data['result'] === 'missing' ? null : ($location?->id ?? $item->expected_location_id),
-                'observed_location_name' => $data['result'] === 'missing' ? null : ($location?->name ?? $item->expected_location_name),
+                'observed_location_name' => $data['result'] === 'missing' ? null : ($location?->fullName() ?? $item->expected_location_name),
                 'notes' => $data['notes'] ?? null,
                 'attachments' => $data['attachments'] ?? $item->attachments,
                 'checked_by' => $user->id,

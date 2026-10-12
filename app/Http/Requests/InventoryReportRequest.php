@@ -21,6 +21,8 @@ class InventoryReportRequest extends FormRequest
             'type' => ['required', Rule::in(array_keys(InventoryReportService::TYPES))],
             'format' => ['required', Rule::in(['xlsx', 'print'])],
             'location_id' => ['nullable', 'integer', 'exists:locations,id'],
+            'include_children' => ['nullable', 'boolean'],
+            'show_acquisition_total' => ['nullable', 'boolean'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'condition' => ['nullable', Rule::in(array_keys(MaintenanceReport::CONDITIONS))],
             'status' => ['nullable', Rule::in(array_keys(InventoryReportService::STATUSES))],

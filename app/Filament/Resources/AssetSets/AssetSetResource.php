@@ -39,6 +39,11 @@ class AssetSetResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('location.parent');
+    }
+
     /**
      * Paket dapat dicari menggunakan kode, nama, atau lokasi penempatannya.
      *
@@ -52,7 +57,7 @@ class AssetSetResource extends Resource
     public static function getGlobalSearchEloquentQuery(): Builder
     {
         return parent::getGlobalSearchEloquentQuery()
-            ->with('location')
+            ->with('location.parent')
             ->withCount('assets');
     }
 
@@ -64,7 +69,7 @@ class AssetSetResource extends Resource
         /** @var AssetSet $record */
         return [
             'Kode' => $record->code,
-            'Lokasi' => $record->location?->name ?? '-',
+            'Lokasi' => $record->location?->fullName() ?? '-',
             'Jumlah Perangkat' => (string) $record->assets_count,
         ];
     }
