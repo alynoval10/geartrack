@@ -17,9 +17,15 @@
                     @endforeach
                 </x-filament::input.select></x-filament::input.wrapper>
             </label>
-            <div x-show="type === 'assets'" class="grid gap-4 sm:grid-cols-2">
-                @foreach (['location_id' => ['Lokasi', $locations], 'category_id' => ['Kategori', $categories], 'condition' => ['Kondisi', $conditions], 'status' => ['Status', $statuses]] as $name => [$label, $options])
-                    <label class="grid gap-2 text-sm font-medium">{{ $label }}
+            <div class="grid gap-4 sm:grid-cols-2">
+                <label class="grid gap-2 text-sm font-medium" x-cloak x-show="type === 'assets' || type === 'category_summary'">Lokasi
+                    <x-filament::input.wrapper><x-filament::input.select name="location_id" x-bind:disabled="type !== 'assets' && type !== 'category_summary'">
+                        <option value="">Semua</option>
+                        @foreach ($locations as $value => $text)<option value="{{ $value }}">{{ $text }}</option>@endforeach
+                    </x-filament::input.select></x-filament::input.wrapper>
+                </label>
+                @foreach (['category_id' => ['Kategori', $categories], 'condition' => ['Kondisi', $conditions], 'status' => ['Status', $statuses]] as $name => [$label, $options])
+                    <label class="grid gap-2 text-sm font-medium" x-cloak x-show="type === 'assets'">{{ $label }}
                         <x-filament::input.wrapper><x-filament::input.select :name="$name" x-bind:disabled="type !== 'assets'">
                             <option value="">Semua</option>
                             @foreach ($options as $value => $text)<option value="{{ $value }}">{{ $text }}</option>@endforeach
@@ -27,12 +33,12 @@
                     </label>
                 @endforeach
             </div>
-            <div x-cloak x-show="type === 'assets'" class="grid gap-3 sm:grid-cols-2">
+            <div x-cloak x-show="type === 'assets' || type === 'category_summary'" class="grid gap-3 sm:grid-cols-2">
                 <label class="flex items-start gap-3 text-sm">
-                    <input type="checkbox" name="include_children" value="1" checked x-bind:disabled="type !== 'assets'" class="mt-1 rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-600">
-                    <span><span class="font-medium">Sertakan sub-lokasi</span><span class="block text-gray-500">Jika lokasi induk dipilih, aset di seluruh sub-lokasinya ikut dicetak.</span></span>
+                    <input type="checkbox" name="include_children" value="1" checked x-bind:disabled="type !== 'assets' && type !== 'category_summary'" class="mt-1 rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-600">
+                    <span><span class="font-medium">Sertakan sub-lokasi</span><span class="block text-gray-500">Jika lokasi induk dipilih, aset di seluruh sub-lokasinya ikut direkap.</span></span>
                 </label>
-                <label class="flex items-start gap-3 text-sm">
+                <label x-cloak x-show="type === 'assets'" class="flex items-start gap-3 text-sm">
                     <input type="checkbox" name="show_acquisition_total" value="1" checked x-bind:disabled="type !== 'assets'" class="mt-1 rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-600">
                     <span><span class="font-medium">Tampilkan total nilai perolehan</span><span class="block text-gray-500">Tampilkan atau sembunyikan jumlah nilai perolehan pada ringkasan laporan.</span></span>
                 </label>
@@ -60,6 +66,7 @@
                 </label>
             </div>
             <p class="text-sm text-gray-500" x-show="type === 'assets'">Periode berdasarkan tanggal pengadaan. Kosongkan untuk menyertakan aset tanpa tanggal pengadaan.</p>
+            <p class="text-sm text-gray-500" x-cloak x-show="type === 'category_summary'">Jumlah aset dikelompokkan menurut kategori di lokasi yang dipilih. Periode berdasarkan tanggal pengadaan.</p>
             <p class="text-sm text-gray-500" x-cloak x-show="type === 'overdue'">Hanya perangkat yang belum kembali dan sudah lewat jatuh tempo. Periode berdasarkan tanggal jatuh tempo.</p>
             <p class="text-sm text-gray-500" x-cloak x-show="type === 'stock_take'">Periode berdasarkan waktu pemeriksaan. Kosongkan untuk menyertakan aset yang belum diperiksa.</p>
             <p class="text-sm text-gray-500" x-cloak x-show="type === 'maintenance'">Periode berdasarkan tanggal laporan. Biaya menjumlahkan seluruh penanganan pada laporan tersebut, termasuk laporan yang dibatalkan.</p>

@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class InventoryReportService
 {
-    public const TYPES = ['assets' => 'Inventaris Aset', 'overdue' => 'Peminjaman Terlambat', 'stock_take' => 'Hasil Stock Opname', 'maintenance' => 'Biaya Perawatan'];
+    public const TYPES = ['assets' => 'Inventaris Aset', 'category_summary' => 'Rekap Aset per Kategori', 'overdue' => 'Peminjaman Terlambat', 'stock_take' => 'Hasil Stock Opname', 'maintenance' => 'Biaya Perawatan'];
 
     public const STATUSES = ['available' => 'Tersedia', 'in_use' => 'Digunakan', 'borrowed' => 'Dipinjam', 'maintenance' => 'Dalam Perawatan', 'lost' => 'Hilang', 'retired' => 'Nonaktif'];
 
@@ -23,6 +23,11 @@ class InventoryReportService
     public function generate(array $filters): array
     {
         $type = $filters['type'];
+
+        if ($type === 'category_summary') {
+            return $this->generateCategorySummary($filters);
+        }
+
         $query = match ($type) {
             'assets' => Asset::with(['category', 'location.parent', 'brand', 'assetSet']),
             'overdue' => LoanItem::with('loan')->whereNull('returned_at')->whereHas('loan', fn (Builder $query) => $query->where('status', 'open')->whereDate('due_date', '<', today())),
@@ -106,5 +111,65 @@ class InventoryReportService
 
         return ['title' => self::TYPES[$type], 'headers' => $headers, 'rows' => $rows, 'summary' => $summary,
             'period' => ($filters['date_from'] ?? null ?: 'Awal').' s.d. '.($filters['date_to'] ?? null ?: 'Sekarang')];
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array{title: string, headers: list<string>, rows: array, summary: string, period: string}
+     */
+    private function generateCategorySummary(array $filters): array
+    {
+        $query = Asset::query()
+            ->leftJoin('categories', 'categories.id', '=', 'assets.category_id')
+            ->selectRaw('assets.category_id, COALESCE(categories.name, ?) AS category_name, COUNT(assets.id) AS asset_count', ['Tanpa Kategori'])
+            ->groupBy('assets.category_id', 'categories.name')
+            ->orderBy('categories.name')
+            ->orderBy('assets.category_id');
+
+        if (filled($filters['location_id'] ?? null)) {
+            $location = Location::findOrFail($filters['location_id']);
+            $locationIds = filter_var($filters['include_children'] ?? false, FILTER_VALIDATE_BOOLEAN)
+                ? $location->hierarchyIds()
+                : [$location->id];
+
+            $query->whereIn('assets.location_id', $locationIds);
+        }
+
+        foreach (['date_from' => '>=', 'date_to' => '<='] as $key => $operator) {
+            if (filled($filters[$key] ?? null)) {
+                $query->whereDate('assets.acquisition_date', $operator, $filters[$key]);
+            }
+        }
+
+        $categoryCounts = $query->limit(5001)->get();
+
+        if ($categoryCounts->count() > 5000) {
+            throw ValidationException::withMessages(['report' => 'Hasil melebihi 5.000 baris. Persempit filter laporan.']);
+        }
+
+        $rows = $categoryCounts->values()->map(fn (Asset $category, int $index): array => [
+            $index + 1,
+            $category->category_name,
+            (int) $category->asset_count,
+        ])->all();
+        $totalAssets = $categoryCounts->sum('asset_count');
+        $summary = count($rows).' kategori · Total aset: '.number_format($totalAssets, 0, ',', '.');
+
+        if (filled($filters['location_id'] ?? null)) {
+            $locationName = Location::with('parent')->find($filters['location_id'])?->fullName();
+            $summary .= ' · Lokasi: '.$locationName;
+
+            if (filter_var($filters['include_children'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                $summary .= ' termasuk sub-lokasi';
+            }
+        }
+
+        return [
+            'title' => self::TYPES['category_summary'],
+            'headers' => ['No.', 'Kategori', 'Jumlah Aset'],
+            'rows' => $rows,
+            'summary' => $summary,
+            'period' => ($filters['date_from'] ?? null ?: 'Awal').' s.d. '.($filters['date_to'] ?? null ?: 'Sekarang'),
+        ];
     }
 }
