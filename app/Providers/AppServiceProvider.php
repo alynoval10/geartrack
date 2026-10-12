@@ -28,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
                 strtolower($user->email), config('backup.admin_emails', []), true,
             ));
 
+        Gate::define('force-delete-operational-records', fn (User $user): bool => $user->isAdmin());
+
         $publicUrl = config('app.public_url');
 
         if (filled($publicUrl)) {
