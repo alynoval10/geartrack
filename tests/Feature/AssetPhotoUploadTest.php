@@ -40,8 +40,8 @@ class AssetPhotoUploadTest extends TestCase
                 'photo',
                 'form',
                 fn (FileUpload $component): bool => $component->getExtraAttributeBag()->get('data-asset-photo-upload') === 'true'
-                    && $component->getAutomaticallyResizeImagesWidth() === null
-                    && $component->getAutomaticallyResizeImagesHeight() === null,
+                    && $component->getAutomaticallyResizeImagesWidth() === '1280'
+                    && $component->getAutomaticallyResizeImagesHeight() === '1280',
             );
 
         $this->get(AssetResource::getUrl('create'))

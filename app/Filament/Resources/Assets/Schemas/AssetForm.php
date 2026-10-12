@@ -136,8 +136,12 @@ class AssetForm
                             ->label('Foto Aset')
                             ->image()
                             ->imageEditor()
+                            ->automaticallyResizeImagesMode('contain')
+                            ->automaticallyResizeImagesToWidth('1280')
+                            ->automaticallyResizeImagesToHeight('1280')
+                            ->automaticallyUpscaleImagesWhenResizing(false)
                             ->extraAttributes(['data-asset-photo-upload' => 'true'])
-                            ->helperText('Gunakan Ambil Foto untuk membuka kamera belakang. Untuk galeri, klik area unggah di bawah. Foto dipadatkan sebelum dikirim tanpa mengubah ukuran pikselnya.')
+                            ->helperText('Gunakan Ambil Foto untuk membuka kamera belakang. Untuk galeri, klik area unggah di bawah. Foto besar akan diperkecil secara proporsional sebelum dikirim.')
                             ->directory('assets')
                             ->disk('public'),
 
