@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Login;
+use App\Filament\Resources\AssetDisposals\Pages\CreateAssetDisposal;
 use App\Filament\Resources\Assets\Pages\CreateAsset;
 use App\Filament\Resources\Assets\Pages\EditAsset;
 use App\Filament\Resources\AssetSets\Pages\EditAssetSet;
@@ -115,6 +116,11 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 fn (): string => Blade::render('@vite(\'resources/js/asset-set-scanner.js\')'),
                 [ViewAssetSet::class, EditAssetSet::class],
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => Blade::render('@vite(\'resources/js/asset-disposal-scanner.js\')'),
+                CreateAssetDisposal::class,
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
