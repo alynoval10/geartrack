@@ -9,6 +9,7 @@ use App\Filament\Resources\AssetSets\Pages\EditAssetSet;
 use App\Filament\Resources\AssetSets\Pages\ViewAssetSet;
 use App\Filament\Resources\AssetTransfers\Pages\CreateAssetTransfer;
 use App\Filament\Resources\Loans\Pages\CreateLoan;
+use App\Filament\Resources\Loans\Pages\ListLoans;
 use App\Filament\Resources\MaintenanceReports\Pages\CreateMaintenanceReport;
 use App\Filament\Resources\MaintenanceSchedules\Pages\CreateMaintenanceSchedule;
 use App\Http\Middleware\EnforceIdleSession;
@@ -94,6 +95,11 @@ class AdminPanelProvider extends PanelProvider
                 // Muat pemindai sebelum modal dibuka agar tombol kamera selalu memiliki pengendali JavaScript.
                 fn (): string => Blade::render('@vite(\'resources/js/loan-scanner.js\')'),
                 CreateLoan::class,
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => Blade::render('@vite(\'resources/js/loan-return-scanner.js\')'),
+                ListLoans::class,
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
