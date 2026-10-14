@@ -36,6 +36,7 @@ class InventoryReportRequest extends FormRequest
             'result' => ['nullable', Rule::in(array_keys(StockTakeItem::RESULTS))],
             'date_from' => ['nullable', 'date_format:Y-m-d'],
             'date_to' => ['nullable', 'date_format:Y-m-d', Rule::when($this->filled('date_from'), 'after_or_equal:date_from')],
+            'loan_month' => ['nullable', 'date_format:Y-m'],
         ];
     }
 }

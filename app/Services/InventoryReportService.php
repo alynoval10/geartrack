@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class InventoryReportService
 {
-    public const TYPES = ['assets' => 'Inventaris Aset', 'category_summary' => 'Rekap Aset per Kategori', 'overdue' => 'Peminjaman Terlambat', 'stock_take' => 'Hasil Stock Opname', 'maintenance' => 'Biaya Perawatan'];
+    public const TYPES = ['assets' => 'Inventaris Aset', 'category_summary' => 'Rekap Aset per Kategori', 'loans' => 'Data Peminjaman', 'overdue' => 'Peminjaman Terlambat', 'stock_take' => 'Hasil Stock Opname', 'maintenance' => 'Biaya Perawatan'];
 
     public const STATUSES = ['available' => 'Tersedia', 'in_use' => 'Digunakan', 'borrowed' => 'Dipinjam', 'maintenance' => 'Dalam Perawatan', 'lost' => 'Hilang', 'retired' => 'Nonaktif'];
 
@@ -26,6 +26,10 @@ class InventoryReportService
 
         if ($type === 'category_summary') {
             return $this->generateCategorySummary($filters);
+        }
+
+        if ($type === 'loans') {
+            return $this->generateLoans($filters);
         }
 
         $query = match ($type) {
@@ -111,6 +115,51 @@ class InventoryReportService
 
         return ['title' => self::TYPES[$type], 'headers' => $headers, 'rows' => $rows, 'summary' => $summary,
             'period' => ($filters['date_from'] ?? null ?: 'Awal').' s.d. '.($filters['date_to'] ?? null ?: 'Sekarang')];
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array{title: string, headers: list<string>, rows: array, summary: string, period: string}
+     */
+    private function generateLoans(array $filters): array
+    {
+        $query = LoanItem::query()->with('loan')->whereHas('loan', function (Builder $loanQuery) use ($filters): void {
+            if (filled($filters['loan_month'] ?? null)) {
+                $year = (int) substr($filters['loan_month'], 0, 4);
+                $month = (int) substr($filters['loan_month'], 5, 2);
+                $loanQuery->whereYear('borrowed_at', $year)->whereMonth('borrowed_at', $month);
+            }
+        });
+        $records = $query->orderBy('loan_id')->orderBy('id')->limit(5001)->get();
+
+        if ($records->count() > 5000) {
+            throw ValidationException::withMessages(['report' => 'Hasil melebihi 5.000 baris. Persempit filter laporan.']);
+        }
+
+        $rows = $records->values()->map(fn (LoanItem $item, int $index): array => [
+            $index + 1,
+            $item->loan->code,
+            $item->loan->borrower_name,
+            $item->loan->borrower_contact,
+            $item->loan->responsible_name,
+            $item->loan->purpose,
+            $item->asset_code,
+            $item->asset_name,
+            $item->loan->borrowed_at->format('Y-m-d'),
+            $item->loan->due_date->format('Y-m-d'),
+            $item->returned_at?->format('Y-m-d'),
+            $item->returned_at ? 'Dikembalikan' : 'Dipinjam',
+        ])->all();
+
+        return [
+            'title' => self::TYPES['loans'],
+            'headers' => ['No.', 'Nomor Peminjaman', 'Peminjam', 'Kontak', 'Penanggung Jawab', 'Keperluan', 'Kode Aset', 'Nama Aset', 'Tanggal Pinjam', 'Batas Kembali', 'Tanggal Kembali', 'Status Perangkat'],
+            'rows' => $rows,
+            'summary' => $records->pluck('loan_id')->unique()->count().' transaksi · '.count($rows).' perangkat',
+            'period' => filled($filters['loan_month'] ?? null)
+                ? substr($filters['loan_month'], 5, 2).'/'.substr($filters['loan_month'], 0, 4)
+                : 'Semua data',
+        ];
     }
 
     /**

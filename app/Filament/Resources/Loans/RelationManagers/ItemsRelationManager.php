@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Loans\RelationManagers;
 
 use App\Filament\Actions\AssetOperationActions;
+use App\Filament\Resources\Loans\LoanResource;
 use App\Models\LoanItem;
 use App\Models\MaintenanceReport;
 use App\Services\LoanService;
@@ -36,7 +37,7 @@ class ItemsRelationManager extends RelationManager
                     Textarea::make('notes')->label('Catatan / Kerusakan')->maxLength(5000)->helperText('Wajib diisi jika rusak. Laporan kerusakan dibuat otomatis.'),
                 ])->action(function (LoanItem $record, array $data, Action $action, LoanService $service): void {
                     AssetOperationActions::run($action, fn () => $service->receive($this->getOwnerRecord(), $record, $data, auth()->user()));
-                    $this->dispatch('loan-updated');
+                    $action->redirect(LoanResource::getUrl('index'));
                 }),
         ]);
     }

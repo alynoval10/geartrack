@@ -3,7 +3,7 @@
         <div role="alert" class="rounded-xl bg-red-50 p-4 text-red-800 dark:bg-red-950 dark:text-red-200">{{ $errors->first() }}</div>
     @endif
     <x-filament::section heading="Buat laporan" description="Pilih data dan periode, lalu unduh Excel atau buka tampilan cetak untuk menyimpan PDF.">
-        <form method="GET" action="{{ route('reports.export') }}" class="grid gap-6" x-data="{ type: 'assets' }">
+        <form method="GET" action="{{ route('reports.export') }}" class="grid gap-6" x-data="{ type: @js(request()->query('type', 'assets')) }">
             <label class="grid gap-2 text-sm font-medium">Jenis laporan
                 <x-filament::input.wrapper><x-filament::input.select name="type" x-model="type">
                     @foreach ($types as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
@@ -17,7 +17,13 @@
                     @endforeach
                 </x-filament::input.select></x-filament::input.wrapper>
             </label>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div x-cloak x-show="type === 'loans'" class="grid gap-4 sm:grid-cols-2">
+                <label class="grid gap-2 text-sm font-medium">Bulan peminjaman (opsional)
+                    <x-filament::input.wrapper><x-filament::input type="month" name="loan_month" x-bind:disabled="type !== 'loans'" /></x-filament::input.wrapper>
+                </label>
+                <p class="self-end text-sm text-gray-500">Pilih bulan untuk mencetak data pada bulan tersebut. Kosongkan untuk mencetak semua data peminjaman.</p>
+            </div>
+            <div x-cloak x-show="type !== 'loans'" class="grid gap-4 sm:grid-cols-2">
                 <label class="grid gap-2 text-sm font-medium" x-cloak x-show="type === 'assets' || type === 'category_summary'">Lokasi
                     <x-filament::input.wrapper><x-filament::input.select name="location_id" x-bind:disabled="type !== 'assets' && type !== 'category_summary'">
                         <option value="">Semua</option>
@@ -67,6 +73,7 @@
             </div>
             <p class="text-sm text-gray-500" x-show="type === 'assets'">Periode berdasarkan tanggal pengadaan. Kosongkan untuk menyertakan aset tanpa tanggal pengadaan.</p>
             <p class="text-sm text-gray-500" x-cloak x-show="type === 'category_summary'">Jumlah aset dikelompokkan menurut kategori di lokasi yang dipilih. Periode berdasarkan tanggal pengadaan.</p>
+            <p class="text-sm text-gray-500" x-cloak x-show="type === 'loans'">Setiap perangkat ditampilkan pada baris terpisah. Data dapat dicetak atau diunduh ke Excel.</p>
             <p class="text-sm text-gray-500" x-cloak x-show="type === 'overdue'">Hanya perangkat yang belum kembali dan sudah lewat jatuh tempo. Periode berdasarkan tanggal jatuh tempo.</p>
             <p class="text-sm text-gray-500" x-cloak x-show="type === 'stock_take'">Periode berdasarkan waktu pemeriksaan. Kosongkan untuk menyertakan aset yang belum diperiksa.</p>
             <p class="text-sm text-gray-500" x-cloak x-show="type === 'maintenance'">Periode berdasarkan tanggal laporan. Biaya menjumlahkan seluruh penanganan pada laporan tersebut, termasuk laporan yang dibatalkan.</p>
