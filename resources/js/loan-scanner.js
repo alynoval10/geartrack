@@ -1,6 +1,7 @@
 import { Html5Qrcode } from 'html5-qrcode';
 import { extractAssetQrToken } from './qr-destination';
 import { cameraBlockReason, cameraErrorMessage, startLiveCamera } from './scanner-camera';
+import './loan-return-scanner';
 
 export const initializeLoanScanner = (root) => {
     if (root.dataset.initialized === 'true') {

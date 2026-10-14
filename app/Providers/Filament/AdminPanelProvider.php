@@ -94,12 +94,7 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 // Muat pemindai sebelum modal dibuka agar tombol kamera selalu memiliki pengendali JavaScript.
                 fn (): string => Blade::render('@vite(\'resources/js/loan-scanner.js\')'),
-                CreateLoan::class,
-            )
-            ->renderHook(
-                PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('@vite(\'resources/js/loan-return-scanner.js\')'),
-                ListLoans::class,
+                [CreateLoan::class, ListLoans::class],
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
