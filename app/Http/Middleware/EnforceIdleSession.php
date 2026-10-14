@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\SchoolSetting;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,7 +30,8 @@ class EnforceIdleSession
         $session = $request->session();
         $lastActivity = $session->get(self::LAST_ACTIVITY_KEY);
         $sessionVersion = $session->get(self::USER_VERSION_KEY);
-        $idleSeconds = max(1, (int) config('session.idle_timeout', 5)) * 60;
+        $idleTimeoutMinutes = max(1, (int) SchoolSetting::current()->idle_timeout_minutes);
+        $idleSeconds = $idleTimeoutMinutes * 60;
 
         $isIdle = is_numeric($lastActivity)
             && (now()->timestamp - (int) $lastActivity) >= $idleSeconds;
@@ -45,7 +47,7 @@ class EnforceIdleSession
             return redirect()
                 ->route('filament.admin.auth.login')
                 ->with('session_status', $isIdle
-                    ? 'Sesi berakhir karena tidak ada aktivitas selama 5 menit.'
+                    ? "Sesi berakhir karena tidak ada aktivitas selama {$idleTimeoutMinutes} menit."
                     : 'Sesi berakhir karena akun Anda diperbarui oleh administrator.');
         }
 

@@ -1,4 +1,6 @@
 @auth
+    @php($idleTimeoutMinutes = \App\Models\SchoolSetting::current()->idle_timeout_minutes)
+
     <form id="geartrack-idle-logout" method="POST" action="{{ route('filament.admin.auth.logout') }}" class="hidden">
         @csrf
     </form>
@@ -10,7 +12,7 @@
             }
 
             window.gearTrackIdleSessionInitialized = true;
-            const timeoutMs = {{ (int) config('session.idle_timeout', 5) * 60 * 1000 }};
+            let timeoutMs = {{ max(1, (int) $idleTimeoutMinutes) * 60 * 1000 }};
             const activityUrl = @json(route('session.activity'));
             const csrfToken = @json(csrf_token());
             let logoutTimer;
@@ -37,8 +39,26 @@
                 }).then((response) => {
                     if (response.redirected) {
                         window.location.assign(response.url);
+
+                        return;
                     }
-                });
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    return response.json().then(({ idle_timeout_minutes: minutes }) => {
+                        const updatedTimeoutMinutes = Number(minutes);
+
+                        if (!Number.isInteger(updatedTimeoutMinutes) || updatedTimeoutMinutes < 1) {
+                            return;
+                        }
+
+                        timeoutMs = updatedTimeoutMinutes * 60 * 1000;
+                        window.clearTimeout(logoutTimer);
+                        logoutTimer = window.setTimeout(logout, timeoutMs);
+                    });
+                }).catch(() => {});
             };
 
             const registerActivity = () => {

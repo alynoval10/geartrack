@@ -47,6 +47,18 @@
             </x-filament::section>
         @endforeach
 
+        <x-filament::section heading="Durasi sesi" description="Berlaku sama untuk Administrator dan Guru setelah tidak ada aktivitas.">
+            <div class="grid gap-5 md:grid-cols-2">
+                <label class="grid gap-2 text-sm font-medium">Akhiri sesi setelah tidak aktif (menit)
+                    <x-filament::input.wrapper>
+                        <x-filament::input type="number" name="idle_timeout_minutes" min="1" max="{{ max(1, (int) config('session.lifetime', 120)) }}" value="{{ old('idle_timeout_minutes', $setting->idle_timeout_minutes) }}" required />
+                    </x-filament::input.wrapper>
+                    @error('idle_timeout_minutes')<span class="text-sm text-danger-600">{{ $message }}</span>@enderror
+                </label>
+            </div>
+            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Rentang 1–{{ max(1, (int) config('session.lifetime', 120)) }} menit. Perubahan akan disinkronkan ke sesi yang sedang digunakan saat aktivitas berikutnya terdeteksi.</p>
+        </x-filament::section>
+
         <x-filament::section heading="Ukuran label QR" description="Ukuran ini digunakan oleh Cetak Label QR untuk printer label. Cetak Label QR A4 tetap menggunakan kertas HVS A4.">
             <div class="grid gap-5 md:grid-cols-2">
                 <label class="grid gap-2 text-sm font-medium">Lebar label (mm)

@@ -15,6 +15,7 @@ class SchoolSettingController extends Controller
     public function __invoke(Request $request): RedirectResponse
     {
         abort_unless($request->user()?->isAdmin(), 403);
+        $maximumIdleTimeoutMinutes = max(1, (int) config('session.lifetime', 120));
 
         $data = $request->validate([
             'school_name' => ['required', 'string', 'max:255'],
@@ -30,6 +31,7 @@ class SchoolSettingController extends Controller
             'report_signer_nip' => ['nullable', 'string', 'max:50'],
             'qr_label_width_mm' => ['sometimes', 'required', 'integer', 'between:30,100'],
             'qr_label_height_mm' => ['sometimes', 'required', 'integer', 'between:20,100'],
+            'idle_timeout_minutes' => ['required', 'integer', 'min:1', 'max:'.$maximumIdleTimeoutMinutes],
         ]);
 
         $setting = SchoolSetting::current();

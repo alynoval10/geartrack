@@ -20,6 +20,7 @@ class SchoolSetting extends Model
         'report_signer_nip',
         'qr_label_width_mm',
         'qr_label_height_mm',
+        'idle_timeout_minutes',
     ];
 
     protected function casts(): array
@@ -27,6 +28,7 @@ class SchoolSetting extends Model
         return [
             'qr_label_width_mm' => 'integer',
             'qr_label_height_mm' => 'integer',
+            'idle_timeout_minutes' => 'integer',
         ];
     }
 
@@ -39,6 +41,7 @@ class SchoolSetting extends Model
             'school_name' => config('app.name', 'GearTrack'),
             'qr_label_width_mm' => 50,
             'qr_label_height_mm' => 30,
+            'idle_timeout_minutes' => config('session.idle_timeout', 5),
         ]);
     }
 }
