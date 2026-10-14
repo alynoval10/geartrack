@@ -3,7 +3,11 @@
 namespace App\Filament\Resources\Loans\Tables;
 
 use App\Models\Loan;
+use App\Services\OperationalRecordDeletionService;
+use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -25,7 +29,32 @@ class LoansTable
         ])->filters([
             SelectFilter::make('status')->label('Status')->options(['open' => 'Dipinjam', 'returned' => 'Dikembalikan']),
             Filter::make('overdue')->label('Terlambat')->query(fn ($query) => $query->where('status', 'open')->whereDate('due_date', '<', today())),
-        ])->recordActions([ViewAction::make()])->toolbarActions([])
+        ])->recordActions([
+            ViewAction::make(),
+            Action::make('forceDelete')
+                ->label('Hapus Paksa')
+                ->icon('heroicon-o-trash')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalHeading('Hapus transaksi peminjaman secara permanen?')
+                ->modalDescription('Transaksi dan rincian perangkat akan dihapus permanen. Aset yang masih berstatus Dipinjam akan dikembalikan ke status sebelumnya. Histori aset tetap tersimpan.')
+                ->modalSubmitActionLabel('Hapus Permanen')
+                ->schema([
+                    TextInput::make('password')
+                        ->label('Kata sandi administrator')
+                        ->password()
+                        ->required()
+                        ->rules(['current_password'])
+                        ->autocomplete('current-password'),
+                ])
+                ->authorize('force-delete-operational-records')
+                ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false)
+                ->action(function (Loan $record, OperationalRecordDeletionService $service): void {
+                    $service->deleteLoan($record, auth()->user());
+
+                    Notification::make()->title('Transaksi peminjaman berhasil dihapus permanen.')->success()->send();
+                }),
+        ])->toolbarActions([])
             ->emptyStateIcon('heroicon-o-arrow-up-on-square-stack')
             ->emptyStateHeading('Belum ada peminjaman')
             ->emptyStateDescription('Buat peminjaman baru atau scan QR perangkat dari HP untuk memilih aset.');

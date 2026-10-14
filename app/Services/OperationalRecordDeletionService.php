@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Models\Asset;
+use App\Models\Loan;
 use App\Models\MaintenanceEntry;
 use App\Models\MaintenanceReport;
 use App\Models\StockTake;
 use App\Models\StockTakeItem;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +17,53 @@ use Throwable;
 
 class OperationalRecordDeletionService
 {
+    public function deleteLoan(Loan $loan, User $user): void
+    {
+        Gate::forUser($user)->authorize('force-delete-operational-records');
+
+        DB::transaction(function () use ($loan, $user): void {
+            $activeAssetIds = $loan->items()
+                ->whereNotNull('active_asset_id')
+                ->orderBy('active_asset_id')
+                ->pluck('active_asset_id');
+            $assets = Asset::query()
+                ->whereKey($activeAssetIds)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+            $record = Loan::query()->lockForUpdate()->findOrFail($loan->getKey());
+            $items = $record->items()->lockForUpdate()->get();
+
+            foreach ($items as $item) {
+                if (! $item->active_asset_id) {
+                    continue;
+                }
+
+                $asset = $assets->get($item->active_asset_id);
+
+                if (! $asset || $asset->status !== 'borrowed') {
+                    continue;
+                }
+
+                $previousStatus = in_array($item->previous_status, ['available', 'in_use'], true)
+                    ? $item->previous_status
+                    : 'available';
+                $asset->update(['status' => $previousStatus]);
+                $asset->histories()->create([
+                    'user_id' => $user->id,
+                    'action' => 'updated',
+                    'field' => 'status',
+                    'old_value' => 'borrowed',
+                    'new_value' => $previousStatus,
+                    'description' => "Transaksi peminjaman {$record->code} dihapus permanen oleh {$user->name}; status aset dipulihkan.",
+                ]);
+            }
+
+            $record->delete();
+        });
+    }
+
     public function deleteStockTake(StockTake $stockTake): void
     {
         Gate::authorize('force-delete-operational-records');
