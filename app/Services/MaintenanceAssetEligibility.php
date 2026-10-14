@@ -25,6 +25,7 @@ class MaintenanceAssetEligibility
     {
         return Asset::query()
             ->with(['category', 'location.parent'])
+            ->when(auth()->user() && ! auth()->user()->isAdmin(), fn (Builder $query): Builder => $query->where('custodian_user_id', auth()->id()))
             ->whereDoesntHave('maintenanceReports', fn (Builder $query): Builder => $query->whereIn('status', ['open', 'in_progress']));
     }
 
@@ -58,6 +59,7 @@ class MaintenanceAssetEligibility
     {
         return Asset::query()
             ->with(['category', 'location'])
+            ->when(auth()->user() && ! auth()->user()->isAdmin(), fn (Builder $query): Builder => $query->where('custodian_user_id', auth()->id()))
             ->whereIn('id', $assetIds)
             ->get()
             ->mapWithKeys(fn (Asset $asset): array => [$asset->id => $this->label($asset)])

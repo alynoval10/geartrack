@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class LoanResource extends Resource
@@ -43,6 +44,17 @@ class LoanResource extends Resource
     protected static ?string $model = Loan::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->when(
+            auth()->user() && ! auth()->user()->isAdmin(),
+            fn (Builder $query): Builder => $query->where(function (Builder $query): void {
+                $query->where('created_by', auth()->id())
+                    ->orWhere('responsible_user_id', auth()->id());
+            }),
+        );
+    }
 
     public static function getNavigationBadge(): ?string
     {

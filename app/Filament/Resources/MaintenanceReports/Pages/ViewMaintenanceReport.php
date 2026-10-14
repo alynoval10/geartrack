@@ -21,13 +21,13 @@ class ViewMaintenanceReport extends ViewRecord
     {
         return [
             $this->handlingAction('started', 'Mulai Penanganan')
-                ->visible(fn (): bool => $this->record->status === 'open'),
+                ->visible(fn (): bool => $this->record->status === 'open' && (auth()->user()?->isAdmin() ?? false)),
             $this->handlingAction('note', 'Tambah Catatan')
-                ->visible(fn (): bool => $this->record->isOpen()),
+                ->visible(fn (): bool => $this->record->isOpen() && (auth()->user()?->isAdmin() ?? false)),
             $this->handlingAction('resolved', 'Selesaikan')->color('success')
-                ->visible(fn (): bool => $this->record->status === 'in_progress'),
+                ->visible(fn (): bool => $this->record->status === 'in_progress' && (auth()->user()?->isAdmin() ?? false)),
             $this->handlingAction('cancelled', 'Batalkan Laporan')->color('gray')
-                ->visible(fn (): bool => $this->record->isOpen()),
+                ->visible(fn (): bool => $this->record->isOpen() && (auth()->user()?->isAdmin() ?? false)),
         ];
     }
 

@@ -32,6 +32,11 @@ class AssetDisposalResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isAdmin() ?? false;
+    }
+
     protected static ?string $recordTitleAttribute = 'code';
 
     public static function canEdit(Model $record): bool

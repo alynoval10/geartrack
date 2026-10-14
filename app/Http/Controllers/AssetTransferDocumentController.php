@@ -10,6 +10,8 @@ class AssetTransferDocumentController extends Controller
 {
     public function __invoke(AssetTransfer $transfer): Response
     {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
         $transfer->load('items');
 
         $school = SchoolSetting::current();

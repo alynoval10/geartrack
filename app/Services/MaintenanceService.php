@@ -8,6 +8,7 @@ use App\Models\MaintenanceReport;
 use App\Models\MaintenanceSchedule;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -16,6 +17,9 @@ class MaintenanceService
 {
     public function report(Asset $asset, array $data, User $user): MaintenanceReport
     {
+        Gate::forUser($user)->authorize('create', MaintenanceReport::class);
+        Gate::forUser($user)->authorize('view', $asset);
+
         $data = Validator::make($data, [
             'title' => ['required', 'string', 'max:150'],
             'type' => ['required', Rule::in(array_keys(MaintenanceReport::TYPES))],
@@ -51,6 +55,8 @@ class MaintenanceService
 
     public function update(MaintenanceReport $report, string $action, array $data, User $user): MaintenanceReport
     {
+        Gate::forUser($user)->authorize('update', $report);
+
         $data = Validator::make($data, [
             'notes' => ['required', 'string', 'max:5000'],
             'cost' => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],

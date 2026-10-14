@@ -28,6 +28,11 @@ class AssetTransferResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isAdmin() ?? false;
+    }
+
     public static function canEdit(Model $record): bool
     {
         return false;

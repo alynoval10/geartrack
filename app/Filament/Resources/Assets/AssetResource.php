@@ -44,7 +44,7 @@ class AssetResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('location.parent');
+        return static::scopeForUser(parent::getEloquentQuery()->with('location.parent'));
     }
 
     /**
@@ -70,7 +70,8 @@ class AssetResource extends Resource
     public static function getGlobalSearchEloquentQuery(): Builder
     {
         return parent::getGlobalSearchEloquentQuery()
-            ->with(['custodian', 'location.parent', 'assetSet.location.parent']);
+            ->with(['custodian', 'location.parent', 'assetSet.location.parent'])
+            ->when(auth()->user() && ! auth()->user()->isAdmin(), fn (Builder $query): Builder => $query->where('custodian_user_id', auth()->id()));
     }
 
     /**
@@ -106,6 +107,12 @@ class AssetResource extends Resource
 
     public static function getRelations(): array
     {
+        if (! auth()->user()?->isAdmin()) {
+            return [
+                SpecificationsRelationManager::class,
+            ];
+        }
+
         return [
             SpecificationsRelationManager::class,
             LoanItemsRelationManager::class,
@@ -114,6 +121,17 @@ class AssetResource extends Resource
             MaintenanceReportsRelationManager::class,
             MaintenanceSchedulesRelationManager::class,
         ];
+    }
+
+    private static function scopeForUser(Builder $query): Builder
+    {
+        $user = auth()->user();
+
+        if ($user && ! $user->isAdmin()) {
+            $query->where('custodian_user_id', $user->id);
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

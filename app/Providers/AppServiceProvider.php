@@ -29,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
             ));
 
         Gate::define('force-delete-operational-records', fn (User $user): bool => $user->isAdmin());
+        Gate::define('manage-operational-records', fn (User $user): bool => $user->isAdmin());
 
         $publicUrl = config('app.public_url');
 

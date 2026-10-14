@@ -19,6 +19,11 @@ class ImportAssets extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isAdmin() ?? false;
+    }
+
     protected function getViewData(): array
     {
         $draft = session('asset_import');

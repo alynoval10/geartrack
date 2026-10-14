@@ -17,7 +17,8 @@ class ListLoans extends ListRecords
             Action::make('printReport')
                 ->label('Cetak Data Peminjaman')
                 ->icon('heroicon-o-printer')
-                ->url(route('filament.admin.pages.reports', ['type' => 'loans'])),
+                ->url(route('filament.admin.pages.reports', ['type' => 'loans']))
+                ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
             CreateAction::make(),
         ];
     }

@@ -7,6 +7,7 @@ use App\Models\MaintenanceReport;
 use App\Models\MaintenanceSchedule;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -16,6 +17,8 @@ class MaintenanceScheduleService
 
     public function save(array $data, User $user, ?MaintenanceSchedule $schedule = null): MaintenanceSchedule
     {
+        Gate::forUser($user)->authorize('manage-operational-records');
+
         $data = Validator::make($data, [
             'asset_id' => ['required', 'integer', 'exists:assets,id'],
             'title' => ['required', 'string', 'max:150'],

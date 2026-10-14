@@ -7,6 +7,7 @@ use App\Models\AssetTransfer;
 use App\Models\Location;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +18,8 @@ class AssetTransferService
 
     public function transfer(array $data, User $user): AssetTransfer
     {
+        Gate::forUser($user)->authorize('manage-operational-records');
+
         // Tetap menerima pemanggilan lama dari service dengan menentukan jenis pilihan dari data yang tersedia.
         $data['selection_type'] ??= empty($data['asset_set_id']) ? 'asset' : 'package';
 

@@ -30,6 +30,11 @@ class MaintenanceScheduleResource extends Resource
 
     protected static ?int $navigationSort = 5;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isAdmin() ?? false;
+    }
+
     public static function canEdit(Model $record): bool
     {
         return $record->asset_id !== null && ! $record->reports()->whereIn('status', ['open', 'in_progress'])->exists();

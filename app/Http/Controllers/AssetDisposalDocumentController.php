@@ -13,6 +13,7 @@ class AssetDisposalDocumentController extends Controller
      */
     public function __invoke(AssetDisposal $disposal): Response
     {
+        abort_unless(auth()->user()?->isAdmin(), 403);
         abort_unless($disposal->status === 'approved', 404);
 
         $disposal->load('items');

@@ -8,6 +8,7 @@ use App\Models\StockTake;
 use App\Models\StockTakeItem;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -16,6 +17,8 @@ class StockTakeService
 {
     public function start(array $data, User $user): StockTake
     {
+        Gate::forUser($user)->authorize('manage-operational-records');
+
         $data = Validator::make($data, [
             'name' => ['required', 'string', 'max:150'],
             'location_id' => ['nullable', 'integer', 'exists:locations,id'],
@@ -58,6 +61,8 @@ class StockTakeService
 
     public function record(StockTake $stockTake, StockTakeItem $item, array $data, User $user): StockTakeItem
     {
+        Gate::forUser($user)->authorize('manage-operational-records');
+
         $data = Validator::make($data, [
             'result' => ['required', Rule::in(['found', 'missing', 'moved'])],
             'observed_location_id' => ['required_if:result,moved', 'nullable', 'integer', 'exists:locations,id'],

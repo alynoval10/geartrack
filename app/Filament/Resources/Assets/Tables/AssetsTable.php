@@ -179,7 +179,8 @@ class AssetsTable
                 ExportAction::make()
                     ->label('Export Aset')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->exporter(AssetExporter::class),
+                    ->exporter(AssetExporter::class)
+                    ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
             ])
 
             ->recordActions([
@@ -327,7 +328,8 @@ class AssetsTable
                     DeleteBulkAction::make()
                         ->label('Hapus Aset')
                         ->icon('heroicon-o-trash')
-                        ->color('danger'),
+                        ->color('danger')
+                        ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
 
                 ])
                     ->label('Tindakan'),

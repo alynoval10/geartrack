@@ -6,15 +6,15 @@ use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Forms\Components\Hidden;
 use Filament\Tables\Columns\TextInputColumn;
+use Filament\Tables\Table;
 
 class SpecificationsRelationManager extends RelationManager
 {
@@ -28,7 +28,7 @@ class SpecificationsRelationManager extends RelationManager
 
     public function isReadOnly(): bool
     {
-        return false;
+        return ! (auth()->user()?->isAdmin() ?? false);
     }
 
     public function form(Schema $schema): Schema
@@ -83,25 +83,29 @@ class SpecificationsRelationManager extends RelationManager
                     ->label('Siapkan Spesifikasi Otomatis')
                     ->icon('heroicon-o-sparkles')
                     ->color('info')
-                    ->action(fn () => $this->applyPreset()),
+                    ->action(fn () => $this->applyPreset())
+                    ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
 
                 CreateAction::make()
-                    ->label('Tambah Spesifikasi Lain'),
+                    ->label('Tambah Spesifikasi Lain')
+                    ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
             ])
 
             ->recordActions([
                 DeleteAction::make()
-                    ->label('Hapus'),
+                    ->label('Hapus')
+                    ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
             ])
 
-
             ->toolbarActions([
-                DeleteBulkAction::make(),
+                DeleteBulkAction::make()->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
             ]);
     }
 
     public function applyPreset(): void
     {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
         $asset = $this->getOwnerRecord();
 
         $asset->loadMissing('category');
@@ -125,8 +129,8 @@ class SpecificationsRelationManager extends RelationManager
                 ->title('Preset belum tersedia')
                 ->body(
                     'Belum ada preset spesifikasi untuk kategori '
-                    . $asset->category->name
-                    . '.'
+                    .$asset->category->name
+                    .'.'
                 )
                 ->warning()
                 ->send();
@@ -166,8 +170,8 @@ class SpecificationsRelationManager extends RelationManager
         Notification::make()
             ->title('Spesifikasi berhasil disiapkan')
             ->body(
-                $added . ' spesifikasi sesuai kategori berhasil ditambahkan. '
-                . 'Silakan isi nilainya langsung pada kolom Nilai.'
+                $added.' spesifikasi sesuai kategori berhasil ditambahkan. '
+                .'Silakan isi nilainya langsung pada kolom Nilai.'
             )
             ->success()
             ->send();
@@ -474,7 +478,4 @@ class SpecificationsRelationManager extends RelationManager
 
         return [];
     }
-
-
-    
 }

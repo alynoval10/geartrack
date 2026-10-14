@@ -10,6 +10,7 @@ use App\Models\MaintenanceReport;
 use App\Models\User;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -26,6 +27,8 @@ class LoanService
      */
     public function borrow(array $data, User $user): Loan
     {
+        Gate::forUser($user)->authorize('create', Loan::class);
+
         $data = Validator::make($data, [
             'borrower_name' => ['required', 'string', 'max:150'],
             'borrower_contact' => ['nullable', 'string', 'max:150'],
@@ -43,6 +46,10 @@ class LoanService
             'asset_ids' => ['required_if:selection_type,asset', 'nullable', 'array', 'min:1', 'max:100'],
             'asset_ids.*' => ['integer', 'distinct', 'exists:assets,id'],
         ])->validate();
+
+        if (! $user->isAdmin() && (int) $data['responsible_user_id'] !== $user->id) {
+            throw ValidationException::withMessages(['responsible_user_id' => 'Guru hanya dapat mencatat peminjaman dengan dirinya sendiri sebagai penanggung jawab.']);
+        }
 
         return DB::transaction(function () use ($data, $user): Loan {
             $responsibleUser = User::query()
@@ -91,6 +98,8 @@ class LoanService
 
     public function receive(Loan $loan, LoanItem $item, array $data, User $user): void
     {
+        Gate::forUser($user)->authorize('receive', $loan);
+
         $data = Validator::make($data, [
             'condition' => ['required', Rule::in(array_keys(MaintenanceReport::CONDITIONS))],
             'notes' => [Rule::requiredIf(($data['condition'] ?? 'good') !== 'good'), 'nullable', 'string', 'max:5000'],

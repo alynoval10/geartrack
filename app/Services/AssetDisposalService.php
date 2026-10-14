@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -18,6 +19,8 @@ class AssetDisposalService
 {
     public function submit(array $data, User $user): AssetDisposal
     {
+        Gate::forUser($user)->authorize('manage-operational-records');
+
         $data = Validator::make($data, [
             'asset_ids' => ['required', 'array', 'min:1', 'max:100'],
             'asset_ids.*' => ['required', 'integer', 'distinct', 'exists:assets,id'],

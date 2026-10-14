@@ -31,7 +31,8 @@ class ItemsRelationManager extends RelationManager
             TextColumn::make('receiver.name')->label('Penerima')->placeholder('-'),
             TextColumn::make('return_notes')->label('Catatan')->wrap(),
         ])->recordActions([
-            Action::make('receive')->label('Terima Pengembalian')->visible(fn (LoanItem $record): bool => $record->returned_at === null)
+            Action::make('receive')->label('Terima Pengembalian')->visible(fn (LoanItem $record): bool => $record->returned_at === null
+                && (auth()->user()?->can('receive', $record->loan) ?? false))
                 ->schema([
                     Select::make('condition')->label('Kondisi Saat Diterima')->options(MaintenanceReport::CONDITIONS)->required()->default('good'),
                     Textarea::make('notes')->label('Catatan / Kerusakan')->maxLength(5000)->helperText('Wajib diisi jika rusak. Laporan kerusakan dibuat otomatis.'),

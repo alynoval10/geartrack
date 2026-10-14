@@ -20,6 +20,7 @@ class AssetOperationActions
     public static function stockTake(Asset $asset): Action
     {
         return Action::make('stockTake')->label('Catat Stock Opname')->icon('heroicon-o-qr-code')
+            ->authorize('manage-operational-records')
             ->modalHeading('Pemeriksaan: '.$asset->asset_code)
             ->fillForm(fn (array $arguments): array => ['stock_take_id' => $arguments['stock_take_id'] ?? null, 'result' => 'found'])
             ->schema([

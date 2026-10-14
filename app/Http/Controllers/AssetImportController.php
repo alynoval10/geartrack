@@ -14,8 +14,10 @@ use Throwable;
 
 class AssetImportController extends Controller
 {
-    public function template(AssetImportService $imports, SpreadsheetService $spreadsheets): BinaryFileResponse
+    public function template(Request $request, AssetImportService $imports, SpreadsheetService $spreadsheets): BinaryFileResponse
     {
+        abort_unless($request->user()?->isAdmin(), 403);
+
         $path = $spreadsheets->write($imports->template());
 
         return response()->download($path, 'template-impor-aset-geartrack.xlsx', ['Cache-Control' => 'private, no-store'])->deleteFileAfterSend();
@@ -23,6 +25,8 @@ class AssetImportController extends Controller
 
     public function preview(Request $request, AssetImportService $imports): RedirectResponse
     {
+        abort_unless($request->user()?->isAdmin(), 403);
+
         $request->session()->forget('asset_import');
         $validator = validator($request->all(), ['file' => ['required', 'file', 'max:5120', 'extensions:xlsx', 'mimes:xlsx,zip']]);
         if ($validator->fails()) {
@@ -40,6 +44,8 @@ class AssetImportController extends Controller
 
     public function store(Request $request, AssetImportService $imports): RedirectResponse
     {
+        abort_unless($request->user()?->isAdmin(), 403);
+
         $draft = $request->session()->get('asset_import');
         if (! is_array($draft) || $draft['user_id'] !== $request->user()->id || $draft['expires_at'] < now()->timestamp
             || ! is_string($request->input('token')) || ! hash_equals($draft['token'], $request->input('token'))) {
@@ -65,6 +71,8 @@ class AssetImportController extends Controller
 
     public function cancel(Request $request): RedirectResponse
     {
+        abort_unless($request->user()?->isAdmin(), 403);
+
         $request->session()->forget('asset_import');
 
         return $this->back();

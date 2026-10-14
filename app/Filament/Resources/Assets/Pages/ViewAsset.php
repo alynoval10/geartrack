@@ -20,7 +20,8 @@ class ViewAsset extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            AssetOperationActions::stockTake($this->record),
+            AssetOperationActions::stockTake($this->record)
+                ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
             AssetOperationActions::report($this->record),
             Action::make('continueScan')->label('Scan Berikutnya')
                 ->url(function (): string {

@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class MaintenanceReportResource extends Resource
@@ -35,6 +36,18 @@ class MaintenanceReportResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
 
     protected static ?int $navigationSort = 4;
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = auth()->user();
+
+        return parent::getEloquentQuery()->when($user && ! $user->isAdmin(), function (Builder $query) use ($user): void {
+            $query->where(function (Builder $query) use ($user): void {
+                $query->where('reported_by', $user->id)
+                    ->orWhereHas('asset', fn (Builder $assetQuery): Builder => $assetQuery->where('custodian_user_id', $user->id));
+            });
+        });
+    }
 
     public static function getNavigationBadge(): ?string
     {

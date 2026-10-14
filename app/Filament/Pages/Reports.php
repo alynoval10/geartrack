@@ -26,6 +26,11 @@ class Reports extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentChartBar;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isAdmin() ?? false;
+    }
+
     protected function getViewData(): array
     {
         return ['types' => InventoryReportService::TYPES, 'locations' => Location::selectOptions(activeOnly: false),
