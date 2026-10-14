@@ -61,4 +61,9 @@ class AssetDisposalEligibility
             $asset->status === 'lost' ? 'Hilang' : null,
         ])->filter()->implode(' | ');
     }
+
+    public function findEligibleByQrToken(string $token): ?Asset
+    {
+        return $this->query()->where('qr_token', $token)->first();
+    }
 }

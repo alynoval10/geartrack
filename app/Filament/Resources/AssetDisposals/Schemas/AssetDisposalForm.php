@@ -5,9 +5,11 @@ namespace App\Filament\Resources\AssetDisposals\Schemas;
 use App\Filament\Schemas\EvidenceAttachments;
 use App\Models\AssetDisposal;
 use App\Services\AssetDisposalEligibility;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -19,6 +21,17 @@ class AssetDisposalForm
             Section::make('Pengajuan Penghapusan / Pensiun Aset')
                 ->description('Aset baru berstatus Pensiun setelah pengajuan disetujui Administrator.')
                 ->schema([
+                    Actions::make([
+                        Action::make('scanDisposalAsset')
+                            ->label('Scan QR Aset')
+                            ->icon('heroicon-o-qr-code')
+                            ->color('info')
+                            ->modalHeading('Scan QR Aset yang Akan Dihapus')
+                            ->modalDescription('Pindai label QR aset. Jika memenuhi syarat, aset akan ditambahkan ke daftar pengajuan.')
+                            ->modalContent(fn () => view('filament.resources.asset-disposals.asset-disposal-qr-scanner'))
+                            ->modalSubmitAction(false)
+                            ->modalCancelActionLabel('Tutup'),
+                    ])->key('assetDisposalScannerActions')->columnSpanFull(),
                     Select::make('asset_ids')
                         ->label('Daftar Aset')
                         ->multiple()
