@@ -47,13 +47,7 @@ class LoanResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->when(
-            auth()->user() && ! auth()->user()->isAdmin(),
-            fn (Builder $query): Builder => $query->where(function (Builder $query): void {
-                $query->where('created_by', auth()->id())
-                    ->orWhere('responsible_user_id', auth()->id());
-            }),
-        );
+        return parent::getEloquentQuery();
     }
 
     public static function getNavigationBadge(): ?string

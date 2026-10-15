@@ -20,9 +20,7 @@ class LoanPolicy
      */
     public function view(User $user, Loan $loan): bool
     {
-        return $user->isAdmin()
-            || ($user->is_active && ! $user->trashed()
-                && ($loan->created_by === $user->id || $loan->responsible_user_id === $user->id));
+        return $user->isAdmin() || ($user->is_active && ! $user->trashed());
     }
 
     /**
@@ -56,7 +54,7 @@ class LoanPolicy
 
     public function receive(User $user, Loan $loan): bool
     {
-        return $user->isAdmin() || ($user->is_active && ! $user->trashed() && $loan->responsible_user_id === $user->id);
+        return $user->isAdmin() || ($user->is_active && ! $user->trashed());
     }
 
     /**
