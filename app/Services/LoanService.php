@@ -34,6 +34,7 @@ class LoanService
         $data = Validator::make($data, [
             'borrower_type' => ['required', Rule::in(array_keys(Borrower::TYPES))],
             'borrower_id' => ['required', 'integer', 'exists:borrowers,id'],
+            'borrower_level' => ['nullable', 'string', 'required_if:borrower_type,student', Rule::in(array_keys(Borrower::LEVELS))],
             'borrower_class' => ['nullable', 'string', 'required_if:borrower_type,student', 'max:100'],
             'responsible_user_id' => [
                 'required',
@@ -67,13 +68,19 @@ class LoanService
             }
 
             if ($borrower->type === 'student') {
+                if (blank($borrower->nis)) {
+                    throw ValidationException::withMessages(['borrower_id' => 'Lengkapi NIS siswa di menu Data Peminjam sebelum membuat transaksi.']);
+                }
+
                 $currentAcademicYear = SchoolSetting::query()->value('academic_year');
 
                 if (blank($currentAcademicYear)) {
                     throw ValidationException::withMessages(['borrower_id' => 'Atur tahun ajaran aktif di Pengaturan Sekolah terlebih dahulu.']);
                 }
 
-                if ($borrower->academic_year !== $currentAcademicYear || $borrower->class_name !== $data['borrower_class']) {
+                if ($borrower->academic_year !== $currentAcademicYear
+                    || $borrower->class_level !== $data['borrower_level']
+                    || $borrower->class_name !== $data['borrower_class']) {
                     throw ValidationException::withMessages(['borrower_id' => 'Siswa tidak sesuai dengan kelas atau tahun ajaran aktif. Pilih ulang data peminjam.']);
                 }
             }
@@ -99,12 +106,13 @@ class LoanService
                 }
             }
             $loan = Loan::create([
-                ...collect($data)->except(['asset_ids', 'selection_type', 'borrower_class'])->all(),
+                ...collect($data)->except(['asset_ids', 'selection_type', 'borrower_class', 'borrower_level'])->all(),
                 'borrower_id' => $borrower->id,
                 'borrower_type' => $borrower->type,
                 'borrower_name' => $borrower->name,
+                'borrower_nis' => $borrower->type === 'student' ? $borrower->nis : null,
                 'borrower_contact' => $borrower->type === 'staff' ? $borrower->contact : null,
-                'borrower_class' => $borrower->type === 'student' ? $borrower->class_name : null,
+                'borrower_class' => $borrower->type === 'student' ? trim($borrower->class_level.' '.$borrower->class_name) : null,
                 'borrower_academic_year' => $borrower->type === 'student' ? $borrower->academic_year : null,
                 'responsible_name' => $responsibleUser->name,
                 'code' => 'PJM-'.now()->format('Ymd').'-'.Str::upper(Str::random(8)),

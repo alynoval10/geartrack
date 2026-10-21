@@ -21,6 +21,8 @@ class BorrowerFactory extends Factory
         return [
             'type' => 'staff',
             'name' => fake()->name(),
+            'nis' => null,
+            'class_level' => null,
             'class_name' => null,
             'academic_year' => null,
             'contact' => fake()->phoneNumber(),
@@ -30,11 +32,17 @@ class BorrowerFactory extends Factory
 
     public function student(): static
     {
-        return $this->state(fn (): array => [
-            'type' => 'student',
-            'class_name' => fake()->randomElement(['X TKJ 1', 'XI TKJ 1', 'XII TKJ 1']),
-            'academic_year' => SchoolSetting::query()->value('academic_year') ?: '2026/2027',
-            'contact' => null,
-        ]);
+        return $this->state(function (): array {
+            $classLevel = fake()->randomElement(['X', 'XI', 'XII']);
+
+            return [
+                'type' => 'student',
+                'nis' => fake()->unique()->numerify('##########'),
+                'class_level' => $classLevel,
+                'class_name' => fake()->randomElement(['TJKT 1', 'TJKT 2']),
+                'academic_year' => SchoolSetting::query()->value('academic_year') ?: '2026/2027',
+                'contact' => null,
+            ];
+        });
     }
 }

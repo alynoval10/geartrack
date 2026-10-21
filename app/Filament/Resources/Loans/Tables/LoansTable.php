@@ -21,6 +21,7 @@ class LoansTable
         return $table->defaultSort('id', 'desc')->columns([
             TextColumn::make('code')->label('Nomor')->searchable(),
             TextColumn::make('borrower_name')->label('Peminjam')->searchable(),
+            TextColumn::make('borrower_nis')->label('NIS')->placeholder('-')->toggleable(),
             TextColumn::make('borrower_type')->label('Jenis Peminjam')
                 ->formatStateUsing(fn (?string $state): string => Borrower::TYPES[$state] ?? '-')
                 ->badge()

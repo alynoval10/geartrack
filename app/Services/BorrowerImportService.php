@@ -14,7 +14,9 @@ use ZipArchive;
 
 class BorrowerImportService
 {
-    public const HEADERS = ['jenis_peminjam', 'nama', 'kelas', 'tahun_ajaran', 'kontak', 'aktif'];
+    public const HEADERS = ['jenis_peminjam', 'nis', 'nama', 'tingkat', 'kelas', 'tahun_ajaran', 'kontak', 'aktif'];
+
+    private const LEGACY_HEADERS = ['jenis_peminjam', 'nama', 'kelas', 'tahun_ajaran', 'kontak', 'aktif'];
 
     public const MAX_ROWS = 1000;
 
@@ -26,13 +28,15 @@ class BorrowerImportService
             'Petunjuk' => [
                 ['Kolom', 'Cara mengisi'],
                 ['jenis_peminjam', 'Wajib. Isi Guru/TU atau Siswa.'],
+                ['nis', 'Wajib untuk Siswa dan unik. Kosongkan untuk Guru/TU. Atur format sel sebagai Teks untuk mempertahankan angka nol di depan.'],
                 ['nama', 'Wajib. Nama lengkap, maksimal 150 karakter.'],
-                ['kelas', 'Wajib untuk Siswa. Kosongkan untuk Guru/TU.'],
+                ['tingkat', 'Wajib untuk Siswa. Isi X, XI, atau XII. Kosongkan untuk Guru/TU.'],
+                ['kelas', 'Wajib untuk Siswa. Isi nama kelas seperti TJKT 1. Kosongkan untuk Guru/TU.'],
                 ['tahun_ajaran', 'Wajib untuk Siswa, contoh 2026/2027. Kosongkan untuk Guru/TU.'],
                 ['kontak', 'Opsional. Nomor telepon atau keterangan, maksimal 150 karakter.'],
                 ['aktif', 'Opsional. Isi Aktif atau Nonaktif. Kosong berarti Aktif.'],
                 ['Batas', 'Maksimal 1.000 baris data dan ukuran file 5 MB. Jangan mengubah urutan/judul kolom atau memakai rumus.'],
-                ['Penyimpanan', 'Data dengan jenis, nama, kelas, dan tahun ajaran yang sama akan diperbarui; data lainnya ditambahkan.'],
+                ['Penyimpanan', 'Data dengan jenis, nama, NIS, tingkat, kelas, dan tahun ajaran yang sama akan diperbarui; data lainnya ditambahkan.'],
             ],
         ];
     }
@@ -51,11 +55,13 @@ class BorrowerImportService
                 $borrower = Borrower::query()->firstOrNew([
                     'type' => $data['type'],
                     'name' => $data['name'],
+                    'class_level' => $data['class_level'],
                     'class_name' => $data['class_name'],
                     'academic_year' => $data['academic_year'],
                 ]);
                 $wasCreated = ! $borrower->exists;
                 $borrower->fill([
+                    'nis' => $data['nis'],
                     'contact' => $data['contact'],
                     'is_active' => $data['is_active'],
                 ])->save();
@@ -121,20 +127,21 @@ class BorrowerImportService
                     }
 
                     if ($number === 1) {
-                        if ($values !== self::HEADERS) {
+                        if (! in_array($values, [self::HEADERS, self::LEGACY_HEADERS], true)) {
                             $this->invalid('Judul atau urutan kolom tidak sesuai. Unduh template baru dan isi sheet Data Peminjam.');
                         }
+                        $headers = $values;
 
                         continue;
                     }
                     if (count(array_filter($values, fn (string $value): bool => $value !== '')) === 0) {
                         continue;
                     }
-                    if (count($rows) >= self::MAX_ROWS || count($values) > count(self::HEADERS)) {
+                    if (count($rows) >= self::MAX_ROWS || count($values) > count($headers)) {
                         $this->invalid('Maksimal 1.000 baris data dengan kolom sesuai template.');
                     }
 
-                    $rows[$number] = array_combine(self::HEADERS, array_pad($values, count(self::HEADERS), ''));
+                    $rows[$number] = array_combine($headers, array_pad($values, count($headers), ''));
                 }
                 break;
             }
@@ -157,7 +164,7 @@ class BorrowerImportService
     }
 
     /** @param array<int, array<string, string>> $rows
-     * @return array<int, array{type: string, name: string, class_name: ?string, academic_year: ?string, contact: ?string, is_active: bool}>
+     * @return array<int, array{type: string, name: string, nis: ?string, class_level: ?string, class_name: ?string, academic_year: ?string, contact: ?string, is_active: bool}>
      */
     private function validateRows(array $rows): array
     {
@@ -167,8 +174,21 @@ class BorrowerImportService
 
         foreach ($rows as $number => $row) {
             $type = $this->normalizeType($row['jenis_peminjam']);
+            $nis = trim($row['nis'] ?? '');
             $name = trim($row['nama']);
             $className = trim($row['kelas']);
+            $classLevel = strtoupper(trim($row['tingkat'] ?? ''));
+            if (! array_key_exists('tingkat', $row) && preg_match('/^(XII|XI|X)\s+(.+)$/i', $className, $matches) === 1) {
+                $classLevel = strtoupper($matches[1]);
+                $className = trim($matches[2]);
+            } elseif (preg_match('/^(XII|XI|X)\s+(.+)$/i', $className, $matches) === 1) {
+                if ($classLevel !== '' && $classLevel !== strtoupper($matches[1])) {
+                    $classLevel = '';
+                } else {
+                    $classLevel = strtoupper($matches[1]);
+                    $className = trim($matches[2]);
+                }
+            }
             $academicYear = trim($row['tahun_ajaran']);
             $contact = trim($row['kontak']);
             $activeValue = mb_strtolower(trim($row['aktif']));
@@ -180,6 +200,8 @@ class BorrowerImportService
             $data = [
                 'type' => $type,
                 'name' => $name,
+                'nis' => $type === 'student' ? $nis : null,
+                'class_level' => $type === 'student' ? $classLevel : null,
                 'class_name' => $type === 'student' ? $className : null,
                 'academic_year' => $type === 'student' ? $academicYear : null,
                 'contact' => $contact === '' ? null : $contact,
@@ -188,6 +210,8 @@ class BorrowerImportService
             $validator = Validator::make($data, [
                 'type' => ['required', 'string', 'in:staff,student'],
                 'name' => ['required', 'string', 'max:150'],
+                'nis' => ['nullable', 'required_if:type,student', 'string', 'max:50'],
+                'class_level' => ['nullable', 'required_if:type,student', 'string', 'in:X,XI,XII'],
                 'class_name' => ['nullable', 'required_if:type,student', 'string', 'max:100'],
                 'academic_year' => ['nullable', 'required_if:type,student', 'string', 'max:30'],
                 'contact' => ['nullable', 'string', 'max:150'],
@@ -200,11 +224,29 @@ class BorrowerImportService
                 continue;
             }
 
-            $identity = mb_strtolower(implode('|', [$data['type'], $data['name'], $data['class_name'] ?? '', $data['academic_year'] ?? '']));
+            $identity = mb_strtolower(implode('|', [$data['type'], $data['name'], $data['class_level'] ?? '', $data['class_name'] ?? '', $data['academic_year'] ?? '']));
             if (isset($seen[$identity])) {
                 $errors[] = 'Baris '.$number.': data peminjam yang sama tercantum lebih dari sekali.';
 
                 continue;
+            }
+
+            if ($data['nis'] !== null) {
+                $nisIdentity = $data['nis'].'|'.$data['academic_year'];
+                $duplicateNis = isset($seenNis[$nisIdentity])
+                    || Borrower::query()->where('nis', $data['nis'])->where('academic_year', $data['academic_year'])->where(function ($query) use ($data): void {
+                        $query->where('type', '!=', $data['type'])
+                            ->orWhere('name', '!=', $data['name'])
+                            ->orWhere('class_level', '!=', $data['class_level'])
+                            ->orWhere('class_name', '!=', $data['class_name'])
+                            ->orWhere('academic_year', '!=', $data['academic_year']);
+                    })->exists();
+                if ($duplicateNis) {
+                    $errors[] = 'Baris '.$number.': NIS sudah digunakan oleh siswa lain.';
+
+                    continue;
+                }
+                $seenNis[$nisIdentity] = true;
             }
             $seen[$identity] = true;
             $validated[] = $data;

@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Validation\Rules\Unique;
 
 class BorrowerForm
 {
@@ -30,6 +31,8 @@ class BorrowerForm
                             ->dehydrated()
                             ->afterStateUpdated(function (?string $state, Set $set): void {
                                 if ($state === 'staff') {
+                                    $set('nis', null);
+                                    $set('class_level', null);
                                     $set('class_name', null);
                                     $set('academic_year', null);
                                 }
@@ -38,13 +41,44 @@ class BorrowerForm
                             ->label('Nama Lengkap')
                             ->required()
                             ->maxLength(150),
-                        TextInput::make('class_name')
-                            ->label('Kelas')
+                        TextInput::make('nis')
+                            ->label('NIS')
                             ->visible(fn (Get $get): bool => $get('type') === 'student')
                             ->required(fn (Get $get): bool => $get('type') === 'student')
                             ->dehydrated(fn (Get $get): bool => $get('type') === 'student')
-                            ->maxLength(100)
-                            ->helperText('Contoh: X TKJ 1.'),
+                            ->maxLength(50)
+                            ->unique(
+                                ignoreRecord: true,
+                                modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('academic_year', $get('academic_year')),
+                            )
+                            ->helperText('Nomor Induk Siswa. Tidak perlu diisi untuk Guru/TU.'),
+                        Select::make('class_level')
+                            ->label('Tingkat')
+                            ->options(Borrower::LEVELS)
+                            ->live()
+                            ->visible(fn (Get $get): bool => $get('type') === 'student')
+                            ->required(fn (Get $get): bool => $get('type') === 'student')
+                            ->dehydrated(fn (Get $get): bool => $get('type') === 'student')
+                            ->afterStateUpdated(function (Set $set): void {
+                                $set('class_name', null);
+                            }),
+                        Select::make('class_name')
+                            ->label('Kelas')
+                            ->options(fn (Get $get): array => self::studentClasses($get('class_level')))
+                            ->createOptionForm([
+                                TextInput::make('class_name')
+                                    ->label('Nama Kelas')
+                                    ->required()
+                                    ->maxLength(100)
+                                    ->placeholder('TJKT 1'),
+                            ])
+                            ->createOptionUsing(fn (array $data): string => trim($data['class_name']))
+                            ->searchable()
+                            ->live()
+                            ->visible(fn (Get $get): bool => $get('type') === 'student')
+                            ->required(fn (Get $get): bool => $get('type') === 'student')
+                            ->dehydrated(fn (Get $get): bool => $get('type') === 'student')
+                            ->helperText('Pilih tingkat terlebih dahulu. Pilih kelas yang tersedia atau tambahkan nama kelas baru.'),
                         TextInput::make('academic_year')
                             ->label('Tahun Ajaran')
                             ->default(fn (): ?string => SchoolSetting::query()->value('academic_year'))
@@ -65,5 +99,22 @@ class BorrowerForm
                     ])
                     ->columns(2),
             ]);
+    }
+
+    /** @return array<string, string> */
+    private static function studentClasses(?string $classLevel): array
+    {
+        if (! array_key_exists($classLevel ?? '', Borrower::LEVELS)) {
+            return [];
+        }
+
+        return Borrower::query()
+            ->where('type', 'student')
+            ->where('class_level', $classLevel)
+            ->whereNotNull('class_name')
+            ->distinct()
+            ->orderBy('class_name')
+            ->pluck('class_name', 'class_name')
+            ->all();
     }
 }

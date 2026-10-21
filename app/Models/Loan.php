@@ -11,7 +11,7 @@ class Loan extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'borrower_name', 'borrower_contact', 'borrower_id', 'borrower_type', 'borrower_class', 'borrower_academic_year', 'responsible_name', 'purpose',
+    protected $fillable = ['code', 'borrower_name', 'borrower_nis', 'borrower_contact', 'borrower_id', 'borrower_type', 'borrower_class', 'borrower_academic_year', 'responsible_name', 'purpose',
         'responsible_user_id', 'asset_set_id', 'package_name', 'borrowed_at', 'due_date', 'status', 'returned_at', 'created_by'];
 
     protected function casts(): array

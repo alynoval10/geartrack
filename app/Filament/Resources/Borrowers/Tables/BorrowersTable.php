@@ -26,6 +26,15 @@ class BorrowersTable
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
+                TextColumn::make('nis')
+                    ->label('NIS')
+                    ->searchable()
+                    ->placeholder('-')
+                    ->toggleable(),
+                TextColumn::make('class_level')
+                    ->label('Tingkat')
+                    ->placeholder('-')
+                    ->toggleable(),
                 TextColumn::make('class_name')
                     ->label('Kelas')
                     ->placeholder('-')

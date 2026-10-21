@@ -19,6 +19,7 @@ class LoanInfolist
                     ->formatStateUsing(fn (Loan $record): string => $record->status === 'returned' ? 'Dikembalikan' : ($record->isOverdue() ? 'Terlambat' : 'Dipinjam'))
                     ->color(fn (Loan $record): string => $record->status === 'returned' ? 'success' : ($record->isOverdue() ? 'danger' : 'warning')),
                 TextEntry::make('borrower_name')->label('Peminjam'),
+                TextEntry::make('borrower_nis')->label('NIS')->placeholder('-'),
                 TextEntry::make('borrower_type')
                     ->label('Jenis Peminjam')
                     ->formatStateUsing(fn (?string $state): string => Borrower::TYPES[$state] ?? '-'),

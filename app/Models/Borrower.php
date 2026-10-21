@@ -17,9 +17,17 @@ class Borrower extends Model
         'student' => 'Siswa',
     ];
 
+    public const LEVELS = [
+        'X' => 'X',
+        'XI' => 'XI',
+        'XII' => 'XII',
+    ];
+
     protected $fillable = [
         'type',
         'name',
+        'nis',
+        'class_level',
         'class_name',
         'academic_year',
         'contact',

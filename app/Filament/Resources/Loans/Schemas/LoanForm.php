@@ -33,12 +33,23 @@ class LoanForm
                         ->live()
                         ->columnSpanFull()
                         ->afterStateUpdated(function (Set $set): void {
+                            $set('borrower_level', null);
+                            $set('borrower_class', null);
+                            $set('borrower_id', null);
+                        }),
+                    Select::make('borrower_level')
+                        ->label('Tingkat')
+                        ->options(Borrower::LEVELS)
+                        ->live()
+                        ->visible(fn (Get $get): bool => $get('borrower_type') === 'student')
+                        ->required(fn (Get $get): bool => $get('borrower_type') === 'student')
+                        ->afterStateUpdated(function (Set $set): void {
                             $set('borrower_class', null);
                             $set('borrower_id', null);
                         }),
                     Select::make('borrower_class')
                         ->label('Kelas')
-                        ->options(fn (): array => self::studentClasses())
+                        ->options(fn (Get $get): array => self::studentClasses($get('borrower_level')))
                         ->searchable()
                         ->live()
                         ->visible(fn (Get $get): bool => $get('borrower_type') === 'student')
@@ -47,7 +58,7 @@ class LoanForm
                             $set('borrower_id', null);
                         })
                         ->helperText(fn (): string => filled(SchoolSetting::query()->value('academic_year'))
-                            ? 'Pilihan siswa mengikuti tahun ajaran aktif. Jika kelas kosong, tambahkan data siswa melalui Sistem → Data Peminjam.'
+                            ? 'Pilihan kelas mengikuti tingkat dan tahun ajaran aktif. Jika kelas belum tersedia, tambahkan data siswa melalui Sistem → Data Peminjam.'
                             : 'Atur tahun ajaran aktif terlebih dahulu di Pengaturan Sekolah.'),
                     Select::make('borrower_id')
                         ->label(fn (Get $get): string => $get('borrower_type') === 'student' ? 'Nama Siswa' : 'Nama Guru / TU')
@@ -56,13 +67,14 @@ class LoanForm
                             $search,
                             $get('borrower_type'),
                             $get('borrower_class'),
+                            $get('borrower_level'),
                         ))
                         ->getOptionLabelUsing(fn (mixed $value): ?string => self::borrowerSelectedLabel($value))
                         ->visible(fn (Get $get): bool => $get('borrower_type') === 'staff'
                             || ($get('borrower_type') === 'student' && filled($get('borrower_class'))))
                         ->required(fn (Get $get): bool => filled($get('borrower_type')))
                         ->helperText(fn (Get $get): ?string => $get('borrower_type') === 'student'
-                            ? 'Pilih siswa pada kelas yang sudah dipilih.'
+                            ? 'Pilih siswa yang memiliki NIS pada kelas yang sudah dipilih.'
                             : ($get('borrower_type') === 'staff' ? 'Pilih Guru/TU. Kelola daftar melalui Sistem → Data Peminjam.' : null)),
                     Select::make('responsible_user_id')
                         ->label('Penanggung Jawab')
@@ -176,11 +188,11 @@ class LoanForm
     }
 
     /** @return array<string, string> */
-    private static function studentClasses(): array
+    private static function studentClasses(?string $classLevel): array
     {
         $academicYear = SchoolSetting::query()->value('academic_year');
 
-        if (blank($academicYear)) {
+        if (blank($academicYear) || ! array_key_exists($classLevel ?? '', Borrower::LEVELS)) {
             return [];
         }
 
@@ -188,6 +200,9 @@ class LoanForm
             ->where('type', 'student')
             ->where('is_active', true)
             ->where('academic_year', $academicYear)
+            ->where('class_level', $classLevel)
+            ->whereNotNull('nis')
+            ->where('nis', '!=', '')
             ->whereNotNull('class_name')
             ->distinct()
             ->orderBy('class_name')
@@ -196,7 +211,7 @@ class LoanForm
     }
 
     /** @return array<int, string> */
-    private static function borrowerSearchResults(string $search, ?string $type, ?string $className): array
+    private static function borrowerSearchResults(string $search, ?string $type, ?string $className, ?string $classLevel): array
     {
         if (! array_key_exists($type ?? '', Borrower::TYPES)) {
             return [];
@@ -210,12 +225,15 @@ class LoanForm
         if ($type === 'student') {
             $academicYear = SchoolSetting::query()->value('academic_year');
 
-            if (blank($academicYear) || blank($className)) {
+            if (blank($academicYear) || blank($className) || blank($classLevel)) {
                 return [];
             }
 
             $query->where('academic_year', $academicYear)
-                ->where('class_name', $className);
+                ->where('class_name', $className)
+                ->where('class_level', $classLevel)
+                ->whereNotNull('nis')
+                ->where('nis', '!=', '');
         }
 
         return $query
@@ -242,7 +260,7 @@ class LoanForm
     private static function borrowerLabel(Borrower $borrower): string
     {
         if ($borrower->type === 'student') {
-            return $borrower->name.' — '.$borrower->class_name.' ('.$borrower->academic_year.')';
+            return $borrower->name.' — NIS '.$borrower->nis.' — '.trim($borrower->class_level.' '.$borrower->class_name).' ('.$borrower->academic_year.')';
         }
 
         return $borrower->name;
