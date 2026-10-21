@@ -3,11 +3,16 @@
 namespace App\Filament\Resources\Borrowers\Tables;
 
 use App\Models\Borrower;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class BorrowersTable
 {
@@ -62,7 +67,36 @@ class BorrowersTable
             ->recordActions([
                 EditAction::make(),
             ])
-            ->toolbarActions([])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('activate')
+                        ->label('Aktifkan')
+                        ->icon(Heroicon::OutlinedCheckCircle)
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Aktifkan data peminjam terpilih?')
+                        ->action(fn (Collection $records) => Borrower::query()
+                            ->whereKey($records->modelKeys())
+                            ->update(['is_active' => true]))
+                        ->successNotificationTitle('Data peminjam berhasil diaktifkan')
+                        ->deselectRecordsAfterCompletion(),
+                    BulkAction::make('deactivate')
+                        ->label('Nonaktifkan')
+                        ->icon(Heroicon::OutlinedNoSymbol)
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Nonaktifkan data peminjam terpilih?')
+                        ->modalDescription('Data tetap tersimpan dan dapat diaktifkan kembali nanti.')
+                        ->action(fn (Collection $records) => Borrower::query()
+                            ->whereKey($records->modelKeys())
+                            ->update(['is_active' => false]))
+                        ->successNotificationTitle('Data peminjam berhasil dinonaktifkan')
+                        ->deselectRecordsAfterCompletion(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus Data Peminjam')
+                        ->modalDescription('Data yang dihapus tidak dapat dipulihkan. Riwayat peminjaman tersimpan dengan data snapshot transaksi.'),
+                ])->label('Tindakan'),
+            ])
             ->emptyStateIcon('heroicon-o-users')
             ->emptyStateHeading('Belum ada data peminjam')
             ->emptyStateDescription('Tambahkan Guru/TU dan siswa sebelum membuat peminjaman.');
