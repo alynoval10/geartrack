@@ -62,13 +62,13 @@ class LoanForm
                             : 'Atur tahun ajaran aktif terlebih dahulu di Pengaturan Sekolah.'),
                     Select::make('borrower_id')
                         ->label(fn (Get $get): string => $get('borrower_type') === 'student' ? 'Nama Siswa' : 'Nama Guru / TU')
-                        ->searchable()
-                        ->getSearchResultsUsing(fn (string $search, Get $get): array => self::borrowerSearchResults(
-                            $search,
+                        ->options(fn (Get $get): array => self::borrowerOptions(
                             $get('borrower_type'),
                             $get('borrower_class'),
                             $get('borrower_level'),
                         ))
+                        ->searchable()
+                        ->preload()
                         ->getOptionLabelUsing(fn (mixed $value): ?string => self::borrowerSelectedLabel($value))
                         ->visible(fn (Get $get): bool => $get('borrower_type') === 'staff'
                             || ($get('borrower_type') === 'student' && filled($get('borrower_class'))))
@@ -211,7 +211,7 @@ class LoanForm
     }
 
     /** @return array<int, string> */
-    private static function borrowerSearchResults(string $search, ?string $type, ?string $className, ?string $classLevel): array
+    private static function borrowerOptions(?string $type, ?string $className, ?string $classLevel): array
     {
         if (! array_key_exists($type ?? '', Borrower::TYPES)) {
             return [];
@@ -219,8 +219,7 @@ class LoanForm
 
         $query = Borrower::query()
             ->where('type', $type)
-            ->where('is_active', true)
-            ->where('name', 'like', '%'.trim($search).'%');
+            ->where('is_active', true);
 
         if ($type === 'student') {
             $academicYear = SchoolSetting::query()->value('academic_year');
@@ -238,7 +237,6 @@ class LoanForm
 
         return $query
             ->orderBy('name')
-            ->limit(50)
             ->get()
             ->mapWithKeys(fn (Borrower $borrower): array => [
                 $borrower->id => self::borrowerLabel($borrower),
