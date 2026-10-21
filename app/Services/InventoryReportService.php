@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Asset;
+use App\Models\Borrower;
 use App\Models\Category;
 use App\Models\LoanItem;
 use App\Models\Location;
@@ -75,13 +76,13 @@ class InventoryReportService
         }
         $headers = match ($type) {
             'assets' => ['No.', 'Kode Aset', 'Nama', 'Kategori', 'Merek', 'Model', 'Nomor Seri', 'Lokasi', 'Penanggung Jawab', 'Paket', 'Kondisi', 'Status', 'Tanggal Pengadaan', 'Harga Perolehan (Rp)'],
-            'overdue' => ['No.', 'Kode Pinjaman', 'Peminjam', 'Penanggung Jawab', 'Kode Aset', 'Nama Aset', 'Tanggal Pinjam', 'Jatuh Tempo', 'Terlambat (hari)'],
+            'overdue' => ['No.', 'Kode Pinjaman', 'Peminjam', 'Jenis Peminjam', 'Kelas', 'Tahun Ajaran', 'Penanggung Jawab', 'Kode Aset', 'Nama Aset', 'Tanggal Pinjam', 'Jatuh Tempo', 'Terlambat (hari)'],
             'stock_take' => ['No.', 'Stock Opname', 'Kode Aset', 'Nama Aset', 'Lokasi Awal', 'Lokasi Ditemukan', 'Hasil', 'Diperiksa Pada', 'Petugas', 'Catatan'],
             'maintenance' => ['No.', 'Kode Aset', 'Nama Aset', 'Laporan', 'Jenis', 'Status', 'Teknisi', 'Tanggal Laporan', 'Selesai Pada', 'Biaya (Rp)'],
         };
         $rows = $records->values()->map(fn ($record, int $index): array => array_merge([$index + 1], match ($type) {
             'assets' => [$record->asset_code, $record->name, $record->category?->name, $record->brand?->name, $record->model, $record->serial_number, $record->location?->fullName(), $record->custodian_name, $record->assetSet?->name, MaintenanceReport::CONDITIONS[$record->condition] ?? $record->condition, self::STATUSES[$record->status] ?? $record->status, $record->acquisition_date?->format('Y-m-d'), $record->purchase_price === null ? null : (float) $record->purchase_price],
-            'overdue' => [$record->loan->code, $record->loan->borrower_name, $record->loan->responsible_name, $record->asset_code, $record->asset_name, $record->loan->borrowed_at->format('Y-m-d'), $record->loan->due_date->format('Y-m-d'), (int) $record->loan->due_date->diffInDays(today())],
+            'overdue' => [$record->loan->code, $record->loan->borrower_name, Borrower::TYPES[$record->loan->borrower_type] ?? '', $record->loan->borrower_class, $record->loan->borrower_academic_year, $record->loan->responsible_name, $record->asset_code, $record->asset_name, $record->loan->borrowed_at->format('Y-m-d'), $record->loan->due_date->format('Y-m-d'), (int) $record->loan->due_date->diffInDays(today())],
             'stock_take' => [$record->stockTake->name, $record->asset_code, $record->asset_name, $record->expected_location_name, $record->observed_location_name, StockTakeItem::RESULTS[$record->result], $record->checked_at?->format('Y-m-d H:i'), $record->checker?->name, $record->notes],
             'maintenance' => [$record->asset_code, $record->asset_name, $record->title, MaintenanceReport::TYPES[$record->type], MaintenanceReport::STATUSES[$record->status], $record->technician, $record->created_at->format('Y-m-d'), $record->closed_at?->format('Y-m-d'), (float) ($record->entries_sum_cost ?? 0)],
         }))->all();
@@ -140,6 +141,9 @@ class InventoryReportService
             $index + 1,
             $item->loan->code,
             $item->loan->borrower_name,
+            Borrower::TYPES[$item->loan->borrower_type] ?? '',
+            $item->loan->borrower_class,
+            $item->loan->borrower_academic_year,
             $item->loan->borrower_contact,
             $item->loan->responsible_name,
             $item->loan->purpose,
@@ -153,7 +157,7 @@ class InventoryReportService
 
         return [
             'title' => self::TYPES['loans'],
-            'headers' => ['No.', 'Nomor Peminjaman', 'Peminjam', 'Kontak', 'Penanggung Jawab', 'Keperluan', 'Kode Aset', 'Nama Aset', 'Tanggal Pinjam', 'Batas Kembali', 'Tanggal Kembali', 'Status Perangkat'],
+            'headers' => ['No.', 'Nomor Peminjaman', 'Peminjam', 'Jenis Peminjam', 'Kelas', 'Tahun Ajaran', 'Kontak', 'Penanggung Jawab', 'Keperluan', 'Kode Aset', 'Nama Aset', 'Tanggal Pinjam', 'Batas Kembali', 'Tanggal Kembali', 'Status Perangkat'],
             'rows' => $rows,
             'summary' => $records->pluck('loan_id')->unique()->count().' transaksi · '.count($rows).' perangkat',
             'period' => filled($filters['loan_month'] ?? null)

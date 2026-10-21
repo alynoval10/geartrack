@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Loans\Tables;
 
+use App\Models\Borrower;
 use App\Models\Loan;
 use App\Services\OperationalRecordDeletionService;
 use Filament\Actions\Action;
@@ -20,6 +21,12 @@ class LoansTable
         return $table->defaultSort('id', 'desc')->columns([
             TextColumn::make('code')->label('Nomor')->searchable(),
             TextColumn::make('borrower_name')->label('Peminjam')->searchable(),
+            TextColumn::make('borrower_type')->label('Jenis Peminjam')
+                ->formatStateUsing(fn (?string $state): string => Borrower::TYPES[$state] ?? '-')
+                ->badge()
+                ->toggleable(),
+            TextColumn::make('borrower_class')->label('Kelas')->placeholder('-')->toggleable(),
+            TextColumn::make('borrower_academic_year')->label('Tahun Ajaran')->placeholder('-')->toggleable(),
             TextColumn::make('responsible_name')->label('Penanggung Jawab')->searchable(),
             TextColumn::make('items_count')->label('Perangkat')->counts('items'),
             TextColumn::make('due_date')->label('Batas Kembali')->date('d M Y')->sortable(),

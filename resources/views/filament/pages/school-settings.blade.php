@@ -18,6 +18,8 @@
                 </label>
                 <label class="grid gap-2 text-sm font-medium">Tahun ajaran
                     <x-filament::input.wrapper><x-filament::input name="academic_year" value="{{ old('academic_year', $setting->academic_year) }}" placeholder="2026/2027" /></x-filament::input.wrapper>
+                    <span class="text-sm font-normal text-gray-500">Tahun ini menjadi acuan daftar kelas dan siswa yang dapat dipilih saat membuat peminjaman.</span>
+                    @error('academic_year')<span class="text-sm text-danger-600">{{ $message }}</span>@enderror
                 </label>
                 <label class="grid gap-2 text-sm font-medium">Logo sekolah (maks. 2 MB)
                     <input type="file" name="logo" accept="image/*" class="block w-full text-sm">

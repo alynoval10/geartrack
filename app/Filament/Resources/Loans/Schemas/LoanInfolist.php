@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Loans\Schemas;
 
+use App\Models\Borrower;
 use App\Models\Loan;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -18,7 +19,12 @@ class LoanInfolist
                     ->formatStateUsing(fn (Loan $record): string => $record->status === 'returned' ? 'Dikembalikan' : ($record->isOverdue() ? 'Terlambat' : 'Dipinjam'))
                     ->color(fn (Loan $record): string => $record->status === 'returned' ? 'success' : ($record->isOverdue() ? 'danger' : 'warning')),
                 TextEntry::make('borrower_name')->label('Peminjam'),
-                TextEntry::make('borrower_contact')->label('Kelas / Kontak')->placeholder('-'),
+                TextEntry::make('borrower_type')
+                    ->label('Jenis Peminjam')
+                    ->formatStateUsing(fn (?string $state): string => Borrower::TYPES[$state] ?? '-'),
+                TextEntry::make('borrower_class')->label('Kelas')->placeholder('-'),
+                TextEntry::make('borrower_academic_year')->label('Tahun Ajaran')->placeholder('-'),
+                TextEntry::make('borrower_contact')->label('Kontak')->placeholder('-'),
                 TextEntry::make('responsible_name')->label('Penanggung Jawab'),
                 TextEntry::make('package_name')->label('Paket Saat Dipinjam')->placeholder('-'),
                 TextEntry::make('borrowed_at')->label('Dipinjam')->dateTime('d M Y H:i'),

@@ -3,13 +3,14 @@
 namespace App\Filament\Resources\Loans\Schemas;
 
 use App\Models\AssetSet;
+use App\Models\Borrower;
+use App\Models\SchoolSetting;
 use App\Models\User;
 use App\Services\LoanAssetEligibility;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
@@ -25,8 +26,44 @@ class LoanForm
             Section::make('Data Peminjam')
                 ->description('Tentukan peminjam dan guru yang bertanggung jawab atas transaksi ini.')
                 ->schema([
-                    TextInput::make('borrower_name')->label('Nama Peminjam')->required()->maxLength(150),
-                    TextInput::make('borrower_contact')->label('Kelas / Kontak Peminjam')->maxLength(150),
+                    Select::make('borrower_type')
+                        ->label('Jenis Peminjam')
+                        ->options(Borrower::TYPES)
+                        ->required()
+                        ->live()
+                        ->columnSpanFull()
+                        ->afterStateUpdated(function (Set $set): void {
+                            $set('borrower_class', null);
+                            $set('borrower_id', null);
+                        }),
+                    Select::make('borrower_class')
+                        ->label('Kelas')
+                        ->options(fn (): array => self::studentClasses())
+                        ->searchable()
+                        ->live()
+                        ->visible(fn (Get $get): bool => $get('borrower_type') === 'student')
+                        ->required(fn (Get $get): bool => $get('borrower_type') === 'student')
+                        ->afterStateUpdated(function (Set $set): void {
+                            $set('borrower_id', null);
+                        })
+                        ->helperText(fn (): string => filled(SchoolSetting::query()->value('academic_year'))
+                            ? 'Pilihan siswa mengikuti tahun ajaran aktif. Jika kelas kosong, tambahkan data siswa melalui Sistem → Data Peminjam.'
+                            : 'Atur tahun ajaran aktif terlebih dahulu di Pengaturan Sekolah.'),
+                    Select::make('borrower_id')
+                        ->label(fn (Get $get): string => $get('borrower_type') === 'student' ? 'Nama Siswa' : 'Nama Guru / TU')
+                        ->searchable()
+                        ->getSearchResultsUsing(fn (string $search, Get $get): array => self::borrowerSearchResults(
+                            $search,
+                            $get('borrower_type'),
+                            $get('borrower_class'),
+                        ))
+                        ->getOptionLabelUsing(fn (mixed $value): ?string => self::borrowerSelectedLabel($value))
+                        ->visible(fn (Get $get): bool => $get('borrower_type') === 'staff'
+                            || ($get('borrower_type') === 'student' && filled($get('borrower_class'))))
+                        ->required(fn (Get $get): bool => filled($get('borrower_type')))
+                        ->helperText(fn (Get $get): ?string => $get('borrower_type') === 'student'
+                            ? 'Pilih siswa pada kelas yang sudah dipilih.'
+                            : ($get('borrower_type') === 'staff' ? 'Pilih Guru/TU. Kelola daftar melalui Sistem → Data Peminjam.' : null)),
                     Select::make('responsible_user_id')
                         ->label('Penanggung Jawab')
                         ->options(fn (): array => User::query()
@@ -136,5 +173,78 @@ class LoanForm
                 ->columns(1)
                 ->columnSpanFull(),
         ]);
+    }
+
+    /** @return array<string, string> */
+    private static function studentClasses(): array
+    {
+        $academicYear = SchoolSetting::query()->value('academic_year');
+
+        if (blank($academicYear)) {
+            return [];
+        }
+
+        return Borrower::query()
+            ->where('type', 'student')
+            ->where('is_active', true)
+            ->where('academic_year', $academicYear)
+            ->whereNotNull('class_name')
+            ->distinct()
+            ->orderBy('class_name')
+            ->pluck('class_name', 'class_name')
+            ->all();
+    }
+
+    /** @return array<int, string> */
+    private static function borrowerSearchResults(string $search, ?string $type, ?string $className): array
+    {
+        if (! array_key_exists($type ?? '', Borrower::TYPES)) {
+            return [];
+        }
+
+        $query = Borrower::query()
+            ->where('type', $type)
+            ->where('is_active', true)
+            ->where('name', 'like', '%'.trim($search).'%');
+
+        if ($type === 'student') {
+            $academicYear = SchoolSetting::query()->value('academic_year');
+
+            if (blank($academicYear) || blank($className)) {
+                return [];
+            }
+
+            $query->where('academic_year', $academicYear)
+                ->where('class_name', $className);
+        }
+
+        return $query
+            ->orderBy('name')
+            ->limit(50)
+            ->get()
+            ->mapWithKeys(fn (Borrower $borrower): array => [
+                $borrower->id => self::borrowerLabel($borrower),
+            ])
+            ->all();
+    }
+
+    private static function borrowerSelectedLabel(mixed $value): ?string
+    {
+        if (! filled($value)) {
+            return null;
+        }
+
+        $borrower = Borrower::query()->find($value);
+
+        return $borrower ? self::borrowerLabel($borrower) : null;
+    }
+
+    private static function borrowerLabel(Borrower $borrower): string
+    {
+        if ($borrower->type === 'student') {
+            return $borrower->name.' — '.$borrower->class_name.' ('.$borrower->academic_year.')';
+        }
+
+        return $borrower->name;
     }
 }

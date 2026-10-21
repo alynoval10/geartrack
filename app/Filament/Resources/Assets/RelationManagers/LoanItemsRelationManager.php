@@ -20,6 +20,7 @@ class LoanItemsRelationManager extends RelationManager
         return $table->defaultSort('id', 'desc')->columns([
             TextColumn::make('loan.code')->label('Nomor'),
             TextColumn::make('loan.borrower_name')->label('Peminjam'),
+            TextColumn::make('loan.borrower_class')->label('Kelas')->placeholder('-')->toggleable(),
             TextColumn::make('loan.due_date')->label('Batas Kembali')->date('d M Y'),
             TextColumn::make('returned_at')->label('Dikembalikan')->dateTime('d M Y H:i')->placeholder('Masih dipinjam'),
         ])->recordActions([

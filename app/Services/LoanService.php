@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\Asset;
 use App\Models\AssetSet;
+use App\Models\Borrower;
 use App\Models\Loan;
 use App\Models\LoanItem;
 use App\Models\MaintenanceReport;
+use App\Models\SchoolSetting;
 use App\Models\User;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
@@ -30,8 +32,9 @@ class LoanService
         Gate::forUser($user)->authorize('create', Loan::class);
 
         $data = Validator::make($data, [
-            'borrower_name' => ['required', 'string', 'max:150'],
-            'borrower_contact' => ['nullable', 'string', 'max:150'],
+            'borrower_type' => ['required', Rule::in(array_keys(Borrower::TYPES))],
+            'borrower_id' => ['required', 'integer', 'exists:borrowers,id'],
+            'borrower_class' => ['nullable', 'string', 'required_if:borrower_type,student', 'max:100'],
             'responsible_user_id' => [
                 'required',
                 'integer',
@@ -52,6 +55,29 @@ class LoanService
         }
 
         return DB::transaction(function () use ($data, $user): Loan {
+            $borrower = Borrower::query()
+                ->whereKey($data['borrower_id'])
+                ->where('type', $data['borrower_type'])
+                ->where('is_active', true)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $borrower) {
+                throw ValidationException::withMessages(['borrower_id' => 'Pilih data peminjam yang masih aktif.']);
+            }
+
+            if ($borrower->type === 'student') {
+                $currentAcademicYear = SchoolSetting::query()->value('academic_year');
+
+                if (blank($currentAcademicYear)) {
+                    throw ValidationException::withMessages(['borrower_id' => 'Atur tahun ajaran aktif di Pengaturan Sekolah terlebih dahulu.']);
+                }
+
+                if ($borrower->academic_year !== $currentAcademicYear || $borrower->class_name !== $data['borrower_class']) {
+                    throw ValidationException::withMessages(['borrower_id' => 'Siswa tidak sesuai dengan kelas atau tahun ajaran aktif. Pilih ulang data peminjam.']);
+                }
+            }
+
             $responsibleUser = User::query()
                 ->whereKey($data['responsible_user_id'])
                 ->where('is_active', true)
@@ -73,7 +99,13 @@ class LoanService
                 }
             }
             $loan = Loan::create([
-                ...collect($data)->except(['asset_ids', 'selection_type'])->all(),
+                ...collect($data)->except(['asset_ids', 'selection_type', 'borrower_class'])->all(),
+                'borrower_id' => $borrower->id,
+                'borrower_type' => $borrower->type,
+                'borrower_name' => $borrower->name,
+                'borrower_contact' => $borrower->type === 'staff' ? $borrower->contact : null,
+                'borrower_class' => $borrower->type === 'student' ? $borrower->class_name : null,
+                'borrower_academic_year' => $borrower->type === 'student' ? $borrower->academic_year : null,
                 'responsible_name' => $responsibleUser->name,
                 'code' => 'PJM-'.now()->format('Ymd').'-'.Str::upper(Str::random(8)),
                 'package_name' => empty($data['asset_set_id']) ? null : AssetSet::findOrFail($data['asset_set_id'])->name,
