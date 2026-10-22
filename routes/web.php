@@ -7,6 +7,7 @@ use App\Http\Controllers\AssetQrController;
 use App\Http\Controllers\AssetTransferDocumentController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BorrowerImportController;
+use App\Http\Controllers\InitialAdminSetupController;
 use App\Http\Controllers\InventoryReportController;
 use App\Http\Controllers\LocationLabelController;
 use App\Http\Controllers\PasswordController;
@@ -17,6 +18,13 @@ use App\Http\Middleware\EnforceIdleSession;
 use App\Http\Middleware\RequirePasswordChange;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/setup', [InitialAdminSetupController::class, 'create'])
+    ->name('initial-admin.setup');
+
+Route::post('/setup', [InitialAdminSetupController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('initial-admin.store');
 
 Route::get('/reports/export', InventoryReportController::class)->middleware('auth')->name('reports.export');
 

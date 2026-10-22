@@ -2,12 +2,24 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\User;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Auth\Pages\Login as BaseLogin;
 use Filament\Facades\Filament;
 
 class Login extends BaseLogin
 {
+    public function mount(): void
+    {
+        if (! User::withTrashed()->where('role', 'admin')->exists()) {
+            $this->redirectRoute('initial-admin.setup');
+
+            return;
+        }
+
+        parent::mount();
+    }
+
     /**
      * Authenticate the user and discard a stale forced-password destination.
      */
@@ -35,6 +47,10 @@ class Login extends BaseLogin
 
     public function getSubheading(): ?string
     {
+        if (! User::withTrashed()->where('role', 'admin')->exists()) {
+            return 'Administrator utama belum dibuat. Selesaikan pengaturan awal sebelum masuk.';
+        }
+
         if (session()->has('session_status')) {
             return session('session_status');
         }

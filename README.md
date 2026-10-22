@@ -2,9 +2,9 @@
 
 GearTrack adalah aplikasi pengelolaan inventaris sekolah. Setiap instalasi menyimpan data untuk satu sekolah.
 
-## Perintah inti saat pertama kali menggunakan GearTrack
+## Perintah inti pemasangan baru GearTrack
 
-Jalankan setelah kode terpasang, `.env` sudah diatur untuk produksi, dan folder database serta penyimpanan sudah memiliki izin tulis. Perintah ini menyiapkan database, akun Administrator, data master, tautan foto, dan aset tampilan:
+Jalankan setelah kode terpasang, `.env` sudah diatur untuk produksi, dan folder database serta penyimpanan sudah memiliki izin tulis. Perintah ini menyiapkan database, data master, tautan foto, dan aset tampilan:
 
 ```bash
 cd /var/www/geartrack
@@ -18,25 +18,7 @@ npm ci && npm run build
 php artisan optimize
 ```
 
-`key:generate --force` hanya untuk instalasi baru. Jangan jalankan ulang pada instalasi yang sudah digunakan karena akan mengganti `APP_KEY`. Setelah seeding, masuk dengan `admin@geartrack.local` / `admin123`; GearTrack akan meminta penggantian kata sandi.
-
-Jika hanya ingin membuat atau mengaktifkan akun Administrator tanpa menjalankan seeder utama:
-
-```bash
-cd /var/www/geartrack
-php artisan db:seed --class=AdminUserSeeder --force
-```
-
-### Opsional: isi data demo lokasi dan aset
-
-Hanya jalankan pada instalasi pengembangan atau demo yang belum berisi data sekolah sebenarnya:
-
-```bash
-cd /var/www/geartrack
-php artisan db:seed --class=DemoLocationSeeder --force
-```
-
-Seeder ini menambahkan lokasi induk/sub-lokasi beserta aset contoh. Jangan jalankan pada instalasi produksi yang berisi data nyata.
+`key:generate --force` hanya untuk instalasi baru. Jangan jalankan ulang pada instalasi yang sudah digunakan karena akan mengganti `APP_KEY`. Setelah langkah di atas selesai, buka domain GearTrack melalui browser. Jika belum ada Administrator, halaman pengaturan awal akan tampil sebelum halaman login. Isi nama, email, dan kata sandi Administrator utama di sana. Halaman ini terkunci setelah akun pertama berhasil dibuat.
 
 Fitur utama:
 
@@ -52,13 +34,15 @@ Fitur utama:
 
 ## Membuat arsip rilis
 
-Buat ZIP distribusi dari commit rilis menggunakan:
+Buat ZIP distribusi dari commit rilis yang sudah siap menggunakan:
 
 ```bash
 git archive --format=zip --output=geartrack-release.zip HEAD
 ```
 
 Cara ini menerapkan aturan arsip Git dan tidak menyertakan berkas internal yang ditandai untuk dikecualikan. Jangan membuat paket jual dengan men-ZIP seluruh folder kerja secara langsung.
+
+Untuk pemasangan baru, unggah ZIP ini ke server lalu ekstrak isinya ke folder aplikasi, misalnya `/var/www/geartrack`. Setelah itu ikuti langkah pemasangan baru di bawah. Untuk pembeli, distribusikan ZIP rilis ini melalui kanal yang Anda pilih; jangan berikan akses ke repository pengembangan.
 
 ## Persyaratan server
 
@@ -171,19 +155,13 @@ npm run build
 php artisan optimize
 ```
 
-`db:seed` membuat akun Administrator dan data master. Pada lingkungan `production`, seeder tidak membuat peminjam demo. Lokasi dan data peminjam sekolah dapat dimasukkan melalui aplikasi.
+`db:seed` membuat data master dan tidak membuat akun Administrator dengan kredensial bersama. Pada lingkungan `production`, seeder juga tidak membuat data demo peminjam, lokasi, atau aset. Di lingkungan selain `production`, data demo peminjam dan lokasi bertingkat beserta aset contohnya ikut dibuat.
 
-### 4. Masuk dan amankan akun awal
+### 4. Buat Administrator pertama
 
-Seeder awal membuat akun berikut:
+Buka `https://inventaris.namasekolah.sch.id` setelah langkah pemasangan selesai. GearTrack akan menampilkan formulir pengaturan awal jika belum ada Administrator. Isi nama, email, dan kata sandi khusus sekolah (minimal 12 karakter). Akun langsung masuk setelah berhasil dibuat dan halaman setup akan terkunci. Perbarui `BACKUP_ADMIN_EMAILS` dengan email Administrator yang dipakai.
 
-| Email | Kata sandi awal |
-| --- | --- |
-| `admin@geartrack.local` | `admin123` |
-
-Pada login pertama, GearTrack mewajibkan penggantian kata sandi. Selesaikan penggantian sebelum mulai memasukkan data. Setelah itu, buat atau ubah akun Administrator dengan email sekolah yang sesuai, dan sesuaikan `BACKUP_ADMIN_EMAILS` agar pengelolaan backup tetap diizinkan.
-
-Jangan membagikan akun awal dan jangan mengirim file `.env` kepada pengguna. Simpan `APP_KEY` secara aman; jangan menggantinya setelah aplikasi digunakan. Kunci ini diperlukan untuk memverifikasi backup dan memulihkan data.
+Selesaikan pengaturan awal segera setelah aplikasi dipasang dan pastikan domain menggunakan HTTPS. Simpan `APP_KEY` secara aman; jangan menggantinya setelah aplikasi digunakan. Kunci ini diperlukan untuk memverifikasi backup dan memulihkan data.
 
 ### 5. Jadwalkan backup otomatis
 
@@ -214,13 +192,40 @@ Perintah tersebut membuat backup dan menyalin ke `BACKUP_MIRROR_DIRECTORY` jika 
 
 ## Memperbarui aplikasi
 
-Lakukan pembaruan pada waktu pemeliharaan. Pastikan backup terbaru tersedia sebelum mengganti kode atau menjalankan migrasi.
+Lakukan pembaruan pada waktu pemeliharaan. Pastikan backup terbaru tersedia sebelum mengganti kode atau menjalankan migrasi. Pilih salah satu cara untuk memasang kode rilis: `git pull` jika server memang dipasang dari repository Git yang Anda kelola, atau unggah dan ekstrak ZIP rilis jika server menerima paket file. Jangan menjalankan kedua cara sekaligus.
+
+### Jika server menggunakan repository Git
 
 ```bash
 cd /var/www/geartrack
 php artisan down
 php artisan geartrack:backup
-# Pasang/unggah file rilis GearTrack yang baru
+git pull --ff-only
+composer install --no-dev --optimize-autoloader --no-interaction
+npm ci
+npm run build
+php artisan migrate --force
+php artisan optimize:clear
+php artisan optimize
+php artisan up
+```
+
+Perintah `git pull --ff-only` mengambil kode terbaru dari upstream branch yang sudah dikonfigurasi di server. Gunakan cara ini hanya untuk server milik sendiri yang sudah terhubung ke repository dan branch rilis yang benar.
+
+### Jika server menggunakan paket ZIP
+
+Di komputer pengembang, buat ZIP dari commit rilis. Di server, aktifkan mode pemeliharaan dan buat backup terlebih dahulu:
+
+```bash
+cd /var/www/geartrack
+php artisan down
+php artisan geartrack:backup
+```
+
+Unggah ZIP ke server, lalu ekstrak/timpa file aplikasi. Pertahankan `.env`, `database/database.sqlite`, `storage/app`, dan backup yang sudah ada. Setelah file rilis selesai dipasang, lanjutkan:
+
+```bash
+cd /var/www/geartrack
 composer install --no-dev --optimize-autoloader --no-interaction
 npm ci
 npm run build
@@ -246,13 +251,9 @@ npm ci
 npm run build
 ```
 
-Seeder `DemoLocationSeeder` menambahkan contoh lokasi bertingkat dan aset. Jalankan hanya jika memang memerlukan data demonstrasi:
+Jalankan `php artisan serve`, lalu buka `http://localhost:8000`. Jika belum ada Administrator, formulir pengaturan awal akan tampil otomatis. Buat akun Administrator lokal melalui formulir tersebut.
 
-```bash
-php artisan db:seed --class=DemoLocationSeeder
-```
-
-Jangan jalankan seeder demo pada instalasi sekolah yang berisi data nyata.
+`php artisan migrate --seed` membuat data master, peminjam demo, lokasi bertingkat, dan aset contoh selama aplikasi tidak berjalan di lingkungan `production`. Pada server produksi, data demo dilewati otomatis.
 
 ## Pemeriksaan sebelum aplikasi digunakan
 
