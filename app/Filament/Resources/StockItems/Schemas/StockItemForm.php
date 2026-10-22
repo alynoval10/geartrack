@@ -17,19 +17,14 @@ class StockItemForm
     {
         return $schema->components([
             Section::make('Informasi Barang')
-                ->description('Barang habis pakai dikelola sebagai jumlah stok, tanpa kode QR per unit.')
+                ->description('Kode barang dibuat otomatis setelah disimpan. Barang habis pakai dikelola sebagai stok, tanpa kode QR per unit.')
                 ->schema([
-                    TextInput::make('code')
-                        ->label('Kode Barang')
-                        ->placeholder('Contoh: BHP-KBL-001')
-                        ->required()
-                        ->maxLength(100)
-                        ->unique(ignoreRecord: true),
                     TextInput::make('name')
                         ->label('Nama Barang')
                         ->placeholder('Contoh: Kabel UTP Cat6')
                         ->required()
-                        ->maxLength(255),
+                        ->maxLength(255)
+                        ->helperText('Contoh barang: kabel, konektor, atau bahan praktik.'),
                     Select::make('category_id')
                         ->label('Kategori')
                         ->options(fn (): array => Category::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all())
@@ -40,6 +35,17 @@ class StockItemForm
                         ->placeholder('Contoh: meter, buah, roll')
                         ->required()
                         ->maxLength(40),
+                    TextInput::make('initial_stock')
+                        ->label('Jumlah Tersedia')
+                        ->numeric()
+                        ->step('0.001')
+                        ->maxValue(999999999.999)
+                        ->minValue(0)
+                        ->required()
+                        ->default(0)
+                        ->rules(['decimal:0,3'])
+                        ->visibleOn('create')
+                        ->helperText('Jumlah awal akan otomatis dicatat sebagai transaksi barang masuk.'),
                     Select::make('location_id')
                         ->label('Lokasi Penyimpanan')
                         ->options(fn (): array => Location::selectOptions())

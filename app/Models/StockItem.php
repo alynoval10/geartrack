@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class StockItem extends Model
 {
     protected $fillable = [
-        'code',
         'name',
         'category_id',
         'location_id',
@@ -36,6 +36,20 @@ class StockItem extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (StockItem $stockItem): void {
+            if (blank($stockItem->code)) {
+                $stockItem->code = 'BHP-TMP-'.Str::uuid();
+            }
+        });
+
+        static::created(function (StockItem $stockItem): void {
+            if (str_starts_with((string) $stockItem->code, 'BHP-TMP-')) {
+                $stockItem->forceFill([
+                    'code' => 'BHP-'.str_pad((string) $stockItem->getKey(), 5, '0', STR_PAD_LEFT),
+                ])->saveQuietly();
+            }
+        });
+
         static::deleting(function (StockItem $stockItem): void {
             if ($stockItem->movements()->exists()) {
                 throw ValidationException::withMessages([
