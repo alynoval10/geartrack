@@ -84,7 +84,7 @@
                                 />
 
                                 <span>
-                                    {{ $history->user?->name ?? 'Sistem' }}
+                                    {{ $history->user_name ?: ($history->user?->name ?? 'Sistem') }}
                                 </span>
 
                             </div>
