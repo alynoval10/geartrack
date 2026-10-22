@@ -32,6 +32,31 @@ class LocationForm
                             ->helperText('Kosongkan untuk lokasi utama. Pilih lokasi utama untuk membuat sub-lokasi, seperti Lemari 001 di Lab WK1.')
                             ->disabled(fn (?Location $record): bool => $record?->children()->exists() ?? false),
 
+                        Section::make('Titik Google Maps')
+                            ->description('Koordinat bersifat opsional. Jika sub-lokasi tidak memiliki titik sendiri, GearTrack menggunakan titik lokasi induk.')
+                            ->schema([
+                                TextInput::make('latitude')
+                                    ->label('Latitude')
+                                    ->numeric()
+                                    ->step('0.0000001')
+                                    ->minValue(-90)
+                                    ->maxValue(90)
+                                    ->rules(['nullable', 'numeric', 'between:-90,90', 'decimal:0,7', 'required_with:longitude'])
+                                    ->placeholder('Contoh: -6.4450000')
+                                    ->helperText('Di Google Maps, klik kanan titik lokasi lalu salin koordinat pertama.'),
+
+                                TextInput::make('longitude')
+                                    ->label('Longitude')
+                                    ->numeric()
+                                    ->step('0.0000001')
+                                    ->minValue(-180)
+                                    ->maxValue(180)
+                                    ->rules(['nullable', 'numeric', 'between:-180,180', 'decimal:0,7', 'required_with:latitude'])
+                                    ->placeholder('Contoh: 108.1230000')
+                                    ->helperText('Salin koordinat kedua dari Google Maps.'),
+                            ])
+                            ->columns(2),
+
                         Textarea::make('description')
                             ->label('Deskripsi')
                             ->placeholder('Contoh: Laboratorium utama TJKT')

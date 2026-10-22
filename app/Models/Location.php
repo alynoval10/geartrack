@@ -14,6 +14,8 @@ class Location extends Model
         'name',
         'parent_id',
         'description',
+        'latitude',
+        'longitude',
         'is_active',
     ];
 
@@ -75,6 +77,24 @@ class Location extends Model
         return $this->parent
             ? $this->parent->name.' / '.$this->name
             : $this->name;
+    }
+
+    public function mapUrl(): ?string
+    {
+        $location = $this->hasMapCoordinates() ? $this : $this->parent;
+
+        if (! $location?->hasMapCoordinates()) {
+            return null;
+        }
+
+        $coordinates = $location->latitude.','.$location->longitude;
+
+        return 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($coordinates);
+    }
+
+    public function hasMapCoordinates(): bool
+    {
+        return filled($this->latitude) && filled($this->longitude);
     }
 
     /** @return array<int, string> */

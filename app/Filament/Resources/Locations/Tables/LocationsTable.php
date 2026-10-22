@@ -50,6 +50,13 @@ class LocationsTable
             ])
             ->defaultSort('name')
             ->recordActions([
+                Action::make('openMap')
+                    ->label('Lihat Peta')
+                    ->icon('heroicon-o-map-pin')
+                    ->color('info')
+                    ->url(fn (Location $record): ?string => $record->mapUrl())
+                    ->openUrlInNewTab()
+                    ->visible(fn (Location $record): bool => $record->mapUrl() !== null),
                 Action::make('printLabel')
                     ->label('Cetak Label A4')
                     ->icon('heroicon-o-printer')
