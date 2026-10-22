@@ -10,12 +10,16 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class LocationsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                ->withCount('assets')
+                ->with(['children' => fn (Builder $childrenQuery): Builder => $childrenQuery->withCount('assets')]))
             ->columns([
                 TextColumn::make('code')
                     ->label('Kode')
@@ -41,7 +45,10 @@ class LocationsTable
 
                 TextColumn::make('assets_count')
                     ->label('Jumlah Aset')
-                    ->counts('assets')
+                    ->state(fn (Location $record): int => (int) $record->assets_count + (int) $record->children->sum('assets_count'))
+                    ->tooltip(fn (Location $record): string => $record->children->isNotEmpty()
+                        ? 'Lokasi ini: '.$record->assets_count.'; sub-lokasi: '.$record->children->sum('assets_count')
+                        : 'Jumlah aset di lokasi ini.')
                     ->badge(),
 
                 IconColumn::make('is_active')
