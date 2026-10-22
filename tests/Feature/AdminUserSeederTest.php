@@ -12,7 +12,7 @@ class AdminUserSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_creates_an_active_administrator_account(): void
+    public function test_it_creates_an_administrator_that_must_change_the_default_password(): void
     {
         $this->seed(AdminUserSeeder::class);
 
@@ -20,11 +20,11 @@ class AdminUserSeederTest extends TestCase
 
         $this->assertSame('admin', $administrator->role);
         $this->assertTrue($administrator->is_active);
-        $this->assertFalse($administrator->must_change_password);
+        $this->assertTrue($administrator->must_change_password);
         $this->assertTrue(Hash::check('admin123', $administrator->password));
     }
 
-    public function test_it_repairs_access_without_resetting_an_existing_password(): void
+    public function test_it_repairs_access_without_resetting_a_custom_existing_password(): void
     {
         $administrator = User::factory()->create([
             'email' => 'admin@geartrack.local',
