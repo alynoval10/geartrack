@@ -16,8 +16,31 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     // Informasi rilis ditampilkan pada halaman Tentang GearTrack.
-    'version' => env('APP_VERSION', '1.0.0'),
+    'version' => '1.1.0',
     'creator' => 'Noval Aly, S.T',
+    'version_history' => [
+        [
+            'version' => '1.1.0',
+            'released_at' => '22 Oktober 2026',
+            'changes' => [
+                'Arsip tahun ajaran siswa dengan kenaikan tingkat dan penanganan siswa kelas XII.',
+                'Data stok barang habis pakai dengan pencatatan stok awal dan pergerakan stok.',
+                'Pin Google Maps untuk lokasi dan sub-lokasi.',
+                'Pengaturan awal Administrator yang aman untuk instalasi baru.',
+                'Pembaruan pengelolaan peminjam, laporan, pengingat, dan panduan pemasangan.',
+            ],
+        ],
+        [
+            'version' => '1.0.0',
+            'released_at' => 'Rilis awal',
+            'changes' => [
+                'Inventaris aset dengan label QR, kategori, merek, dan lokasi.',
+                'Peminjaman, pengembalian, mutasi, dan paket perangkat.',
+                'Stock opname, kerusakan, serta perawatan aset.',
+                'Laporan, impor data, dan backup inventaris.',
+            ],
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------

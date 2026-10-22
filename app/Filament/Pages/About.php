@@ -26,6 +26,7 @@ class About extends Page
         return [
             'version' => config('app.version'),
             'creator' => config('app.creator'),
+            'versionHistory' => config('app.version_history'),
         ];
     }
 }

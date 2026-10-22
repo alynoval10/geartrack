@@ -31,7 +31,28 @@
                 <p>• Stock opname aset</p>
                 <p>• Peminjaman dan mutasi perangkat</p>
                 <p>• Kerusakan serta riwayat perawatan</p>
+                <p>• Stok barang habis pakai</p>
+                <p>• Pengelolaan siswa lintas tahun ajaran</p>
+                <p>• Lokasi bertingkat dengan pin Google Maps</p>
                 <p>• Laporan dan backup data</p>
+            </div>
+        </x-filament::section>
+
+        <x-filament::section heading="Riwayat Versi">
+            <div class="grid gap-6">
+                @foreach ($versionHistory as $release)
+                    <article class="border-s-2 border-primary-600 ps-4">
+                        <div class="flex flex-wrap items-baseline justify-between gap-2">
+                            <h3 class="font-semibold text-gray-950 dark:text-white">Versi {{ $release['version'] }}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $release['released_at'] }}</p>
+                        </div>
+                        <ul class="mt-2 list-inside list-disc space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                            @foreach ($release['changes'] as $change)
+                                <li>{{ $change }}</li>
+                            @endforeach
+                        </ul>
+                    </article>
+                @endforeach
             </div>
         </x-filament::section>
     </div>
