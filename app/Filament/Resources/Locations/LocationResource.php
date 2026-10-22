@@ -7,6 +7,7 @@ use App\Filament\Resources\Locations\Pages\EditLocation;
 use App\Filament\Resources\Locations\Pages\ListLocations;
 use App\Filament\Resources\Locations\Schemas\LocationForm;
 use App\Filament\Resources\Locations\Tables\LocationsTable;
+use App\Models\Asset;
 use App\Models\Location;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -40,7 +41,19 @@ class LocationResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('parent');
+        $childLocationIds = Location::query()
+            ->from('locations as child_locations')
+            ->select('child_locations.id')
+            ->whereColumn('child_locations.parent_id', 'locations.id');
+
+        $childAssetsCount = Asset::query()
+            ->selectRaw('COUNT(*)')
+            ->whereIn('location_id', $childLocationIds);
+
+        return parent::getEloquentQuery()
+            ->with('parent')
+            ->withCount('assets')
+            ->addSelect(['child_assets_count' => $childAssetsCount]);
     }
 
     public static function form(Schema $schema): Schema
