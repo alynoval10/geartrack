@@ -63,6 +63,15 @@ class BorrowersTable
                 SelectFilter::make('is_active')
                     ->label('Status')
                     ->options([1 => 'Aktif', 0 => 'Nonaktif']),
+                SelectFilter::make('academic_year')
+                    ->label('Tahun Ajaran')
+                    ->options(fn (): array => Borrower::query()
+                        ->where('type', 'student')
+                        ->whereNotNull('academic_year')
+                        ->distinct()
+                        ->orderBy('academic_year')
+                        ->pluck('academic_year', 'academic_year')
+                        ->all()),
             ])
             ->recordActions([
                 EditAction::make(),
