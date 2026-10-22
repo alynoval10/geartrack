@@ -2,6 +2,42 @@
 
 GearTrack adalah aplikasi pengelolaan inventaris sekolah. Setiap instalasi menyimpan data untuk satu sekolah.
 
+## Perintah inti saat pertama kali menggunakan GearTrack
+
+Jalankan setelah kode terpasang, `.env` sudah diatur untuk produksi, dan folder database serta penyimpanan sudah memiliki izin tulis. Perintah ini menyiapkan database, akun Administrator, data master, tautan foto, dan aset tampilan:
+
+```bash
+cd /var/www/geartrack
+touch database/database.sqlite
+mkdir -p storage/app/public storage/app/backups
+php artisan key:generate --force
+php artisan migrate --force
+php artisan db:seed --force
+php artisan storage:link
+npm ci && npm run build
+php artisan optimize
+```
+
+`key:generate --force` hanya untuk instalasi baru. Jangan jalankan ulang pada instalasi yang sudah digunakan karena akan mengganti `APP_KEY`. Setelah seeding, masuk dengan `admin@geartrack.local` / `admin123`; GearTrack akan meminta penggantian kata sandi.
+
+Jika hanya ingin membuat atau mengaktifkan akun Administrator tanpa menjalankan seeder utama:
+
+```bash
+cd /var/www/geartrack
+php artisan db:seed --class=AdminUserSeeder --force
+```
+
+### Opsional: isi data demo lokasi dan aset
+
+Hanya jalankan pada instalasi pengembangan atau demo yang belum berisi data sekolah sebenarnya:
+
+```bash
+cd /var/www/geartrack
+php artisan db:seed --class=DemoLocationSeeder --force
+```
+
+Seeder ini menambahkan lokasi induk/sub-lokasi beserta aset contoh. Jangan jalankan pada instalasi produksi yang berisi data nyata.
+
 Fitur utama:
 
 - Inventaris aset, kategori, merek, dan lokasi bertingkat.
@@ -9,8 +45,20 @@ Fitur utama:
 - Impor dan ekspor data aset serta data peminjam.
 - Peminjaman, pengembalian, mutasi, dan paket perangkat.
 - Stock opname, laporan kerusakan, jadwal perawatan, dan penghapusan aset.
+- Administrasi aset: pemasok, nomor faktur, dan tanggal garansi.
+- Email pengingat harian untuk peminjaman terlambat, jadwal perawatan, dan garansi yang mendekati akhir.
 - Laporan cetak/PDF dan Excel.
 - Pengaturan sekolah, pengguna Admin/Guru, serta backup dan pemulihan data.
+
+## Membuat arsip rilis
+
+Buat ZIP distribusi dari commit rilis menggunakan:
+
+```bash
+git archive --format=zip --output=geartrack-release.zip HEAD
+```
+
+Cara ini menerapkan aturan arsip Git dan tidak menyertakan berkas internal yang ditandai untuk dikecualikan. Jangan membuat paket jual dengan men-ZIP seluruh folder kerja secara langsung.
 
 ## Persyaratan server
 
@@ -75,6 +123,27 @@ Atur juga email administrator yang diizinkan mengelola backup. Nilainya harus sa
 BACKUP_ADMIN_EMAILS=admin@namasekolah.sch.id
 ```
 
+Atur SMTP agar email pengingat operasional dapat dikirim. Gunakan kredensial SMTP dari penyedia email sekolah/hosting, dan jangan membagikan nilainya:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.penyedia.sch.id
+MAIL_PORT=587
+MAIL_USERNAME=akun-smtp
+MAIL_PASSWORD="kata-sandi-smtp"
+MAIL_SCHEME=smtp
+MAIL_FROM_ADDRESS=geartrack@namasekolah.sch.id
+MAIL_FROM_NAME="GearTrack"
+```
+
+Pengingat harian dikirim ke alamat email Administrator aktif di GearTrack. Secara bawaan, jadwal perawatan yang jatuh tempo dalam 7 hari dan garansi yang berakhir dalam 30 hari akan dimasukkan, bersama seluruh peminjaman yang sudah terlambat. Atur jadwal dan rentang tersebut bila diperlukan:
+
+```dotenv
+OPERATIONAL_REMINDER_TIME=07:00
+OPERATIONAL_REMINDER_MAINTENANCE_DAYS=7
+OPERATIONAL_REMINDER_WARRANTY_DAYS=30
+```
+
 Opsional, atur waktu backup dan lama penyimpanan otomatis:
 
 ```dotenv
@@ -123,6 +192,8 @@ GearTrack membuat backup otomatis sesuai `BACKUP_AUTOMATIC_TIME`. Tambahkan satu
 ```cron
 * * * * * cd /var/www/geartrack && php artisan schedule:run >> /dev/null 2>&1
 ```
+
+Scheduler yang sama juga mengirim email pengingat operasional sesuai `OPERATIONAL_REMINDER_TIME`. Pastikan konfigurasi SMTP sudah benar. Untuk menjalankan pengiriman saat itu juga, gunakan `php artisan geartrack:send-reminders` setelah pengaturan email siap; perintah tersebut mengirim email sungguhan jika ada pengingat.
 
 Pastikan cron berjalan sebagai pengguna yang memiliki akses tulis ke database dan folder `storage`. Status backup dapat diperiksa di menu **Sistem → Backup & Restore**. Untuk menguji tanpa menunggu jadwal, jalankan:
 

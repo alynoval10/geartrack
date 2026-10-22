@@ -37,6 +37,10 @@ class Asset extends Model
         'status',
         'acquisition_date',
         'funding_source',
+        'supplier_name',
+        'invoice_number',
+        'warranty_start_date',
+        'warranty_end_date',
         'purchase_price',
         'photo',
         'notes',
@@ -46,6 +50,8 @@ class Asset extends Model
     {
         return [
             'acquisition_date' => 'date',
+            'warranty_start_date' => 'date',
+            'warranty_end_date' => 'date',
             'purchase_price' => 'decimal:2',
         ];
     }

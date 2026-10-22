@@ -112,6 +112,21 @@ class AssetForm
                             ->placeholder('Contoh: BOSP')
                             ->maxLength(255),
 
+                        TextInput::make('supplier_name')
+                            ->label('Pemasok')
+                            ->maxLength(255),
+
+                        TextInput::make('invoice_number')
+                            ->label('Nomor Faktur')
+                            ->maxLength(255),
+
+                        DatePicker::make('warranty_start_date')
+                            ->label('Mulai Garansi'),
+
+                        DatePicker::make('warranty_end_date')
+                            ->label('Garansi Berakhir')
+                            ->afterOrEqual('warranty_start_date'),
+
                         TextInput::make('purchase_price')
                             ->label('Harga Perolehan')
                             ->numeric()

@@ -19,7 +19,7 @@ use ZipArchive;
 
 class AssetImportService
 {
-    public const HEADERS = ['kode_aset', 'nama_aset', 'kode_kategori', 'nama_merek', 'kode_lokasi', 'model', 'nomor_seri', 'kondisi', 'status', 'tanggal_pengadaan', 'sumber_dana', 'harga_perolehan', 'penanggung_jawab', 'catatan'];
+    public const HEADERS = ['kode_aset', 'nama_aset', 'kode_kategori', 'nama_merek', 'kode_lokasi', 'model', 'nomor_seri', 'kondisi', 'status', 'tanggal_pengadaan', 'sumber_dana', 'harga_perolehan', 'pemasok', 'nomor_faktur', 'mulai_garansi', 'garansi_berakhir', 'penanggung_jawab', 'catatan'];
 
     public const MAX_ROWS = 500;
 
@@ -38,6 +38,10 @@ class AssetImportService
                 ['status', 'Tersedia / Digunakan / Dalam Perawatan / Hilang / Nonaktif. Kosong berarti Tersedia. Peminjaman dibuat melalui menu Peminjaman.'],
                 ['tanggal_pengadaan', 'Opsional, format YYYY-MM-DD atau sel tanggal Excel.'],
                 ['harga_perolehan', 'Opsional, angka rupiah tanpa pemisah ribuan, desimal memakai titik.'],
+                ['pemasok', 'Opsional, nama toko atau pemasok aset.'],
+                ['nomor_faktur', 'Opsional, nomor faktur pembelian.'],
+                ['mulai_garansi', 'Opsional, tanggal mulai garansi dalam format YYYY-MM-DD.'],
+                ['garansi_berakhir', 'Opsional, tanggal akhir garansi dalam format YYYY-MM-DD; harus sama atau setelah tanggal mulai.'],
                 ['nomor_seri', 'Opsional, tidak boleh sama dengan nomor seri yang sudah ada.'],
                 ['Batas', 'Maksimal 500 aset dan 5 MB. Isi sheet Aset tanpa mengubah judul kolom. Jangan gunakan rumus.'],
                 ['Penyimpanan', 'Seluruh baris harus valid. Impor menambah aset baru, tidak mengganti data lama.']],
@@ -184,6 +188,8 @@ class AssetImportService
                 'condition' => ['' => 'good', 'baik' => 'good', 'rusak ringan' => 'minor_damage', 'rusak berat' => 'major_damage'][$condition] ?? $condition,
                 'status' => ['' => 'available', 'tersedia' => 'available', 'digunakan' => 'in_use', 'dalam perawatan' => 'maintenance', 'hilang' => 'lost', 'nonaktif' => 'retired'][$status] ?? $status,
                 'acquisition_date' => $row['tanggal_pengadaan'] ?: null, 'funding_source' => $row['sumber_dana'] ?: null,
+                'supplier_name' => $row['pemasok'] ?: null, 'invoice_number' => $row['nomor_faktur'] ?: null,
+                'warranty_start_date' => $row['mulai_garansi'] ?: null, 'warranty_end_date' => $row['garansi_berakhir'] ?: null,
                 'purchase_price' => $row['harga_perolehan'] === '' ? null : $row['harga_perolehan'],
                 'custodian_name' => $row['penanggung_jawab'] ?: null, 'notes' => $row['catatan'] ?: null,
             ];
@@ -191,10 +197,13 @@ class AssetImportService
                 'asset_code' => ['required', 'string', 'max:255', 'regex:/^[\pL\pN][\pL\pN._\/-]*$/u'],
                 'name' => ['required', 'string', 'max:255'], 'model' => ['nullable', 'string', 'max:255'],
                 'serial_number' => ['nullable', 'string', 'max:255'], 'funding_source' => ['nullable', 'string', 'max:255'],
+                'supplier_name' => ['nullable', 'string', 'max:255'], 'invoice_number' => ['nullable', 'string', 'max:255'],
                 'custodian_name' => ['nullable', 'string', 'max:150'], 'notes' => ['nullable', 'string', 'max:2000'],
                 'condition' => ['required', Rule::in(['good', 'minor_damage', 'major_damage'])],
                 'status' => ['required', Rule::in(['available', 'in_use', 'maintenance', 'lost', 'retired'])],
                 'acquisition_date' => ['nullable', 'date_format:Y-m-d'],
+                'warranty_start_date' => ['nullable', 'date_format:Y-m-d'],
+                'warranty_end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:warranty_start_date'],
                 'purchase_price' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99', 'regex:/^\d+(\.\d{1,2})?$/'],
             ]);
             $messages = [...$messages, ...$validator->errors()->all()];

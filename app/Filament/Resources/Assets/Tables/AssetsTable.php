@@ -112,6 +112,22 @@ class AssetsTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
+                TextColumn::make('supplier_name')
+                    ->label('Pemasok')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('invoice_number')
+                    ->label('Nomor Faktur')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('warranty_end_date')
+                    ->label('Garansi Berakhir')
+                    ->date('d M Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('purchase_price')
                     ->label('Harga Perolehan')
                     ->money('IDR')

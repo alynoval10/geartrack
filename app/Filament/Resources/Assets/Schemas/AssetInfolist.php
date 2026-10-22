@@ -109,6 +109,20 @@ class AssetInfolist
                         TextEntry::make('funding_source')
                             ->label('Sumber Dana')
                             ->placeholder('Belum diisi'),
+                        TextEntry::make('supplier_name')
+                            ->label('Pemasok')
+                            ->placeholder('Belum diisi'),
+                        TextEntry::make('invoice_number')
+                            ->label('Nomor Faktur')
+                            ->placeholder('Belum diisi'),
+                        TextEntry::make('warranty_start_date')
+                            ->label('Mulai Garansi')
+                            ->date('d M Y')
+                            ->placeholder('Belum diisi'),
+                        TextEntry::make('warranty_end_date')
+                            ->label('Garansi Berakhir')
+                            ->date('d M Y')
+                            ->placeholder('Belum diisi'),
                         TextEntry::make('purchase_price')
                             ->label('Harga Perolehan')
                             ->money('IDR', locale: 'id')

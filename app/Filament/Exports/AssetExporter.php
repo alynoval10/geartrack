@@ -74,6 +74,18 @@ class AssetExporter extends Exporter
             ExportColumn::make('funding_source')
                 ->label('Sumber Dana'),
 
+            ExportColumn::make('supplier_name')
+                ->label('Pemasok'),
+
+            ExportColumn::make('invoice_number')
+                ->label('Nomor Faktur'),
+
+            ExportColumn::make('warranty_start_date')
+                ->label('Mulai Garansi'),
+
+            ExportColumn::make('warranty_end_date')
+                ->label('Garansi Berakhir'),
+
             ExportColumn::make('purchase_price')
                 ->label('Harga Perolehan'),
 

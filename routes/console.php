@@ -12,3 +12,7 @@ Artisan::command('inspire', function () {
 Schedule::command('geartrack:backup')
     ->dailyAt((string) config('backup.automatic_time', '01:30'))
     ->withoutOverlapping(120);
+
+Schedule::command('geartrack:send-reminders')
+    ->dailyAt((string) config('operational_reminders.time', '07:00'))
+    ->withoutOverlapping(120);
