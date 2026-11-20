@@ -21,19 +21,23 @@ class LoansTable
         return $table->defaultSort('id', 'desc')->columns([
             TextColumn::make('code')->label('Nomor')->searchable(),
             TextColumn::make('borrower_name')->label('Peminjam')->searchable(),
-            TextColumn::make('borrower_nis')->label('NIS')->placeholder('-')->toggleable(),
-            TextColumn::make('borrower_type')->label('Jenis Peminjam')
-                ->formatStateUsing(fn (?string $state): string => Borrower::TYPES[$state] ?? '-')
-                ->badge()
-                ->toggleable(),
-            TextColumn::make('borrower_class')->label('Kelas')->placeholder('-')->toggleable(),
-            TextColumn::make('borrower_academic_year')->label('Tahun Ajaran')->placeholder('-')->toggleable(),
-            TextColumn::make('responsible_name')->label('Penanggung Jawab')->searchable(),
-            TextColumn::make('items_count')->label('Perangkat')->counts('items'),
-            TextColumn::make('due_date')->label('Batas Kembali')->date('d M Y')->sortable(),
             TextColumn::make('status')->label('Status')->badge()
                 ->formatStateUsing(fn (Loan $record): string => $record->status === 'returned' ? 'Dikembalikan' : ($record->isOverdue() ? 'Terlambat' : 'Dipinjam'))
                 ->color(fn (Loan $record): string => $record->status === 'returned' ? 'success' : ($record->isOverdue() ? 'danger' : 'warning')),
+            TextColumn::make('items_count')->label('Perangkat')->counts('items'),
+            TextColumn::make('due_date')->label('Batas Kembali')->date('d M Y')->sortable(),
+            TextColumn::make('responsible_name')->label('Penanggung Jawab')->searchable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('borrower_nis')->label('NIS')->placeholder('-')
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('borrower_type')->label('Jenis Peminjam')
+                ->formatStateUsing(fn (?string $state): string => Borrower::TYPES[$state] ?? '-')
+                ->badge()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('borrower_class')->label('Kelas')->placeholder('-')
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('borrower_academic_year')->label('Tahun Ajaran')->placeholder('-')
+                ->toggleable(isToggledHiddenByDefault: true),
         ])->filters([
             SelectFilter::make('status')->label('Status')->options(['open' => 'Dipinjam', 'returned' => 'Dikembalikan']),
             Filter::make('overdue')->label('Terlambat')->query(fn ($query) => $query->where('status', 'open')->whereDate('due_date', '<', today())),
