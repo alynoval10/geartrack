@@ -19,7 +19,6 @@ class LoansTable
     public static function configure(Table $table): Table
     {
         return $table->defaultSort('id', 'desc')->columns([
-            TextColumn::make('code')->label('Nomor')->searchable(),
             TextColumn::make('borrower_name')->label('Peminjam')->searchable(),
             TextColumn::make('status')->label('Status')->badge()
                 ->formatStateUsing(fn (Loan $record): string => $record->status === 'returned' ? 'Dikembalikan' : ($record->isOverdue() ? 'Terlambat' : 'Dipinjam'))
@@ -27,8 +26,6 @@ class LoansTable
             TextColumn::make('items_count')->label('Perangkat')->counts('items'),
             TextColumn::make('due_date')->label('Batas Kembali')->date('d M Y')->sortable(),
             TextColumn::make('responsible_name')->label('Penanggung Jawab')->searchable()
-                ->toggleable(isToggledHiddenByDefault: true),
-            TextColumn::make('borrower_nis')->label('NIS')->placeholder('-')
                 ->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('borrower_type')->label('Jenis Peminjam')
                 ->formatStateUsing(fn (?string $state): string => Borrower::TYPES[$state] ?? '-')
