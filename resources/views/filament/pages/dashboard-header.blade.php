@@ -36,7 +36,7 @@
             </a>
 
             <a
-                href="{{ \\App\\Filament\\Resources\\Loans\\LoanResource::getUrl('create') }}"
+                href="{{ \App\Filament\Resources\Loans\LoanResource::getUrl('create') }}"
                 class="gt-button gt-button-secondary"
             >
                 <x-heroicon-o-plus style="width:18px;height:18px;" />
