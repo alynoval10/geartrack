@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Filament\Pages\StudentLoanApprovals;
 use App\Models\Asset;
 use App\Models\Borrower;
 use App\Models\Loan;
@@ -9,6 +10,7 @@ use App\Models\SchoolSetting;
 use App\Models\StudentAccount;
 use App\Models\StudentLoanRequest;
 use App\Models\User;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -85,6 +87,20 @@ class StudentLoanRequestService
                 Notification::make()
                     ->title('Permintaan peminjaman siswa baru')
                     ->body($loanRequest->borrower_name.' ('.$loanRequest->borrower_class.') meminta '.count($ids).' perangkat.')
+                    ->actions([
+                        Action::make('approve')
+                            ->label('Setujui & Buat Peminjaman')
+                            ->button()
+                            ->color('success')
+                            ->dispatch('approve-student-loan-request', ['requestId' => $loanRequest->id])
+                            ->close()
+                            ->markAsRead(),
+                        Action::make('review')
+                            ->label('Tinjau Detail')
+                            ->color('gray')
+                            ->url(StudentLoanApprovals::getUrl(['request' => $loanRequest->id]))
+                            ->markAsRead(),
+                    ])
                     ->toDatabase(),
             ));
 

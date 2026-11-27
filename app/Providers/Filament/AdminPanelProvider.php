@@ -87,6 +87,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::BODY_END,
+                fn (): string => Blade::render('@livewire(\'student-loan-notification-approver\')'),
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
                 fn (): string => Blade::render('@include(\'filament.components.idle-session\')'),
             )
             ->renderHook(

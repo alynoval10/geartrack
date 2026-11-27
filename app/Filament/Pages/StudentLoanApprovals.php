@@ -9,6 +9,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Url;
 use UnitEnum;
 
 class StudentLoanApprovals extends Page
@@ -28,6 +29,9 @@ class StudentLoanApprovals extends Page
     /** @var array<int, string> */
     public array $reviewNotes = [];
 
+    #[Url(as: 'request')]
+    public ?int $focusedRequestId = null;
+
     public static function getNavigationBadge(): ?string
     {
         $pending = StudentLoanRequest::query()->where('status', 'pending')->count();
@@ -45,6 +49,7 @@ class StudentLoanApprovals extends Page
         return [
             'requests' => StudentLoanRequest::query()
                 ->with(['items', 'loan', 'reviewer'])
+                ->when($this->focusedRequestId, fn ($query) => $query->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$this->focusedRequestId]))
                 ->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
                 ->latest()
                 ->paginate(20),
@@ -65,7 +70,11 @@ class StudentLoanApprovals extends Page
             return;
         }
 
-        Notification::make()->title('Peminjaman disetujui')->body('Transaksi '.$loan->code.' sudah masuk ke menu Peminjaman.')->success()->send();
+        Notification::make()
+            ->title('Peminjaman disetujui')
+            ->body('Transaksi '.$loan->code.' sudah masuk ke menu Peminjaman. '.$reviewer->name.' tercatat sebagai penanggung jawab.')
+            ->success()
+            ->send();
     }
 
     public function reject(int $requestId, StudentLoanRequestService $service): void

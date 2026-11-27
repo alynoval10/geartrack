@@ -17,7 +17,11 @@
                     default => 'Menunggu Persetujuan',
                 };
             @endphp
-            <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-900">
+            <article id="pengajuan-{{ $loanRequest->id }}" @class([
+                'rounded-xl border bg-white p-5 shadow-sm dark:bg-gray-900',
+                'border-primary-500 ring-2 ring-primary-200 dark:border-primary-400 dark:ring-primary-400/20' => $focusedRequestId === $loanRequest->id,
+                'border-gray-200 dark:border-white/10' => $focusedRequestId !== $loanRequest->id,
+            ])>
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
