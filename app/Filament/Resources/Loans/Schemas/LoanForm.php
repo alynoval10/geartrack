@@ -171,6 +171,7 @@ class LoanForm
                             ->label('Scan QR Perangkat')
                             ->icon('heroicon-o-qr-code')
                             ->color('info')
+                            ->extraAttributes(['data-loan-asset-scanner-action' => 'true'])
                             ->modalHeading('Scan QR Perangkat yang Dipinjam')
                             ->modalDescription('Pindai satu atau beberapa label QR secara berurutan. Perangkat yang berhasil dipindai akan ditambahkan ke formulir.')
                             ->modalContent(fn () => view('filament.resources.loans.loan-qr-scanner'))

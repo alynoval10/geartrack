@@ -143,6 +143,7 @@ export const initializeBorrowerScanner = (root) => {
 
         if (event.detail.success) {
             await stopCamera().catch(() => {});
+            openLoanAssetScanner();
         }
 
         refreshControls();
@@ -152,6 +153,28 @@ export const initializeBorrowerScanner = (root) => {
 
     showStatus(blocked || 'Aktifkan kamera, lalu scan QR siswa.', blocked ? false : null);
     refreshControls();
+};
+
+const openLoanAssetScanner = () => {
+    let attempts = 0;
+
+    const clickScannerAction = () => {
+        const scannerAction = document.querySelector('[data-loan-asset-scanner-action="true"]');
+
+        if (scannerAction && !scannerAction.disabled) {
+            scannerAction.click();
+
+            return;
+        }
+
+        attempts += 1;
+
+        if (attempts < 20) {
+            window.setTimeout(clickScannerAction, 100);
+        }
+    };
+
+    window.setTimeout(clickScannerAction, 100);
 };
 
 const initializeBorrowerScanners = () => {

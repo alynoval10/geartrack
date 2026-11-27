@@ -58,7 +58,6 @@ class CreateLoan extends CreateRecord
 
         $this->dispatch('loan-borrower-scan-result', success: true, message: $borrower->name.' — '.$borrower->class_level.' '.$borrower->class_name.' berhasil dipilih.');
         $this->unmountAction();
-        $this->mountAction('scanLoanAssets');
     }
 
     public function mount(): void
