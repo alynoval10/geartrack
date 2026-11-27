@@ -97,6 +97,43 @@ class ListBorrowers extends ListRecords
                         'class_name' => $data['scope'] === 'class' ? $data['class_name'] : null,
                     ], fn (mixed $value): bool => filled($value))));
                 }),
+            Action::make('printStudentLogins')
+                ->label('Cetak Akun Login Siswa')
+                ->icon('heroicon-o-identification')
+                ->color('gray')
+                ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false)
+                ->modalHeading('Cetak Akun Login Siswa')
+                ->modalDescription('Cetak daftar nama dan NIS sebagai username untuk siswa aktif pada tahun ajaran berjalan. Kata sandi saat ini tidak ditampilkan.')
+                ->modalSubmitActionLabel('Tampilkan Daftar')
+                ->form([
+                    Select::make('class_level')
+                        ->label('Tingkat')
+                        ->options(Borrower::LEVELS)
+                        ->required()
+                        ->live(),
+                    ToggleButtons::make('scope')
+                        ->label('Cakupan')
+                        ->options([
+                            'level' => 'Semua Rombel pada Tingkat Ini',
+                            'class' => 'Satu Rombel',
+                        ])
+                        ->default('level')
+                        ->inline()
+                        ->live()
+                        ->required(),
+                    Select::make('class_name')
+                        ->label('Kelas / Rombel')
+                        ->options(fn (Get $get): array => self::activeStudentClasses($get('class_level')))
+                        ->searchable()
+                        ->visible(fn (Get $get): bool => $get('scope') === 'class')
+                        ->required(fn (Get $get): bool => $get('scope') === 'class'),
+                ])
+                ->action(function (array $data, Action $action): void {
+                    $action->redirect(route('borrowers.student-logins', array_filter([
+                        'level' => $data['class_level'],
+                        'class_name' => $data['scope'] === 'class' ? $data['class_name'] : null,
+                    ], fn (mixed $value): bool => filled($value))));
+                }),
             Action::make('import')
                 ->label('Impor Data')
                 ->icon('heroicon-o-arrow-up-tray')

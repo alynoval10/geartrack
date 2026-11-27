@@ -58,6 +58,10 @@ Route::get('/student-qr/print', [BorrowerQrController::class, 'printGroup'])
     ->middleware('auth')
     ->name('borrowers.qr-cards');
 
+Route::get('/student-logins/print', [BorrowerQrController::class, 'printLogins'])
+    ->middleware('auth')
+    ->name('borrowers.student-logins');
+
 Route::get('/student-qr/{token}', [BorrowerQrController::class, 'show'])
     ->middleware('auth')
     ->name('borrowers.qr-card');

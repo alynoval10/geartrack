@@ -6,6 +6,7 @@ use Database\Factories\BorrowerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -72,5 +73,10 @@ class Borrower extends Model
     public function loans(): HasMany
     {
         return $this->hasMany(Loan::class);
+    }
+
+    public function studentAccount(): HasOne
+    {
+        return $this->hasOne(StudentAccount::class, 'nis', 'nis');
     }
 }

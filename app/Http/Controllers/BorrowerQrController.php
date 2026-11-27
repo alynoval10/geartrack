@@ -73,4 +73,37 @@ class BorrowerQrController extends Controller
             'backUrl' => route('filament.admin.resources.borrowers.index'),
         ]);
     }
+
+    public function printLogins(Request $request): View
+    {
+        abort_unless($request->user()?->isAdmin(), 403);
+
+        $data = $request->validate([
+            'level' => ['required', 'string', 'in:X,XI,XII'],
+            'class_name' => ['nullable', 'string', 'max:100'],
+        ]);
+        $academicYear = SchoolSetting::query()->value('academic_year');
+        $className = filled($data['class_name'] ?? null) ? $data['class_name'] : null;
+        $borrowers = blank($academicYear)
+            ? collect()
+            : Borrower::query()
+                ->with('studentAccount')
+                ->where('type', 'student')
+                ->where('is_active', true)
+                ->where('academic_year', $academicYear)
+                ->where('class_level', $data['level'])
+                ->when($className, fn ($query) => $query->where('class_name', $className))
+                ->orderBy('class_name')
+                ->orderBy('name')
+                ->get();
+
+        return view('borrowers.student-logins', [
+            'borrowers' => $borrowers,
+            'schoolName' => SchoolSetting::query()->value('school_name'),
+            'academicYear' => $academicYear,
+            'classLevel' => $data['level'],
+            'className' => $className,
+            'loginUrl' => route('filament.admin.auth.login'),
+        ]);
+    }
 }
