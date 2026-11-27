@@ -11,7 +11,9 @@ use App\Models\StudentAccount;
 use App\Models\StudentLoanRequest;
 use App\Models\User;
 use Filament\Actions\Action;
+use Filament\Notifications\DatabaseNotification;
 use Filament\Notifications\Notification;
+use Illuminate\Notifications\DatabaseNotification as DatabaseNotificationModel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -155,6 +157,8 @@ class StudentLoanRequestService
                 'review_notes' => null,
             ]);
 
+            $this->removeRequestNotifications($lockedRequest->id);
+
             return $loan;
         });
     }
@@ -174,6 +178,16 @@ class StudentLoanRequestService
                 'status' => 'rejected',
                 'review_notes' => $reason,
             ]);
+
+            $this->removeRequestNotifications($lockedRequest->id);
         });
+    }
+
+    private function removeRequestNotifications(int $requestId): void
+    {
+        DatabaseNotificationModel::query()
+            ->where('type', DatabaseNotification::class)
+            ->where('data->actions->0->eventData->requestId', $requestId)
+            ->delete();
     }
 }
