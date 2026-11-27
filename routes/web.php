@@ -15,10 +15,31 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\QrScannerController;
 use App\Http\Controllers\SchoolSettingController;
 use App\Http\Controllers\SessionActivityController;
+use App\Http\Controllers\StudentAuthController;
+use App\Http\Controllers\StudentPortalController;
 use App\Http\Middleware\EnforceIdleSession;
+use App\Http\Middleware\EnsureStudentPasswordChanged;
 use App\Http\Middleware\RequirePasswordChange;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
+
+Route::prefix('siswa')->name('student.')->group(function (): void {
+    Route::get('/login', [StudentAuthController::class, 'create'])->name('login');
+    Route::post('/login', [StudentAuthController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('login.store');
+
+    Route::middleware('auth:student')->group(function (): void {
+        Route::post('/logout', [StudentAuthController::class, 'destroy'])->name('logout');
+
+        Route::middleware(EnsureStudentPasswordChanged::class)->group(function (): void {
+            Route::get('/', [StudentPortalController::class, 'index'])->name('dashboard');
+            Route::post('/loan-requests', [StudentPortalController::class, 'submitLoanRequest'])->name('loan-requests.store');
+            Route::get('/password', [StudentAuthController::class, 'editPassword'])->name('password.edit');
+            Route::post('/password', [StudentAuthController::class, 'updatePassword'])->name('password.update');
+        });
+    });
+});
 
 Route::get('/setup', [InitialAdminSetupController::class, 'create'])
     ->name('initial-admin.setup');

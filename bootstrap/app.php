@@ -14,7 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(prepend: [CoordinateBackups::class]);
-        $middleware->redirectGuestsTo(fn (): string => route('filament.admin.auth.login'));
+        $middleware->redirectGuestsTo(fn (Request $request): string => $request->is('siswa*')
+            ? route('student.login')
+            : route('filament.admin.auth.login'));
         $middleware->trustProxies(
             headers: Request::HEADER_X_FORWARDED_PROTO,
         );

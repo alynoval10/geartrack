@@ -3,17 +3,21 @@
 namespace App\Filament\Resources\Borrowers\Tables;
 
 use App\Models\Borrower;
+use App\Models\SchoolSetting;
+use App\Models\StudentAccount;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Hash;
 
 class BorrowersTable
 {
@@ -82,6 +86,29 @@ class BorrowersTable
                     ->url(fn (Borrower $record): string => route('borrowers.qr-card', ['token' => $record->qr_token]))
                     ->openUrlInNewTab()
                     ->visible(fn (Borrower $record): bool => $record->type === 'student' && filled($record->qr_token)),
+                Action::make('resetStudentPassword')
+                    ->label('Atur Ulang Kata Sandi')
+                    ->icon(Heroicon::OutlinedKey)
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Atur ulang kata sandi siswa?')
+                    ->modalDescription('Kata sandi akan diatur kembali sama dengan NIS dan siswa wajib menggantinya saat masuk.')
+                    ->action(function (Borrower $record): void {
+                        $account = StudentAccount::query()->firstOrCreate(
+                            ['nis' => $record->nis],
+                            ['password' => Hash::make($record->nis), 'must_change_password' => true],
+                        );
+                        $account->forceFill([
+                            'password' => Hash::make($record->nis),
+                            'must_change_password' => true,
+                        ])->save();
+
+                        Notification::make()->title('Kata sandi siswa diatur ulang')->success()->send();
+                    })
+                    ->visible(fn (Borrower $record): bool => $record->type === 'student'
+                        && $record->is_active
+                        && filled($record->nis)
+                        && $record->academic_year === SchoolSetting::query()->value('academic_year')),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -94,7 +121,8 @@ class BorrowersTable
                         ->modalHeading('Aktifkan data peminjam terpilih?')
                         ->action(fn (Collection $records) => Borrower::query()
                             ->whereKey($records->modelKeys())
-                            ->update(['is_active' => true]))
+                            ->get()
+                            ->each(fn (Borrower $borrower) => $borrower->update(['is_active' => true])))
                         ->successNotificationTitle('Data peminjam berhasil diaktifkan')
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('deactivate')
