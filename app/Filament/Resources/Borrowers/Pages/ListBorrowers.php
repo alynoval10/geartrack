@@ -16,7 +16,6 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 
 class ListBorrowers extends ListRecords
@@ -92,10 +91,12 @@ class ListBorrowers extends ListRecords
                         ->required(fn (Get $get): bool => $get('scope') === 'class')
                         ->helperText('Daftar hanya memuat rombel dengan siswa aktif pada tahun ajaran berjalan.'),
                 ])
-                ->action(fn (array $data): RedirectResponse => redirect()->route('borrowers.qr-cards', array_filter([
-                    'level' => $data['class_level'],
-                    'class_name' => $data['scope'] === 'class' ? $data['class_name'] : null,
-                ], fn (mixed $value): bool => filled($value)))),
+                ->action(function (array $data, Action $action): void {
+                    $action->redirect(route('borrowers.qr-cards', array_filter([
+                        'level' => $data['class_level'],
+                        'class_name' => $data['scope'] === 'class' ? $data['class_name'] : null,
+                    ], fn (mixed $value): bool => filled($value))));
+                }),
             Action::make('import')
                 ->label('Impor Data')
                 ->icon('heroicon-o-arrow-up-tray')
