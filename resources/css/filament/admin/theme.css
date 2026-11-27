@@ -338,7 +338,13 @@
 
     border: 1px solid var(--gt-border);
 
-    cursor: not-allowed;
+    cursor: pointer;
+}
+
+.gt-button-secondary:hover {
+    border-color: #0369a1;
+    color: #0369a1;
+    transform: translateY(-1px);
 }
 
 .gt-coming-soon {

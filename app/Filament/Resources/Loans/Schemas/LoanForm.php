@@ -107,6 +107,7 @@ class LoanForm
                     DatePicker::make('due_date')->label('Batas Pengembalian')->default(today()->addDays(7))->minDate(today())->required(),
                     ToggleButtons::make('purpose_template')
                         ->label('Saran Keperluan')
+                        ->default('Praktikum pembelajaran')
                         ->options([
                             'Praktikum pembelajaran' => 'Praktikum pembelajaran',
                             'Kegiatan ujian kompetensi' => 'Kegiatan ujian kompetensi',
@@ -125,6 +126,7 @@ class LoanForm
                         }),
                     Textarea::make('purpose')
                         ->label('Keperluan')
+                        ->default('Praktikum pembelajaran')
                         ->required()
                         ->maxLength(5000)
                         ->helperText('Pilih template di atas atau tulis keperluan secara manual.')
@@ -170,10 +172,10 @@ class LoanForm
                             ->icon('heroicon-o-qr-code')
                             ->color('info')
                             ->modalHeading('Scan QR Perangkat yang Dipinjam')
-                            ->modalDescription('Scan satu label QR. Jika berhasil, perangkat ditambahkan dan formulir peminjaman terbuka kembali.')
+                            ->modalDescription('Pindai satu atau beberapa label QR secara berurutan. Perangkat yang berhasil dipindai akan ditambahkan ke formulir.')
                             ->modalContent(fn () => view('filament.resources.loans.loan-qr-scanner'))
                             ->modalSubmitAction(false)
-                            ->modalCancelActionLabel('Selesai'),
+                            ->modalCancelActionLabel('Tutup'),
                     ])
                         ->key('loanAssetScannerActions')
                         ->columnSpanFull()

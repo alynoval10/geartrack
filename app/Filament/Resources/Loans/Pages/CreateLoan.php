@@ -58,6 +58,7 @@ class CreateLoan extends CreateRecord
 
         $this->dispatch('loan-borrower-scan-result', success: true, message: $borrower->name.' — '.$borrower->class_level.' '.$borrower->class_name.' berhasil dipilih.');
         $this->unmountAction();
+        $this->mountAction('scanLoanAssets');
     }
 
     public function mount(): void
@@ -132,8 +133,6 @@ class CreateLoan extends CreateRecord
             $asset->asset_code.' — '.$asset->name.' ditambahkan. Total '.count($this->data['asset_ids']).' perangkat.'
         );
 
-        // Tutup pemindai hanya setelah perangkat valid masuk ke pilihan; kegagalan tetap ditampilkan di dalam modal.
-        $this->unmountAction();
     }
 
     private function sendScanResult(bool $success, string $message): void

@@ -42,6 +42,6 @@
     </label>
 
     <p class="text-xs leading-5 text-gray-500 dark:text-gray-400">
-        Jika berhasil, pemindai ditutup otomatis dan perangkat muncul pada formulir peminjaman. Jika perangkat sudah dipilih atau sedang tidak tersedia, pesan akan ditampilkan di sini.
+        Setiap perangkat yang berhasil dipindai akan ditambahkan ke formulir. Pemindai tetap terbuka untuk perangkat berikutnya; pilih Tutup jika sudah selesai.
     </p>
 </div>

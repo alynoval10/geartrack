@@ -35,6 +35,23 @@
                 Scan QR
             </a>
 
+            <a
+                href="{{ \\App\\Filament\\Resources\\Loans\\LoanResource::getUrl('create') }}"
+                class="gt-button gt-button-secondary"
+            >
+                <x-heroicon-o-plus style="width:18px;height:18px;" />
+                Tambah Peminjaman
+            </a>
+
+            <button
+                type="button"
+                wire:click="mountAction('scanLoanReturn')"
+                class="gt-button gt-button-secondary"
+            >
+                <x-heroicon-o-qr-code style="width:18px;height:18px;" />
+                Scan Pengembalian
+            </button>
+
         </div>
 
     </div>

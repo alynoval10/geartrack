@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Login;
 use App\Filament\Resources\AssetDisposals\Pages\CreateAssetDisposal;
 use App\Filament\Resources\Assets\Pages\CreateAsset;
@@ -95,7 +96,7 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 // Muat pemindai sebelum modal dibuka agar tombol kamera selalu memiliki pengendali JavaScript.
                 fn (): string => Blade::render('@vite(\'resources/js/loan-scanner.js\')'),
-                [CreateLoan::class, ListLoans::class],
+                [Dashboard::class, CreateLoan::class, ListLoans::class],
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
