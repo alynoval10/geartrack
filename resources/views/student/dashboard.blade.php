@@ -23,6 +23,7 @@
                             <button class="student-button student-button-secondary" type="button" data-student-scan-toggle aria-expanded="false">
                                 Scan QR Barang
                             </button>
+                            <div class="student-selected-assets" data-student-selected-assets hidden aria-live="polite"></div>
                             <p class="student-scan-count" data-student-asset-count>{{ count(old('asset_ids', [])) }} barang dipilih</p>
                             <p class="student-scan-status" data-student-scan-status role="status" aria-live="polite">Kamera akan tertutup otomatis setelah setiap barang berhasil dipindai.</p>
                             <div class="student-scan-panel" data-student-scan-panel hidden>

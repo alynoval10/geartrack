@@ -12,13 +12,14 @@ const initializeStudentAssetScanner = (root) => {
     const reader = root.querySelector('.student-scan-reader');
     const status = root.querySelector('[data-student-scan-status]');
     const count = root.querySelector('[data-student-asset-count]');
+    const selectedAssets = root.querySelector('[data-student-selected-assets]');
     const startButton = root.querySelector('[data-student-scan-start]');
     const stopButton = root.querySelector('[data-student-scan-stop]');
     const fileInput = root.querySelector('[data-student-scan-file]');
     const assetSelect = document.querySelector('#asset_ids');
     const scanUrl = root.dataset.scanUrl;
 
-    if (!panel || !toggleButton || !reader || !status || !count || !startButton || !stopButton || !fileInput || !assetSelect || !scanUrl) {
+    if (!panel || !toggleButton || !reader || !status || !count || !selectedAssets || !startButton || !stopButton || !fileInput || !assetSelect || !scanUrl) {
         return;
     }
 
@@ -31,7 +32,33 @@ const initializeStudentAssetScanner = (root) => {
     const selectedCount = () => Array.from(assetSelect.options).filter((option) => option.selected).length;
 
     const updateCount = () => {
-        count.textContent = `${selectedCount()} barang dipilih`;
+        const total = selectedCount();
+        count.textContent = `${total} barang dipilih`;
+        selectedAssets.hidden = total === 0;
+        selectedAssets.replaceChildren();
+
+        Array.from(assetSelect.options)
+            .filter((option) => option.selected)
+            .forEach((option) => {
+                const chip = document.createElement('span');
+                chip.className = 'student-selected-chip';
+
+                const label = document.createElement('span');
+                label.textContent = option.textContent;
+
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.textContent = '×';
+                removeButton.setAttribute('aria-label', `Hapus pilihan ${option.textContent}`);
+                removeButton.addEventListener('click', () => {
+                    option.selected = false;
+                    assetSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    updateCount();
+                });
+
+                chip.append(label, removeButton);
+                selectedAssets.append(chip);
+            });
     };
 
     const showStatus = (message, state = '') => {

@@ -53,6 +53,13 @@
         .student-status-rejected { background: #fee2e2; color: #991b1b; }
         .student-error { margin: 0; color: #b91c1c; font-size: 12px; }
         .student-scan-panel { display: grid; gap: 10px; margin-top: 12px; padding: 12px; border: 1px solid #dbe2ea; border-radius: 12px; background: #f8fafc; }
+        .student-selected-assets { display: flex; flex-wrap: wrap; gap: 6px; min-height: 42px; padding: 7px; border: 1px solid #cbd5e1; border-radius: 10px; background: white; }
+        .student-selected-assets[hidden] { display: none; }
+        .student-selected-chip { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; min-height: 28px; padding: 4px 7px 4px 9px; border: 1px solid #bae6fd; border-radius: 7px; background: #f0f9ff; color: #075985; font-size: 12px; line-height: 1.35; }
+        .student-selected-chip span { overflow-wrap: anywhere; }
+        .student-selected-chip button { display: grid; flex: 0 0 18px; place-items: center; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #64748b; font-size: 16px; line-height: 1; cursor: pointer; }
+        .student-selected-chip button:hover { background: #dbeafe; color: #0c4a6e; }
+        .student-scan-count { margin: 0; color: #64748b; font-size: 12px; }
         .student-scan-reader { width: 100%; max-width: 420px; margin: 0 auto; overflow: hidden; border-radius: 8px; background: #0f172a; }
         .student-scan-reader video { width: 100% !important; }
         .student-scan-status { margin: 0; color: #475569; font-size: 13px; line-height: 1.5; }
