@@ -23,9 +23,10 @@
                             <button class="student-button student-button-secondary" type="button" data-student-scan-toggle aria-expanded="false">
                                 Scan QR Barang
                             </button>
+                            <p class="student-scan-count" data-student-asset-count>{{ count(old('asset_ids', [])) }} barang dipilih</p>
+                            <p class="student-scan-status" data-student-scan-status role="status" aria-live="polite">Kamera akan tertutup otomatis setelah setiap barang berhasil dipindai.</p>
                             <div class="student-scan-panel" data-student-scan-panel hidden>
                                 <div class="student-scan-reader" id="student-asset-scan-reader"></div>
-                                <p class="student-scan-status" data-student-scan-status role="status" aria-live="polite">Arahkan kamera ke QR aset GearTrack.</p>
                                 <div class="student-scan-actions">
                                     <button class="student-button" type="button" data-student-scan-start>Aktifkan Kamera</button>
                                     <button class="student-button student-button-secondary" type="button" data-student-scan-stop hidden>Hentikan Kamera</button>
@@ -36,14 +37,12 @@
                                 </div>
                             </div>
                         </div>
-                        <select id="asset_ids" name="asset_ids[]" multiple required size="10">
-                            @forelse ($assets as $asset)
+                        <select id="asset_ids" name="asset_ids[]" multiple hidden>
+                            @foreach ($assets as $asset)
                                 <option value="{{ $asset['id'] }}" @selected(in_array((string) $asset['id'], old('asset_ids', []), true))>{{ $asset['label'] }}{{ $asset['details'] ? ' · '.$asset['details'] : '' }}</option>
-                            @empty
-                                <option disabled>Tidak ada perangkat yang tersedia saat ini.</option>
-                            @endforelse
+                            @endforeach
                         </select>
-                        <p class="student-help">Scan QR barang untuk menambahkannya otomatis, atau pilih beberapa barang secara manual. Pilihan keduanya bisa digabung.</p>
+                        <p class="student-help">Scan barang satu per satu. Kamera akan tertutup setelah setiap pemindaian; tekan tombol scan lagi untuk menambahkan barang berikutnya.</p>
                         @error('asset_ids') <p class="student-error">{{ $message }}</p> @enderror
                     </div>
                     <div class="student-field">
@@ -56,7 +55,7 @@
                         <input id="due_date" name="due_date" type="date" min="{{ today()->toDateString() }}" value="{{ old('due_date', $defaultDueDate) }}" required>
                         @error('due_date') <p class="student-error">{{ $message }}</p> @enderror
                     </div>
-                    <button class="student-button" type="submit" @disabled($assets->isEmpty())>Kirim untuk Persetujuan</button>
+                    <button class="student-button" type="submit">Kirim untuk Persetujuan</button>
                 </form>
             </div>
         </section>

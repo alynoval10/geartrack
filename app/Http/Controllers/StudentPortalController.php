@@ -21,14 +21,22 @@ class StudentPortalController extends Controller
         $borrower = $account->currentBorrower();
         abort_unless($borrower, 403, 'Data siswa tidak aktif pada tahun ajaran berjalan.');
 
-        $assets = $eligibleAssets->query()
-            ->orderBy('asset_code')
-            ->get()
-            ->map(fn (Asset $asset): array => [
-                'id' => $asset->id,
-                'label' => $asset->asset_code.' — '.$asset->name,
-                'details' => collect([$asset->category?->name, $asset->location?->fullName()])->filter()->implode(' · '),
-            ]);
+        $selectedAssetIds = collect(old('asset_ids', []))
+            ->filter(fn (mixed $id): bool => filter_var($id, FILTER_VALIDATE_INT) !== false)
+            ->map(fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values();
+        $assets = $selectedAssetIds->isEmpty()
+            ? collect()
+            : $eligibleAssets->query()
+                ->whereIn('id', $selectedAssetIds)
+                ->orderBy('asset_code')
+                ->get()
+                ->map(fn (Asset $asset): array => [
+                    'id' => $asset->id,
+                    'label' => $asset->asset_code.' — '.$asset->name,
+                    'details' => collect([$asset->category?->name, $asset->location?->fullName()])->filter()->implode(' · '),
+                ]);
 
         return view('student.dashboard', [
             'account' => $account,

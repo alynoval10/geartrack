@@ -11,27 +11,28 @@ const initializeStudentAssetScanner = (root) => {
     const toggleButton = root.querySelector('[data-student-scan-toggle]');
     const reader = root.querySelector('.student-scan-reader');
     const status = root.querySelector('[data-student-scan-status]');
+    const count = root.querySelector('[data-student-asset-count]');
     const startButton = root.querySelector('[data-student-scan-start]');
     const stopButton = root.querySelector('[data-student-scan-stop]');
     const fileInput = root.querySelector('[data-student-scan-file]');
     const assetSelect = document.querySelector('#asset_ids');
     const scanUrl = root.dataset.scanUrl;
 
-    if (!panel || !toggleButton || !reader || !status || !startButton || !stopButton || !fileInput || !assetSelect || !scanUrl) {
+    if (!panel || !toggleButton || !reader || !status || !count || !startButton || !stopButton || !fileInput || !assetSelect || !scanUrl) {
         return;
-    }
-
-    if (!reader.id) {
-        reader.id = `student-asset-reader-${crypto.randomUUID()}`;
     }
 
     const scanner = new Html5Qrcode(reader.id);
     const blocked = cameraBlockReason(window.isSecureContext, navigator.mediaDevices);
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     let busy = false;
-    let lastToken = null;
-    let lastScannedAt = 0;
     root.dataset.initialized = 'true';
+
+    const selectedCount = () => Array.from(assetSelect.options).filter((option) => option.selected).length;
+
+    const updateCount = () => {
+        count.textContent = `${selectedCount()} barang dipilih`;
+    };
 
     const showStatus = (message, state = '') => {
         status.textContent = message;
@@ -54,34 +55,30 @@ const initializeStudentAssetScanner = (root) => {
         refreshControls();
     };
 
-    const addAsset = async (decodedText) => {
+    const closeAfterOneScan = async () => {
+        try {
+            await stopCamera();
+        } catch (error) {
+            showStatus(cameraErrorMessage(error), 'error');
+        } finally {
+            panel.hidden = true;
+            toggleButton.textContent = 'Scan QR Barang';
+            toggleButton.setAttribute('aria-expanded', 'false');
+        }
+    };
+
+    const processQr = async (decodedText) => {
         if (busy) {
             return;
         }
 
-        let token;
-
-        try {
-            token = extractAssetQrToken(decodedText);
-        } catch {
-            showStatus('QR tidak dikenali sebagai label aset GearTrack.', 'error');
-
-            return;
-        }
-
-        const now = Date.now();
-
-        if (token === lastToken && now - lastScannedAt < 1800) {
-            return;
-        }
-
-        lastToken = token;
-        lastScannedAt = now;
         busy = true;
         refreshControls();
         showStatus('Memeriksa ketersediaan barang…');
 
         try {
+            const token = extractAssetQrToken(decodedText);
+
             const response = await fetch(scanUrl, {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -99,50 +96,36 @@ const initializeStudentAssetScanner = (root) => {
             }
 
             const existingOption = Array.from(assetSelect.options).find((option) => option.value === String(result.id));
+            const wasSelected = existingOption?.selected ?? false;
 
             if (existingOption) {
                 existingOption.selected = true;
-                assetSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                showStatus(`${result.label} sudah ada dan dipilih.`, 'success');
+            } else {
+                if (selectedCount() >= 100) {
+                    throw new Error('Maksimal 100 barang dalam satu pengajuan.');
+                }
 
-                return;
+                assetSelect.add(new Option(result.label, String(result.id), true, true));
             }
 
-            const selectedCount = Array.from(assetSelect.options).filter((option) => option.selected).length;
-
-            if (selectedCount >= 100) {
-                throw new Error('Maksimal 100 barang dalam satu pengajuan. Hapus pilihan sebelum memindai barang lain.');
-            }
-
-            const option = new Option(result.label, String(result.id), true, true);
-            assetSelect.add(option);
             assetSelect.dispatchEvent(new Event('change', { bubbles: true }));
-            showStatus(result.message, 'success');
+            updateCount();
+            showStatus(wasSelected ? 'Barang tersebut sudah ada dalam pengajuan.' : `${result.message} Total ${selectedCount()} barang.`, 'success');
         } catch (error) {
             showStatus(error instanceof Error ? error.message : 'Barang gagal ditambahkan. Silakan coba lagi.', 'error');
         } finally {
+            await closeAfterOneScan();
             busy = false;
             refreshControls();
         }
     };
 
-    toggleButton.addEventListener('click', async () => {
-        const isOpening = panel.hidden;
-        panel.hidden = !isOpening;
-        toggleButton.setAttribute('aria-expanded', String(isOpening));
-
-        if (!isOpening) {
-            try {
-                await stopCamera();
-                showStatus('Pemindai ditutup. Pilihan barang yang sudah masuk tetap tersimpan.');
-            } catch (error) {
-                showStatus(cameraErrorMessage(error), 'error');
-            }
-        }
-    });
-
-    startButton.addEventListener('click', async () => {
+    const startCamera = async () => {
         if (busy || blocked || scanner.isScanning) {
+            if (blocked) {
+                showStatus(blocked, 'error');
+            }
+
             return;
         }
 
@@ -151,28 +134,38 @@ const initializeStudentAssetScanner = (root) => {
         showStatus('Meminta izin kamera…');
 
         try {
-            await startLiveCamera(scanner, () => Html5Qrcode.getCameras(), addAsset);
-            showStatus('Kamera aktif. Arahkan ke QR barang; pemindai siap membaca barang berikutnya.');
+            await startLiveCamera(scanner, () => Html5Qrcode.getCameras(), processQr);
+            showStatus('Kamera aktif. Arahkan ke QR barang yang akan dipinjam.');
         } catch (error) {
             showStatus(cameraErrorMessage(error), 'error');
         } finally {
             busy = false;
             refreshControls();
         }
+    };
+
+    toggleButton.addEventListener('click', async () => {
+        if (panel.hidden) {
+            panel.hidden = false;
+            toggleButton.textContent = 'Tutup Pemindai';
+            toggleButton.setAttribute('aria-expanded', 'true');
+            await startCamera();
+
+            return;
+        }
+
+        await closeAfterOneScan();
+        showStatus('Pemindai ditutup. Barang yang sudah dipindai tetap dipilih.');
     });
 
-    stopButton.addEventListener('click', async () => {
-        busy = true;
-        refreshControls();
+    startButton.addEventListener('click', startCamera);
 
+    stopButton.addEventListener('click', async () => {
         try {
-            await stopCamera();
-            showStatus('Kamera dihentikan. Pilihan barang yang sudah masuk tetap tersimpan.');
+            await closeAfterOneScan();
+            showStatus('Kamera dihentikan. Barang yang sudah dipindai tetap dipilih.');
         } catch (error) {
             showStatus(cameraErrorMessage(error), 'error');
-        } finally {
-            busy = false;
-            refreshControls();
         }
     });
 
@@ -191,9 +184,10 @@ const initializeStudentAssetScanner = (root) => {
             await stopCamera();
             const decodedText = await scanner.scanFile(file, true);
             busy = false;
-            await addAsset(decodedText);
+            await processQr(decodedText);
         } catch (error) {
-            showStatus(error instanceof Error ? error.message : 'QR tidak ditemukan pada foto. Coba foto lebih dekat.', 'error');
+            await closeAfterOneScan();
+            showStatus(error instanceof Error ? error.message : 'QR tidak ditemukan pada foto. Ambil foto lebih dekat.', 'error');
         } finally {
             fileInput.value = '';
             busy = false;
@@ -207,13 +201,12 @@ const initializeStudentAssetScanner = (root) => {
         showStatus(blocked, 'error');
     }
 
+    updateCount();
     refreshControls();
 };
 
-const initializeStudentAssetScanners = () => {
+document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-student-asset-scanner]').forEach(initializeStudentAssetScanner);
-};
+});
 
-document.addEventListener('DOMContentLoaded', initializeStudentAssetScanners);
-document.addEventListener('livewire:navigated', initializeStudentAssetScanners);
-initializeStudentAssetScanners();
+initializeStudentAssetScanner(document.querySelector('[data-student-asset-scanner]'));
