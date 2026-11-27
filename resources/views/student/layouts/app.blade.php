@@ -52,6 +52,16 @@
         .student-status-approved { background: #dcfce7; color: #166534; }
         .student-status-rejected { background: #fee2e2; color: #991b1b; }
         .student-error { margin: 0; color: #b91c1c; font-size: 12px; }
+        .student-scan-panel { display: grid; gap: 10px; margin-top: 12px; padding: 12px; border: 1px solid #dbe2ea; border-radius: 12px; background: #f8fafc; }
+        .student-scan-reader { width: 100%; max-width: 420px; margin: 0 auto; overflow: hidden; border-radius: 8px; background: #0f172a; }
+        .student-scan-reader video { width: 100% !important; }
+        .student-scan-status { margin: 0; color: #475569; font-size: 13px; line-height: 1.5; }
+        .student-scan-status[data-state="error"] { color: #b91c1c; }
+        .student-scan-status[data-state="success"] { color: #047857; }
+        .student-scan-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .student-scan-actions [hidden] { display: none; }
+        .student-scan-file-label { position: relative; overflow: hidden; }
+        .student-scan-file-label input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
         @media (max-width: 760px) { .student-shell { width: min(100% - 22px, 560px); padding-top: 14px; } .student-topbar { align-items: flex-start; flex-direction: column; } .student-nav { justify-content: flex-start; } .student-grid { grid-template-columns: 1fr; } .student-card-body { padding: 18px; } }
     </style>
 </head>
@@ -89,5 +99,6 @@
 
         @yield('content')
     </main>
+    @stack('scripts')
 </body>
 </html>

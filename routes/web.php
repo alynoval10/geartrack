@@ -34,6 +34,9 @@ Route::prefix('siswa')->name('student.')->group(function (): void {
 
         Route::middleware(EnsureStudentPasswordChanged::class)->group(function (): void {
             Route::get('/', [StudentPortalController::class, 'index'])->name('dashboard');
+            Route::post('/scan-asset', [StudentPortalController::class, 'scanAsset'])
+                ->middleware('throttle:60,1')
+                ->name('assets.scan');
             Route::post('/loan-requests', [StudentPortalController::class, 'submitLoanRequest'])->name('loan-requests.store');
             Route::get('/password', [StudentAuthController::class, 'editPassword'])->name('password.edit');
             Route::post('/password', [StudentAuthController::class, 'updatePassword'])->name('password.update');

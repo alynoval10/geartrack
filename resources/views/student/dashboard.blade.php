@@ -19,6 +19,23 @@
                     @csrf
                     <div class="student-field">
                         <label for="asset_ids">Perangkat yang diminta</label>
+                        <div data-student-asset-scanner data-scan-url="{{ route('student.assets.scan') }}">
+                            <button class="student-button student-button-secondary" type="button" data-student-scan-toggle aria-expanded="false">
+                                Scan QR Barang
+                            </button>
+                            <div class="student-scan-panel" data-student-scan-panel hidden>
+                                <div class="student-scan-reader" id="student-asset-scan-reader"></div>
+                                <p class="student-scan-status" data-student-scan-status role="status" aria-live="polite">Arahkan kamera ke QR aset GearTrack.</p>
+                                <div class="student-scan-actions">
+                                    <button class="student-button" type="button" data-student-scan-start>Aktifkan Kamera</button>
+                                    <button class="student-button student-button-secondary" type="button" data-student-scan-stop hidden>Hentikan Kamera</button>
+                                    <label class="student-button student-button-secondary student-scan-file-label">
+                                        Scan dari Foto
+                                        <input type="file" data-student-scan-file accept="image/*" capture="environment">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                         <select id="asset_ids" name="asset_ids[]" multiple required size="10">
                             @forelse ($assets as $asset)
                                 <option value="{{ $asset['id'] }}" @selected(in_array((string) $asset['id'], old('asset_ids', []), true))>{{ $asset['label'] }}{{ $asset['details'] ? ' · '.$asset['details'] : '' }}</option>
@@ -26,7 +43,7 @@
                                 <option disabled>Tidak ada perangkat yang tersedia saat ini.</option>
                             @endforelse
                         </select>
-                        <p class="student-help">Pilih beberapa perangkat dengan menekan Ctrl (Windows) atau Command (Mac) sambil mengeklik.</p>
+                        <p class="student-help">Scan QR barang untuk menambahkannya otomatis, atau pilih beberapa barang secara manual. Pilihan keduanya bisa digabung.</p>
                         @error('asset_ids') <p class="student-error">{{ $message }}</p> @enderror
                     </div>
                     <div class="student-field">
@@ -108,3 +125,7 @@
         </div>
     </section>
 @endsection
+
+@push('scripts')
+    @vite('resources/js/student-asset-scanner.js')
+@endpush

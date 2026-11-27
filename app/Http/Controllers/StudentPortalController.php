@@ -6,6 +6,7 @@ use App\Models\Asset;
 use App\Models\StudentLoanRequest;
 use App\Services\LoanAssetEligibility;
 use App\Services\StudentLoanRequestService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -68,5 +69,25 @@ class StudentPortalController extends Controller
         $service->submit($account, $borrower, $validated);
 
         return redirect()->route('student.dashboard')->with('status', 'Permintaan peminjaman dikirim dan menunggu persetujuan guru atau administrator.');
+    }
+
+    public function scanAsset(Request $request, LoanAssetEligibility $eligibleAssets): JsonResponse
+    {
+        $validated = $request->validate([
+            'token' => ['required', 'string', 'max:100'],
+        ]);
+        $asset = $eligibleAssets->findByQrToken($validated['token']);
+
+        if (! $asset) {
+            return response()->json([
+                'message' => 'Aset tidak ditemukan atau saat ini tidak tersedia untuk diajukan.',
+            ], 422);
+        }
+
+        return response()->json([
+            'id' => $asset->id,
+            'label' => $eligibleAssets->label($asset),
+            'message' => $asset->asset_code.' berhasil ditambahkan ke pilihan perangkat.',
+        ]);
     }
 }
