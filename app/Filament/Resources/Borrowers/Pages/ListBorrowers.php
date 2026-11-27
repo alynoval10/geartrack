@@ -11,9 +11,12 @@ use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 
 class ListBorrowers extends ListRecords
@@ -56,6 +59,43 @@ class ListBorrowers extends ListRecords
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('gray')
                 ->url(route('borrowers.template')),
+            Action::make('printStudentQrs')
+                ->label('Cetak QR Siswa')
+                ->icon('heroicon-o-qr-code')
+                ->color('gray')
+                ->modalHeading('Cetak QR Siswa per Tingkat atau Rombel')
+                ->modalDescription(fn (): string => filled($academicYear = SchoolSetting::query()->value('academic_year'))
+                    ? "QR dibuat untuk siswa aktif tahun ajaran {$academicYear}."
+                    : 'Tahun ajaran aktif belum diatur. Atur tahun ajaran di Pengaturan Sekolah sebelum mencetak QR siswa.')
+                ->modalSubmitActionLabel('Tampilkan QR')
+                ->form([
+                    Select::make('class_level')
+                        ->label('Tingkat')
+                        ->options(Borrower::LEVELS)
+                        ->required()
+                        ->live(),
+                    ToggleButtons::make('scope')
+                        ->label('Cakupan')
+                        ->options([
+                            'level' => 'Semua Rombel pada Tingkat Ini',
+                            'class' => 'Satu Rombel',
+                        ])
+                        ->default('level')
+                        ->inline()
+                        ->live()
+                        ->required(),
+                    Select::make('class_name')
+                        ->label('Kelas / Rombel')
+                        ->options(fn (Get $get): array => self::activeStudentClasses($get('class_level')))
+                        ->searchable()
+                        ->visible(fn (Get $get): bool => $get('scope') === 'class')
+                        ->required(fn (Get $get): bool => $get('scope') === 'class')
+                        ->helperText('Daftar hanya memuat rombel dengan siswa aktif pada tahun ajaran berjalan.'),
+                ])
+                ->action(fn (array $data): RedirectResponse => redirect()->route('borrowers.qr-cards', array_filter([
+                    'level' => $data['class_level'],
+                    'class_name' => $data['scope'] === 'class' ? $data['class_name'] : null,
+                ], fn (mixed $value): bool => filled($value)))),
             Action::make('import')
                 ->label('Impor Data')
                 ->icon('heroicon-o-arrow-up-tray')
@@ -101,6 +141,27 @@ class ListBorrowers extends ListRecords
             ->distinct()
             ->orderBy('academic_year')
             ->pluck('academic_year', 'academic_year')
+            ->all();
+    }
+
+    /** @return array<string, string> */
+    private static function activeStudentClasses(?string $classLevel): array
+    {
+        $academicYear = SchoolSetting::query()->value('academic_year');
+
+        if (blank($academicYear) || ! array_key_exists($classLevel ?? '', Borrower::LEVELS)) {
+            return [];
+        }
+
+        return Borrower::query()
+            ->where('type', 'student')
+            ->where('is_active', true)
+            ->where('academic_year', $academicYear)
+            ->where('class_level', $classLevel)
+            ->whereNotNull('class_name')
+            ->distinct()
+            ->orderBy('class_name')
+            ->pluck('class_name', 'class_name')
             ->all();
     }
 }

@@ -33,6 +33,10 @@ Route::get('/borrowers/template', [BorrowerImportController::class, 'template'])
     ->middleware('auth')
     ->name('borrowers.template');
 
+Route::get('/student-qr/print', [BorrowerQrController::class, 'printGroup'])
+    ->middleware('auth')
+    ->name('borrowers.qr-cards');
+
 Route::get('/student-qr/{token}', [BorrowerQrController::class, 'show'])
     ->middleware('auth')
     ->name('borrowers.qr-card');
