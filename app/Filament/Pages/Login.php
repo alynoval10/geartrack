@@ -5,12 +5,15 @@ namespace App\Filament\Pages;
 use App\Models\Borrower;
 use App\Models\SchoolSetting;
 use App\Models\StudentAccount;
+use App\Models\StudentLoanRequest;
 use App\Models\User;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use Filament\Actions\Action;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Auth\Pages\Login as BaseLogin;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -60,6 +63,25 @@ class Login extends BaseLogin
     private function authenticateStaff(array $data): ?LoginResponse
     {
         $response = parent::authenticate();
+
+        if ($response && Filament::auth()->user() instanceof User) {
+            $pendingRequests = StudentLoanRequest::query()->where('status', 'pending')->count();
+
+            if ($pendingRequests > 0) {
+                Notification::make()
+                    ->title('Pengajuan peminjaman menunggu persetujuan')
+                    ->body("Ada {$pendingRequests} pengajuan siswa yang perlu ditinjau.")
+                    ->warning()
+                    ->persistent()
+                    ->actions([
+                        Action::make('viewPendingRequests')
+                            ->label('Buka Persetujuan')
+                            ->button()
+                            ->url(StudentLoanApprovals::getUrl()),
+                    ])
+                    ->send();
+            }
+        }
 
         if ($response && ! Filament::auth()->user()?->must_change_password) {
             $intendedUrl = session()->get('url.intended');
