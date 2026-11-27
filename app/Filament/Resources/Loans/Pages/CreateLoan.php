@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Loans\Pages;
 
 use App\Filament\Resources\Loans\LoanResource;
 use App\Models\Asset;
+use App\Models\Borrower;
+use App\Models\SchoolSetting;
 use App\Services\LoanAssetEligibility;
 use App\Services\LoanService;
 use Filament\Notifications\Notification;
@@ -16,6 +18,47 @@ use Livewire\Attributes\On;
 class CreateLoan extends CreateRecord
 {
     protected static string $resource = LoanResource::class;
+
+    #[On('loan-borrower-scanned')]
+    public function selectScannedBorrower(string $token): void
+    {
+        if (! Str::isUuid($token)) {
+            $this->dispatch('loan-borrower-scan-result', success: false, message: 'QR tidak dikenali sebagai kartu siswa GearTrack.');
+
+            return;
+        }
+
+        $academicYear = SchoolSetting::query()->value('academic_year');
+
+        if (blank($academicYear)) {
+            $this->dispatch('loan-borrower-scan-result', success: false, message: 'Tahun ajaran aktif belum diatur. Atur tahun ajaran di Pengaturan Sekolah terlebih dahulu.');
+
+            return;
+        }
+
+        $borrower = Borrower::query()
+            ->where('type', 'student')
+            ->where('qr_token', $token)
+            ->where('is_active', true)
+            ->where('academic_year', $academicYear)
+            ->whereNotNull('nis')
+            ->where('nis', '!=', '')
+            ->first();
+
+        if (! $borrower) {
+            $this->dispatch('loan-borrower-scan-result', success: false, message: 'Data siswa tidak aktif atau tidak termasuk tahun ajaran aktif.');
+
+            return;
+        }
+
+        $this->data['borrower_type'] = 'student';
+        $this->data['borrower_level'] = $borrower->class_level;
+        $this->data['borrower_class'] = $borrower->class_name;
+        $this->data['borrower_id'] = $borrower->id;
+
+        $this->dispatch('loan-borrower-scan-result', success: true, message: $borrower->name.' — '.$borrower->class_level.' '.$borrower->class_name.' berhasil dipilih.');
+        $this->unmountAction();
+    }
 
     public function mount(): void
     {

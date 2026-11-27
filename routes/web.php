@@ -7,6 +7,7 @@ use App\Http\Controllers\AssetQrController;
 use App\Http\Controllers\AssetTransferDocumentController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BorrowerImportController;
+use App\Http\Controllers\BorrowerQrController;
 use App\Http\Controllers\InitialAdminSetupController;
 use App\Http\Controllers\InventoryReportController;
 use App\Http\Controllers\LocationLabelController;
@@ -31,6 +32,10 @@ Route::get('/reports/export', InventoryReportController::class)->middleware('aut
 Route::get('/borrowers/template', [BorrowerImportController::class, 'template'])
     ->middleware('auth')
     ->name('borrowers.template');
+
+Route::get('/student-qr/{token}', [BorrowerQrController::class, 'show'])
+    ->middleware('auth')
+    ->name('borrowers.qr-card');
 
 Route::get('/locations/{location}/label', LocationLabelController::class)
     ->middleware('auth')

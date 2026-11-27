@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Borrowers\Tables;
 
 use App\Models\Borrower;
+use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -74,6 +75,13 @@ class BorrowersTable
                         ->all()),
             ])
             ->recordActions([
+                Action::make('printQr')
+                    ->label('Cetak QR')
+                    ->icon(Heroicon::OutlinedQrCode)
+                    ->color('info')
+                    ->url(fn (Borrower $record): string => route('borrowers.qr-card', ['token' => $record->qr_token]))
+                    ->openUrlInNewTab()
+                    ->visible(fn (Borrower $record): bool => $record->type === 'student' && filled($record->qr_token)),
                 EditAction::make(),
             ])
             ->toolbarActions([

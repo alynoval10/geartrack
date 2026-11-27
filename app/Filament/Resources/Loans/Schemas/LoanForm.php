@@ -26,6 +26,19 @@ class LoanForm
             Section::make('Data Peminjam')
                 ->description('Tentukan peminjam dan guru yang bertanggung jawab atas transaksi ini.')
                 ->schema([
+                    Actions::make([
+                        Action::make('scanBorrowerQr')
+                            ->label('Scan QR Siswa')
+                            ->icon('heroicon-o-qr-code')
+                            ->color('info')
+                            ->modalHeading('Scan QR Siswa')
+                            ->modalDescription('Pindai kartu QR siswa untuk mengisi identitas peminjam secara otomatis.')
+                            ->modalContent(fn () => view('filament.resources.loans.borrower-qr-scanner'))
+                            ->modalSubmitAction(false)
+                            ->modalCancelActionLabel('Tutup'),
+                    ])
+                        ->key('loanBorrowerScannerActions')
+                        ->columnSpanFull(),
                     Select::make('borrower_type')
                         ->label('Jenis Peminjam')
                         ->options(Borrower::TYPES)
