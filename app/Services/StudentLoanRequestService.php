@@ -187,7 +187,7 @@ class StudentLoanRequestService
     {
         DatabaseNotificationModel::query()
             ->where('type', DatabaseNotification::class)
-            ->where('data->actions->0->eventData->requestId', $requestId)
+            ->where('data->actions[0]->eventData->requestId', $requestId)
             ->delete();
     }
 }
